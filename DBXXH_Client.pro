@@ -73,7 +73,7 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-LIBS += -L$$PWD/fftw-3.3.5-dll64/ -llibfftw3-3
+#LIBS += -L$$PWD/fftw-3.3.5-dll64/ -llibfftw3-3
 LIBS += -lOpengl32
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/QCustomPlot/ -lqcustomplot2
@@ -82,5 +82,4 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/QCustomPlot/ -lqcustomp
 TRANSLATIONS += \
     client_cn.ts
 
-RESOURCES += \
-    Resource.qrc
+RESOURCES +=

@@ -1,6 +1,4 @@
 <RCC>
     <qresource prefix="/translation"/>
-    <qresource prefix="/">
-        <file>client_cn.qm</file>
-    </qresource>
+    <qresource prefix="/"/>
 </RCC>

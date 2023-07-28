@@ -59,7 +59,8 @@ void CAudioMonitorThread::run()
     auto io = out->start();
     io->open(QIODevice::ReadWrite);
     auto size = out->bufferSize();
-    auto buffer = std::make_shared<char[]>(size);
+    auto tmp = new char[size];
+    auto buffer = std::shared_ptr<char[]>(tmp);
     while (!m_bStop)
     {
         m_audioBuffer->open(QIODevice::ReadWrite);
@@ -82,4 +83,9 @@ void CAudioMonitorThread::run()
         m_audioBuffer->close();
     }
     io->close();
+}
+
+void CAudioMonitorThread::OnstateChanged(QAudio::State)
+{
+
 }
