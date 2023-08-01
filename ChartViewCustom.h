@@ -3,14 +3,13 @@
 
 #include "global.h"
 #include "QCustomPlot/qcustomplot.h"
-
 #include <QTimer>
 
 class ChartViewCustom: public QCustomPlot
 {
     Q_OBJECT
 public:
-    ChartViewCustom(QString, QString, QString, QWidget* = nullptr);
+    ChartViewCustom(QString, QString, QString, QWidget* = nullptr, int = REFRESH_INTERVAL);
     void xCenterChanged(double, double);
     void yCenterChanged(double, double);
     void setAxisxMin(double);
@@ -24,12 +23,8 @@ protected:
     double yMin = MIN_AMPL, yMax = MAX_AMPL;
 
 private:
-    void UpdateRuler(QMouseEvent *);
-    void UpdateTracer(QMouseEvent *);
-    QCPItemTracer* tracer;
     QTimer* m_updater;
-    bool isPress = false;
-    static constexpr int TIME_INTERVAL = 100;
+    static constexpr int REFRESH_INTERVAL = 100;
 };
 
 #endif // CHARTVIEWCUSTOM_H

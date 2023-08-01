@@ -12,5 +12,6 @@ PARAMETER_SET g_parameter_set = {
     .SmMode = 0,
     .LmMode = 0,
     .LmVal = 0,
-    .RcvMode = 0
+    .RcvMode = 0,
+    .tinyConfig = TinyConfig()
 };

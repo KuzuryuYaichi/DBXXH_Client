@@ -15,8 +15,8 @@ class Model: public QMainWindow
 public:
     Model(QWidget *parent = nullptr);
     ~Model();
-    void showDataCX(char* const);
-    void showDataZC(char* const, const QDateTime&);
+    void showDataCX(unsigned char* const);
+    void showDataZC(unsigned char* const, const QDateTime&);
     static QDateTime timeConvert(unsigned long long);
 signals:
     void updatetime(QString);
@@ -29,16 +29,10 @@ private:
     SqlWidget* m_sqlWidget;
     QTabWidget* m_tabWidget;
     QString m_statusList;
-
-    unsigned long long start_freq_Hz;
-    unsigned long long stop_freq_Hz;
-
     QStatusBar *statusBar;
-    TcpSocket *m_socket;
-
     std::thread processThread;
+    std::shared_ptr<TcpSocket> m_socket;
     bool isRunning = true;
-    threadsafe_queue<std::shared_ptr<char[]>> spsc_queue;
     std::shared_ptr<FixedThreadPool> pool;
 };
 

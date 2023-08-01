@@ -42,6 +42,12 @@ public:
         data_cond.notify_one();
     }
 
+    void push(value_type&& new_value) {
+        std::lock_guard<std::mutex> lk(mut);
+        data_queue.push(std::move(new_value));
+        data_cond.notify_one();
+    }
+
     value_type wait_and_pop() {
         std::unique_lock<std::mutex> lk(mut);
         data_cond.wait(lk, [this] { return !data_queue.empty() || !isRunning; });

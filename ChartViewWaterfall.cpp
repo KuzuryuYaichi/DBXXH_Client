@@ -1,7 +1,7 @@
 #include "ChartViewWaterfall.h"
 
 ChartViewWaterfall::ChartViewWaterfall(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, QString Y_title, int AXISY_MIN, int AXISY_MAX, QWidget* parent):
-    ChartViewCustom(title, X_title, Y_title, parent),  points(WATERFALL_DEPTH)
+    ChartViewCustom(title, X_title, Y_title, parent, REFRESH_INTERVAL), points(WATERFALL_DEPTH)
 {
     m_pColorMap = new QCPColorMap(xAxis, yAxis);
     m_pColorMap->data()->setValueSize(WATERFALL_DEPTH);
@@ -9,89 +9,106 @@ ChartViewWaterfall::ChartViewWaterfall(QString title, QString X_title, int AXISX
     m_pColorMap->setGradient(QCPColorGradient::gpJet);
     m_pColorMap->rescaleDataRange(true);
     rescaleAxes();
+
+    connect(this, &QCustomPlot::mouseMove, this, [this](QMouseEvent *event) {
+        double key, value;
+        m_pColorMap->pixelsToCoords(event->position(), key, value);
+        auto data = m_pColorMap->data()->data(key, value);
+        QToolTip::showText(event->globalPosition().toPoint(), QString("%1MHz, %2dBm").arg(key, 0,  'f', DECIMALS_PRECISION).arg(data));
+        replot();
+    });
 }
 
-void ChartViewWaterfall::RegenerateParams(long long StartFreq, long long StopFreq, int DataPoint)
+void ChartViewWaterfall::RegenerateParams(long long StartFreq, long long StopFreq, size_t DataPoint)
 {
-    if (xLength != DataPoint)
+    m_pColorMap->data()->setKeyRange(QCPRange(xMin = StartFreq / 1e6, xMax = StopFreq / 1e6));
+    if (points.front().size() != DataPoint)
     {
         for (auto iter = points.begin(); iter != points.end(); ++iter)
         {
-            *iter = std::vector<double>(DataPoint);
+            *iter = std::vector<short>(DataPoint, MIN_AMPL_WATERFALL);
         }
-        m_pColorMap->data()->setKeySize(DataPoint);
-        m_pColorMap->data()->setKeyRange(QCPRange(xMin = StartFreq / 1e3, xMax = StopFreq / 1e3));
-        xLength = DataPoint;
+    }
+    if (pointsAnalyze.size() != DataPoint)
+    {
+        pointsAnalyze.assign(DataPoint, MIN_AMPL_WATERFALL);
     }
 }
 
-void ChartViewWaterfall::addFrame(unsigned char* amplData, int DataPoint)
+void ChartViewWaterfall::analyzeFrame(unsigned char* amplData, size_t DataPoint)
 {
-    auto vec = std::move(points.front());
-    points.pop_front();
-    for (int i = 0; i < DataPoint; ++i)
+//    if (pointsAnalyze.size() != DataPoint)
     {
-        vec[i] = (short)amplData[i] + AMPL_OFFSET;
+        pointsAnalyze.assign(DataPoint, MIN_AMPL_WATERFALL);
     }
-    points.emplace_back(std::move(vec));
+    for (auto i = 0ull; i < DataPoint; ++i)
+    {
+        pointsAnalyze[i] = std::max((short)((short)amplData[i] + AMPL_OFFSET), pointsAnalyze[i]);
+    }
 }
 
-void ChartViewWaterfall::addFrame(StructSweepRangeDirectionData* dataRangeDirection, int DataPoint)
+void ChartViewWaterfall::analyzeFrame(StructSweepRangeDirectionData* dataRangeDirection, size_t DataPoint)
 {
-    auto vec = std::move(points.front());
-    points.pop_front();
-    for (int i = 0; i < DataPoint; ++i)
+//    if (pointsAnalyze.size() != DataPoint)
     {
-        vec[i] = (short)dataRangeDirection[i].Range + AMPL_OFFSET;
+        pointsAnalyze.assign(DataPoint, MIN_AMPL_WATERFALL);
     }
-    points.emplace_back(std::move(vec));
+    for (auto i = 0ull; i < DataPoint; ++i)
+    {
+        pointsAnalyze[i] = std::max((short)((short)dataRangeDirection[i].Range + AMPL_OFFSET), pointsAnalyze[i]);
+    }
 }
 
-void ChartViewWaterfall::replace(char* const buf)
+void ChartViewWaterfall::UpdateAnalyzeDataByCell()
 {
-    auto head = (DataHead*)buf;
-    switch (head->PackType)
-    {
-    case 0x515:
-    {
-        auto param = (StructFixedCXResult*)(buf + sizeof(DataHead));
-        auto DataPoint = param->DataPoint;
-        RegenerateParams(param->CenterFreq - HALF_BAND_WIDTH_KHZ, param->CenterFreq + HALF_BAND_WIDTH_KHZ, DataPoint);
-        const auto GROUP_LENGTH = sizeof(long long) + (sizeof(char) + sizeof(short)) * DataPoint;
-        auto data = buf + sizeof(DataHead) + sizeof(StructFixedCXResult);
-        for (int g = 0; g < param->CXGroupNum; ++g)
-        {
-            auto amplData = (unsigned char*)(data + sizeof(long long));
-            addFrame(amplData, DataPoint);
-            data += GROUP_LENGTH;
-        }
-        break;
-    }
-    case 0x513:
-    {
-        auto param = (StructSweepCXResult*)(buf + sizeof(DataHead));
-        auto DataPoint = param->CXResultPoint;
-        RegenerateParams(param->StartFreq, param->StopFreq, DataPoint);
-        auto timeStruct = (StructSweepTimeData*)(buf + sizeof(DataHead) + sizeof(StructSweepCXResult));
-        auto dataRangeDirection = (StructSweepRangeDirectionData*)(timeStruct + param->TimeNum);
-        addFrame(dataRangeDirection, DataPoint);
-        break;
-    }
-    default: return;
-    }
-
     if (!ready)
         return;
     ready = false;
+    auto DataPoint = points.front().size();
+    m_pColorMap->data()->setKeySize(DataPoint);
     int y = 0;
     for (auto iter = points.begin(); iter != points.end(); ++iter, ++y)
     {
-        for (auto x = 0; x < xLength; ++x)
+        for (size_t x = 0; x < DataPoint; ++x)
         {
             m_pColorMap->data()->setCell(x, y, (*iter)[x]);
         }
     }
     m_pColorMap->rescaleDataRange(true);
-    rescaleAxes();
     replot(QCustomPlot::rpQueuedReplot);
+}
+
+void ChartViewWaterfall::replace(unsigned char* const buf)
+{
+    auto head = (DataHead*)buf;
+    switch (head->PackType)
+    {
+    case 0x503:
+    {
+        auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
+        auto DataPoint = param->DataPoint;
+        RegenerateParams(param->StartFreq, param->StopFreq, DataPoint);
+        const auto GROUP_LENGTH = sizeof(long long) + (sizeof(char) + sizeof(short)) * DataPoint;
+        auto data = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
+//        for (int g = 0; g < param->CXGroupNum; ++g)
+        {
+            auto amplData = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
+            analyzeFrame(amplData, DataPoint);
+            data += GROUP_LENGTH;
+        }
+        break;
+    }
+    default: return;
+    }
+    if (readyData)
+    {
+        readyData = false;
+        points.pop_front();
+        points.emplace_back(std::move(pointsAnalyze));
+        std::thread([this] {
+            std::this_thread::sleep_for(std::chrono::milliseconds(REFRESH_INTERVAL));
+            readyData = true;
+        }).detach();
+    }
+    UpdateAnalyzeDataByCell();
 }

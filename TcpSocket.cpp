@@ -1,186 +1,243 @@
-﻿#include "TcpSocket.h"
+#include "TcpSocket.h"
 
-#include "global.h"
-#include "ThreadSafeQueue.h"
-#include <QHostAddress>
+#include <iostream>
 #include "StructNetData.h"
 #include "global.h"
 
 extern PARAMETER_SET g_parameter_set;
 
-TcpSocket::TcpSocket(threadsafe_queue<std::shared_ptr<char[]>>& spsc_queue, QObject *parent): QTcpSocket(parent), spsc_queue(spsc_queue)
+TcpSocket::TcpSocket(): spsc_queue(isRunning), write_queue(isRunning), socket(ioService)
 {
-    setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, SOCK_OPT);
-    setReadBufferSize(SOCK_OPT);
-    connect(this, &QTcpSocket::readyRead, this, [this] {
-        while (bytesAvailable())
-        {
-            if (bytesAvailable() < sizeof(DataHead))
-                return;
-            auto peek_data = peek(sizeof(DataHead));
-            auto head = (DataHead*)peek_data.data();
-            auto block_size = head->PackLen;
-            if (bytesAvailable() < block_size)
-                return;
-//            auto data = std::make_shared<char[]>(block_size);
-            auto tmp = new char[block_size];
-            auto data = std::shared_ptr<char[]>(tmp);
-            unsigned int count = 0;
-            while (count < block_size)
-            {
-                auto nbytes = read(data.get() + count, block_size - count);
-                if (nbytes <= 0)
-                    return;
-                count += nbytes;
-            }
-            this->spsc_queue.push(data);
-        }
-    });
+    ReInitSocket();
+}
 
-    connect(this, &TcpSocket::sendTcpMessage, this, [this](QByteArray ba) {
-        write(ba.data(), ba.length());
-        ++task_id;
-    });
+TcpSocket::~TcpSocket()
+{
+    isRunning = false;
+    write_queue.clean();
+    if (read_thread.joinable())
+        read_thread.join();
+    if (write_thread.joinable())
+        write_thread.join();
+}
 
-    connect(this, &QTcpSocket::disconnected, this, [this]
+void TcpSocket::ReInitSocket()
+{
+    socket = boost::asio::ip::tcp::socket(ioService);
+    boost::system::error_code err_code;
+    socket.set_option(boost::asio::socket_base::send_buffer_size(4 * 1024 * 1024), err_code);
+}
+
+bool TcpSocket::IsConnected()
+{
+    return isRunning;
+}
+
+void TcpSocket::StartWork()
+{
+    read_thread = std::thread([this]
     {
-        emit sendSocketStatus(tr("Server Disconnected"));
-        m_timer = new QTimer();
-        m_timer->setInterval(3000);
-        m_timer->setSingleShot(false);
-        connect(m_timer, &QTimer::timeout, this, [this] {
-            connectToHost(QHostAddress(m_addr), m_port);
-            if(!waitForConnected(200)) {
-                emit sendSocketStatus(tr("Try to Reconnect To Server..."));
-            } else {
-                m_timer->stop();
-                m_timer->deleteLater();
-                emit sendSocketStatus(tr("Connected To Server"));
-            }
-        });
-        m_timer->start();
+        while (isRunning)
+        {
+            read();
+        }
+        std::cout << "Read Thread Exit" << std::endl;
+        write_queue.clean();
+    });
+
+    write_thread = std::thread([this]
+    {
+        while (isRunning)
+        {
+            write();
+        }
+        std::cout << "Write Thread Exit" << std::endl;
     });
 }
 
-void TcpSocket::self_check(const uint mode)
+void TcpSocket::read()
+{
+    try
+    {
+        DataHead head;
+        boost::system::error_code ec;
+        size_t left = sizeof(DataHead), offset = 0;
+        while (left > 0)
+        {
+            auto bytes_transferred = boost::asio::read(socket, boost::asio::buffer((char*)&head + offset, left), ec);
+            if (ec.failed())
+            {
+                std::cout << "Read Failed: " << ec.what() << std::endl;
+                isRunning = false;
+                return;
+            }
+            left -= bytes_transferred;
+            offset += bytes_transferred;
+        }
+        left = head.PackLen - sizeof(DataHead), offset = sizeof(DataHead);
+        // auto data = std::make_shared<char[]>(block_size);
+        auto tmp = new unsigned char[head.PackLen];
+        *(DataHead*)tmp = head;
+        auto data = std::shared_ptr<unsigned char[]>(tmp);
+        while (left > 0)
+        {
+            auto bytes_transferred = boost::asio::read(socket, boost::asio::buffer(data.get() + offset, left), ec);
+            if (ec.failed())
+            {
+                std::cout << "Read Failed: " << ec.what() << std::endl;
+                isRunning = false;
+                return;
+            }
+            left -= bytes_transferred;
+            offset += bytes_transferred;
+        }
+        spsc_queue.push(data);
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Read Exception:" << e.what() << std::endl;
+        isRunning = false;
+    }
+}
+
+void TcpSocket::write(std::unique_ptr<NetCmdData> data)
+{
+    write_queue.push(std::move(data));
+}
+
+void TcpSocket::write()
+{
+    try
+    {
+        auto data = write_queue.wait_and_pop();
+        if (!isRunning)
+            return;
+        boost::system::error_code ec;
+        size_t left = data->len, offset = 0;
+        while (left > 0)
+        {
+            auto bytes_transferred = boost::asio::write(socket, boost::asio::buffer(data->data + offset, left), ec);
+            if (ec.failed())
+            {
+                std::cout << "Write Failed: " << ec.what() << std::endl;
+                isRunning = false;
+                return;
+            }
+            left -= bytes_transferred;
+            offset += bytes_transferred;
+        }
+    }
+    catch (const std::exception& e)
+    {
+        std::cout << "Write Exception: " << e.what() << std::endl;
+        isRunning = false;
+    }
+}
+
+void TcpSocket::self_check(const unsigned int mode)
 {
     char tmp[100];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0201;SCheck:%d\r\n", task_id, mode);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::work_ctrl(const uint mode)
+void TcpSocket::work_ctrl(const unsigned int mode)
 {
     char tmp[100];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0202;WorkCtrl:%d\r\n", task_id, mode);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
 void TcpSocket::parameter_set()
 {
-    char tmp[200];
+    char tmp[250];
     std::sprintf(tmp, "Task:%ud;Sta:2;Type:0203;Data:%ud;Detect:%ud;FreqRes:%f;SimBW:%ud;GMode:%u;MGC:%d;AGC:%d;SmNum:%ud;SmMode:%ud;LmMode:%ud;LmVal:%ud;RcvMode:%ud\r\n",
-            task_id, g_parameter_set.Data, g_parameter_set.Detect, g_parameter_set.FreqRes, g_parameter_set.SimBW, g_parameter_set.GMode, g_parameter_set.MGC,
-            g_parameter_set.AGC, g_parameter_set.SmNum, g_parameter_set.SmMode, g_parameter_set.LmMode, g_parameter_set.LmVal, g_parameter_set.RcvMode);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+                 task_id, g_parameter_set.Data, g_parameter_set.Detect, g_parameter_set.FreqRes, g_parameter_set.SimBW, g_parameter_set.GMode, g_parameter_set.MGC,
+                 g_parameter_set.AGC, g_parameter_set.SmNum, g_parameter_set.SmMode, g_parameter_set.LmMode, g_parameter_set.LmVal, g_parameter_set.RcvMode);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::broad_band(const uint act, uint freq_Hz)
+void TcpSocket::broad_band(const unsigned int act, unsigned int freq_Hz)
 {
     char tmp[100];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0206;Act:%d;CFreq:%d;CTime:10\r\n", task_id, act, freq_Hz);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::narrow_band(const uint act, uint freq_Hz)
+void TcpSocket::narrow_band(const unsigned int act, unsigned int freq_Hz)
 {
     char tmp[100];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0205;Act:%d;DFreq:%d\r\n", task_id, act, freq_Hz);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::sweep(const uint act, uint sFreq_Hz, uint eFreq_Hz)
+void TcpSocket::sweep(const unsigned int act, unsigned int sFreq_Hz, unsigned int eFreq_Hz)
 {
     char tmp[100];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0204;Act:%d;SFreq:%d;EFreq:%d\r\n", task_id, act, sFreq_Hz, eFreq_Hz);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::test_channel(const uint act, const uint freq_Hz)
+void TcpSocket::test_channel(const unsigned int act, const unsigned int freq_Hz)
 {
     char tmp[100];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0207;Act:%d;CFreq:%d;Mode:0;Scope:60\r\n", task_id, act, freq_Hz);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::nb_receiver(const uint receiver, const uint freq_Hz)
+void TcpSocket::nb_receiver(const unsigned int receiver, const unsigned int freq_Hz)
 {
     char tmp[200];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0403;RcvNum:%d;Freq:%d;Mod:1;BW:200;GMode:1;MGC:0;SQU:0;ATT:0;Vol:0;AFC:0;RcvMode:0\r\n",
                  task_id, receiver, freq_Hz);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::nb_channel(const uint receiver, const uint channel, const uint freq_Hz, const uint bandwidth)
+void TcpSocket::nb_channel(const unsigned int receiver, const unsigned int channel, const unsigned int freq_Hz, const unsigned int bandwidth)
 {
     char tmp[200];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0411;RcvNum:%d;BankNum:%d;GMode:0;MGC:30;KpTime:2;Sn:1;Freq:%d;DDCBW:%d;DemodType:1;DemodRate:2000;\r\n",
                  task_id, receiver, channel, freq_Hz, bandwidth);
-    QString ss(tmp);
-    QByteArray text;
-    DataHead head(CTRL_TYPE, ss.size() + sizeof(DataHead));
-    text.append((char*)&head, sizeof(DataHead));
-    text.append(ss.toLocal8Bit());
-    emit sendTcpMessage(text);
+    write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::connectToServer(const QString& addr, const unsigned short& port)
+boost::system::error_code TcpSocket::connectToServer(const std::string& addr, const unsigned short port)
 {
-    m_addr = addr;
+    m_addr = std::move(addr);
     m_port = port;
-    connectToHost(QHostAddress(addr), port);
-    if (!waitForConnected(200))
-        emit sendSocketStatus(tr("Failed to Connect To Server"));
-    else
-        emit sendSocketStatus(tr("Connected To Server"));
+    return connectToServer();
+}
+
+boost::system::error_code TcpSocket::connectToServer()
+{
+    boost::system::error_code ec;
+    if (isRunning)
+    {
+        socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
+        if (ec.failed())
+        {
+            std::cout << "socket shutdown error: " << ec.what() << std::endl;
+            return ec;
+        }
+        socket.close(ec);
+        if (ec.failed())
+        {
+            std::cout << "socket close error: " << ec.what() << std::endl;
+            return ec;
+        }
+    }
+    if (read_thread.joinable())
+        read_thread.join();
+    if (write_thread.joinable())
+        write_thread.join();
+    ReInitSocket();
+    socket.connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address_v4::from_string(m_addr), m_port), ec);
+    if (ec.failed())
+    {
+        std::cout << ec.what() << std::endl;
+        return ec;
+    }
+    isRunning = true;
+    StartWork();
+    return ec;
 }

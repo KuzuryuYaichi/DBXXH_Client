@@ -2,7 +2,6 @@
 #define ChartWidget_H
 
 #include <QWidget>
-#include <QChartView>
 #include <QGridLayout>
 #include <QLineEdit>
 #include <QPushButton>
@@ -13,7 +12,6 @@
 #include <QLayout>
 #include <QTableWidget>
 
-#include "global.h"
 #include "TcpSocket.h"
 #include "PointTableWidget.h"
 #include "SideWidget.h"

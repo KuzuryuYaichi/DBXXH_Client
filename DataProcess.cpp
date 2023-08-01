@@ -33,36 +33,36 @@ void DataProcess::ProcessData(std::vector<std::shared_ptr<char[]>> packets)
     if (packets[0] == nullptr)
         return;
     auto buf = packets[0].get();
-    auto param = (StructFixedCXResult*)(buf + sizeof(DataHead));
-    auto CenterFreq = param->CenterFreq;
-    auto Resolution = param->FreqResolution;
-    auto timeData = buf + sizeof(DataHead) + sizeof(StructFixedCXResult);
-    for (auto iter = packets.begin(); iter != packets.end(); ++iter)
-    {
-        if (*iter == nullptr)
-            return;
-        auto buf = iter->get();
-        auto param = (StructFixedCXResult*)(buf + sizeof(DataHead));
-        const auto GROUP_LENGTH = sizeof(long long) + (sizeof(char) + sizeof(short)) * param->DataPoint;
-        auto data = buf + sizeof(DataHead) + sizeof(StructFixedCXResult);
-        if (Resolution != param->FreqResolution || CenterFreq != param->CenterFreq)
-            return;
-        for (int g = 0; g < param->CXGroupNum; ++g)
-        {
-            auto amplData = (unsigned char*)(data + sizeof(long long));
-            auto doaData = (short*)(amplData + param->DataPoint);
-            for (int i = 0; i < param->DataPoint; ++i)
-            {
-                auto range = (short)amplData[i] + AMPL_OFFSET;
-                if (range > m_cxWidget->threshold)
-                {
-                    PushData(i, doaData[i]);
-                }
-            }
-            data += GROUP_LENGTH;
-        }
-    }
-    PopData(CenterFreq - HALF_BAND_WIDTH_KHZ, Resolution, Model::timeConvert(*(unsigned long long*)timeData));
+//    auto param = (StructFixedCXResult*)(buf + sizeof(DataHead));
+//    auto CenterFreq = param->CenterFreq;
+//    auto Resolution = param->FreqResolution;
+//    auto timeData = buf + sizeof(DataHead) + sizeof(StructFixedCXResult);
+//    for (auto iter = packets.begin(); iter != packets.end(); ++iter)
+//    {
+//        if (*iter == nullptr)
+//            return;
+//        auto buf = iter->get();
+//        auto param = (StructFixedCXResult*)(buf + sizeof(DataHead));
+//        const auto GROUP_LENGTH = sizeof(long long) + (sizeof(char) + sizeof(short)) * param->DataPoint;
+//        auto data = buf + sizeof(DataHead) + sizeof(StructFixedCXResult);
+//        if (Resolution != param->FreqResolution || CenterFreq != param->CenterFreq)
+//            return;
+//        for (int g = 0; g < param->CXGroupNum; ++g)
+//        {
+//            auto amplData = (unsigned char*)(data + sizeof(long long));
+//            auto doaData = (short*)(amplData + param->DataPoint);
+//            for (int i = 0; i < param->DataPoint; ++i)
+//            {
+//                auto range = (short)amplData[i] + AMPL_OFFSET;
+//                if (range > m_cxWidget->threshold)
+//                {
+//                    PushData(i, doaData[i]);
+//                }
+//            }
+//            data += GROUP_LENGTH;
+//        }
+//    }
+//    PopData(CenterFreq - HALF_BAND_WIDTH_KHZ, Resolution, Model::timeConvert(*(unsigned long long*)timeData));
 }
 
 void DataProcess::PushData(int freqIndex, short doa)

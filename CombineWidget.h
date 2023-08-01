@@ -9,11 +9,10 @@ class CombineWidget: public QWidget
     Q_OBJECT
 public:
     CombineWidget(QString = "", QString = "", int = 0, int = 0, QString = "", int = 0, int = 0, QWidget* = nullptr);
+    void replace(unsigned char* const);
 
 protected:
-    QWidget* layoutAdjust;
-
-private:
+    QVBoxLayout* mainLayout;
     ChartViewSpectrum* chartSpectrum;
     ChartViewWaterfall* chartWaterfall;
 };

@@ -1,7 +1,8 @@
-QT += widgets core gui multimedia charts network sql printsupport opengl
+QT += widgets core gui multimedia sql printsupport opengl
 
 CONFIG += c++20
 
+DEFINES += QT_DEPRECATED_WARNINGS
 DEFINES += QCUSTOMPLOT_USE_LIBRARY
 DEFINES += QCUSTOMPLOT_USE_OPENGL
 
@@ -15,6 +16,7 @@ SOURCES += \
     ChartViewCustom.cpp \
     ChartViewSpectrum.cpp \
     ChartViewWaterfall.cpp \
+    ChartViewWave.cpp \
     ChartWB.cpp \
     ChartWidget.cpp \
     CombineWidget.cpp \
@@ -23,7 +25,6 @@ SOURCES += \
     HeapMap.cpp \
     Model.cpp \
     PointTableWidget.cpp \
-    SampleRecv.cpp \
     SampleTableWidget.cpp \
     SideWidget.cpp \
     SqlData.cpp \
@@ -43,6 +44,7 @@ HEADERS += \
     ChartViewCustom.h \
     ChartViewSpectrum.h \
     ChartViewWaterfall.h \
+    ChartViewWave.h \
     ChartWB.h \
     ChartWidget.h \
     CombineWidget.h \
@@ -52,7 +54,6 @@ HEADERS += \
     HeapMap.h \
     Model.h \
     PointTableWidget.h \
-    SampleRecv.h \
     SampleTableWidget.h \
     SideWidget.h \
     SqlData.h \
@@ -73,8 +74,9 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-#LIBS += -L$$PWD/fftw-3.3.5-dll64/ -llibfftw3-3
+LIBS += -L$$PWD/fftw-3.3.5-dll64/ -llibfftw3-3
 LIBS += -lOpengl32
+LIBS += -lws2_32
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/QCustomPlot/ -lqcustomplot2
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/QCustomPlot/ -lqcustomplotd2
@@ -82,4 +84,5 @@ else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/QCustomPlot/ -lqcustomp
 TRANSLATIONS += \
     client_cn.ts
 
-RESOURCES +=
+TR_EXCLUDE += $$PWD/boost/*
+TR_EXCLUDE += $$PWD/QCustomPlot/*

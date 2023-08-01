@@ -36,7 +36,7 @@ void ChartWidget::createSettings()
     toolBarLayout->addWidget(clrBtn = new QPushButton(style->standardIcon(QStyle::SP_LineEditClearButton), ""));
 
     statusEdit = new SideWidget(hideBtn, clrBtn);
-    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
+//    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
 
     auto leftLayout = new QGridLayout;
     auto chartLayout = new QHBoxLayout;
@@ -158,10 +158,17 @@ void ChartWidget::createSettings()
     portEdit->setAlignment(Qt::AlignCenter);
     connectLayout->addRow("Server Port:", portEdit);
     auto connectBtn = new QPushButton(tr("Connect"), this);
-    connect(this, &ChartWidget::connectToServer, m_socket, &TcpSocket::connectToServer);
     connect(connectBtn, &QPushButton::clicked, this, [this]
     {
-        emit connectToServer(ipEdit->text(), portEdit->text().toUInt());
+        auto ec = m_socket->connectToServer(ipEdit->text().toStdString(), portEdit->text().toUInt());
+        if (ec.failed())
+        {
+            statusEdit->updateStatus(tr("Failed to Connect To Server: ") + QString::fromLocal8Bit(ec.what()));
+        }
+        else
+        {
+            statusEdit->updateStatus(tr("Connected To Server"));
+        }
     });
     connectLayout->addRow(connectBtn);
 

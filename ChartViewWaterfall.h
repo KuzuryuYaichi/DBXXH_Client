@@ -3,21 +3,27 @@
 
 #include "ChartViewCustom.h"
 #include "StructNetData.h"
+#include <mutex>
 
 class ChartViewWaterfall: public ChartViewCustom
 {
     Q_OBJECT
 public:
     ChartViewWaterfall(QString, QString, int, int, QString, int, int, QWidget* = nullptr);
-    void replace(char* const);
+    void replace(unsigned char* const);
 
 private:
-    void RegenerateParams(long long, long long, int);
-    void addFrame(unsigned char*, int);
-    void addFrame(StructSweepRangeDirectionData*, int);
+    void UpdateAnalyzeDataByCell();
+    void RegenerateParams(long long, long long, size_t);
+    void analyzeFrame(unsigned char*, size_t);
+    void analyzeFrame(StructSweepRangeDirectionData*, size_t);
     QCPColorMap* m_pColorMap;
-    std::list<std::vector<double>> points;
-    int xLength = 0;
+    std::list<std::vector<short>> points;
+    std::vector<short> pointsAnalyze;
+    bool readyData = true;
+
+    static constexpr int REFRESH_INTERVAL = 1000;
+    static constexpr int MIN_AMPL_WATERFALL = -120, MAX_AMPL_WATERFALL = 0;
 };
 
 #endif // CHARTVIEWWATERFALL_H

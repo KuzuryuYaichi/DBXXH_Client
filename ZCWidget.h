@@ -3,8 +3,8 @@
 
 #include <QDoubleSpinBox>
 
-#include "ChartNB.h"
 #include "TcpSocket.h"
+#include "ChartNB.h"
 #include "global.h"
 
 class ZCWidget: public QWidget
@@ -12,11 +12,11 @@ class ZCWidget: public QWidget
     Q_OBJECT
 public:
     explicit ZCWidget(TcpSocket*, QWidget* = nullptr);
-    void FFT_Trans(StructNBWaveZCResult*, int);
+    void replace(unsigned char* const, int);
 
 private:
     TcpSocket *m_socket;
-    ChartNB *freqChart[ZC_NB_CHANNEL_NUM];
+    ChartNB *chartNB[ZC_NB_PAGE_NUMS];
     QGridLayout *mainGridLayout;
 
     QDoubleSpinBox* rfCenterFreq;

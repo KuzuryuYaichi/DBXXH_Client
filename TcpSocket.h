@@ -1,41 +1,55 @@
-﻿#ifndef TCPSOCKET_H
-#define TCPSOCKET_H
+#ifndef TCP_SESSION_H
+#define TCP_SESSION_H
 
-#include <QTcpSocket>
-#include <QTimer>
+#include <memory>
+#include <thread>
+#include <unordered_set>
+#include <mutex>
+#include <string>
+
+#include "StructNetData.h"
 #include "ThreadSafeQueue.h"
+#include "boost/asio.hpp"
 
-class TcpSocket: public QTcpSocket
+class TcpSocket
 {
-    Q_OBJECT
 public:
-    explicit TcpSocket(threadsafe_queue<std::shared_ptr<char[]>>&, QObject* = nullptr);
-    void self_check(const uint);
-    void work_ctrl(const uint);
+    TcpSocket();
+    ~TcpSocket();
+    TcpSocket(const TcpSocket&) = delete;
+    TcpSocket& operator=(const TcpSocket&) = delete;
+    void self_check(const unsigned int);
+    void work_ctrl(const unsigned int);
     void parameter_set();
-    void broad_band(const uint, uint);
-    void narrow_band(const uint, uint);
-    void sweep(const uint, uint, uint);
-    void test_channel(const uint, uint);
-    void nb_receiver(const uint, const uint);
-    void nb_channel(const uint, const uint, const uint, const uint);
+    void broad_band(const unsigned int, unsigned int);
+    void narrow_band(const unsigned int, unsigned int);
+    void sweep(const unsigned int, unsigned int, unsigned int);
+    void test_channel(const unsigned int, unsigned int);
+    void nb_receiver(const unsigned int, const unsigned int);
+    void nb_channel(const unsigned int, const unsigned int, const unsigned int, const unsigned int);
+    boost::system::error_code connectToServer(const std::string&, const unsigned short);
+    boost::system::error_code connectToServer();
+    bool IsConnected();
+    void write(std::unique_ptr<NetCmdData>);
+    threadsafe_queue<std::shared_ptr<unsigned char[]>> spsc_queue;
 
-signals:
-    void sendSocketStatus(QString status);
-    void sendTcpMessage(QByteArray ba);
-
-public slots:
-    void connectToServer(const QString& addr, const unsigned short& port);
+protected:
+    void StartWork();
 
 private:
-    unsigned int task_id = 0;
-    threadsafe_queue<std::shared_ptr<char[]>>& spsc_queue;
-    QTimer* m_timer;
-    QString m_addr;
-    quint16 m_port;
+    bool isRunning = false;
+    void read();
+    void write();
+    void ReInitSocket();
 
-    static constexpr int SOCK_OPT = 1024 * 1024 * 3;
-    static constexpr short CTRL_TYPE = 0x08FE;
+    unsigned int task_id = 0;
+    std::string m_addr;
+    short m_port;
+    threadsafe_queue<std::unique_ptr<NetCmdData>> write_queue;
+    boost::asio::io_service ioService;
+    boost::asio::ip::tcp::socket socket;
+    std::thread read_thread;
+    std::thread write_thread;
 };
 
-#endif // TCPSOCKET_H
+#endif

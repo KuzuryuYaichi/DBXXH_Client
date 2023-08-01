@@ -1,6 +1,10 @@
 #ifndef _STRUCT_NET_COMMON_H
 #define _STRUCT_NET_COMMON_H
 
+#include <string>
+
+static constexpr short CTRL_TYPE = 0x08FE;
+
 #pragma pack(1)
 
 struct DataHead
@@ -16,6 +20,7 @@ struct DataHead
     unsigned short UnUsed = 0xffff;
     unsigned char Security = 4;
 
+    DataHead() = default;
     DataHead(unsigned short PackType, unsigned int PackLen): PackLen(PackLen), PackType(PackType) {}
 };
 
@@ -47,17 +52,6 @@ struct StructNBCXData
     unsigned char Ranges[1];
 };
 
-struct StructFixedCXResult
-{
-    unsigned int Task;
-    long long CenterFreq;
-    float FreqResolution;
-    short CXType = 6;
-    short CXResolution = 1;
-    short CXGroupNum;
-    short DataPoint;
-};
-
 struct StructCXData
 {
     long long StartTime;
@@ -73,6 +67,18 @@ struct StructTestCXResult
     float FreqResolution;
     short CXGroupNum;
     short DataPoint;
+};
+
+struct ParamPowerWB
+{
+    long long Time;
+    float Resolution;
+    int DataPoint;
+    int SamplePoint;
+    short Window;
+    long long StartFreq;
+    long long StopFreq;
+    int ChannelNum;
 };
 
 struct StructTestData
@@ -276,5 +282,28 @@ struct NarrowDDC
 };
 
 #pragma pack()
+
+struct NetCmdData
+{
+    int len = 0;
+    char* data = nullptr;
+
+    NetCmdData(const std::string& str): len(sizeof(DataHead) + str.size())
+    {
+        data = new char[len];
+        if (data == nullptr)
+            return;
+        new (data) DataHead(CTRL_TYPE, len);
+        memcpy(data + sizeof(DataHead), str.data(), str.size());
+    }
+
+    ~NetCmdData()
+    {
+        if (data != nullptr)
+        {
+            delete[] data;
+        }
+    }
+};
 
 #endif // STATUSINFO_H
