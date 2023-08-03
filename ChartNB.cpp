@@ -24,8 +24,8 @@ ChartNB::ChartNB(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, Q
     hBoxLayout->addStretch(1);
     hBoxLayout->addWidget(new QLabel(tr("BW(kHz):")), 1);
     hBoxLayout->addWidget(bandBox = new QComboBox, 2);
-    bandBox->addItem("2.4", 2400);
-    bandBox->addItem("4.8", 4800);
+    bandBox->addItem("0.1", 100);
+    bandBox->addItem("500", 500000);
     bandBox->addItem("9.6", 9600);
     bandBox->addItem("19.2", 19200);
     bandBox->addItem("38.4", 38400);

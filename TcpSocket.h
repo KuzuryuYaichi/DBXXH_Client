@@ -21,9 +21,6 @@ public:
     void self_check(const unsigned int);
     void work_ctrl(const unsigned int);
     void parameter_set();
-    void broad_band(const unsigned int, unsigned int);
-    void narrow_band(const unsigned int, unsigned int);
-    void sweep(const unsigned int, unsigned int, unsigned int);
     void test_channel(const unsigned int, unsigned int);
     void nb_receiver(const unsigned int, const unsigned int);
     void nb_channel(const unsigned int, const unsigned int, const unsigned int, const unsigned int);

@@ -49,17 +49,11 @@ enum workCtrl {
 };
 
 struct PARAMETER_SET {
-    unsigned short Data;
-    unsigned short Detect;
     float FreqRes;
-    unsigned int SimBW;
-    unsigned short GMode;
-    signed short MGC;
-    signed short AGC;
     unsigned short SmNum;
-    unsigned short SmMode;
-    unsigned short LmMode;
-    signed short LmVal;
+    unsigned int SimBW;
+    unsigned int WinType;
+    signed short MGC;
     unsigned short RcvMode;
     TinyConfig tinyConfig;
 };

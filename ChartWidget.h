@@ -52,7 +52,8 @@ private:
 
     QComboBox *freqResBox;
     QComboBox *smoothBox;
-    QComboBox *gainModeBox;
+    QComboBox *simBWBox;
+    QComboBox *windowBox;
 
     QLineEdit *ipEdit;
     QLineEdit *portEdit;

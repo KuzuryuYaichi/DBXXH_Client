@@ -137,51 +137,23 @@ void TcpSocket::write()
 void TcpSocket::self_check(const unsigned int mode)
 {
     char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0201;SCheck:%d\r\n", task_id, mode);
+    std::sprintf(tmp, "Task:%d;Sta:2;Type:0101;SCheck:%d\r\n", task_id, mode);
     write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
 void TcpSocket::work_ctrl(const unsigned int mode)
 {
     char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0202;WorkCtrl:%d\r\n", task_id, mode);
+    std::sprintf(tmp, "Task:%d;Sta:2;Type:0102;WorkCtrl:%d\r\n", task_id, mode);
     write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
 void TcpSocket::parameter_set()
 {
-    char tmp[250];
-    std::sprintf(tmp, "Task:%ud;Sta:2;Type:0203;Data:%ud;Detect:%ud;FreqRes:%f;SimBW:%ud;GMode:%u;MGC:%d;AGC:%d;SmNum:%ud;SmMode:%ud;LmMode:%ud;LmVal:%ud;RcvMode:%ud\r\n",
-                 task_id, g_parameter_set.Data, g_parameter_set.Detect, g_parameter_set.FreqRes, g_parameter_set.SimBW, g_parameter_set.GMode, g_parameter_set.MGC,
-                 g_parameter_set.AGC, g_parameter_set.SmNum, g_parameter_set.SmMode, g_parameter_set.LmMode, g_parameter_set.LmVal, g_parameter_set.RcvMode);
-    write(std::make_unique<NetCmdData>(std::string(tmp)));
-}
-
-void TcpSocket::broad_band(const unsigned int act, unsigned int freq_Hz)
-{
     char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0206;Act:%d;CFreq:%d;CTime:10\r\n", task_id, act, freq_Hz);
-    write(std::make_unique<NetCmdData>(std::string(tmp)));
-}
-
-void TcpSocket::narrow_band(const unsigned int act, unsigned int freq_Hz)
-{
-    char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0205;Act:%d;DFreq:%d\r\n", task_id, act, freq_Hz);
-    write(std::make_unique<NetCmdData>(std::string(tmp)));
-}
-
-void TcpSocket::sweep(const unsigned int act, unsigned int sFreq_Hz, unsigned int eFreq_Hz)
-{
-    char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0204;Act:%d;SFreq:%d;EFreq:%d\r\n", task_id, act, sFreq_Hz, eFreq_Hz);
-    write(std::make_unique<NetCmdData>(std::string(tmp)));
-}
-
-void TcpSocket::test_channel(const unsigned int act, const unsigned int freq_Hz)
-{
-    char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0207;Act:%d;CFreq:%d;Mode:0;Scope:60\r\n", task_id, act, freq_Hz);
+    std::sprintf(tmp, "Task:%d;Sta:2;Type:0103;FreqRes:%d;SimBW:%d;MGC:%d;SmNum:%d;WinType:%d\r\n",
+                 task_id, g_parameter_set.FreqRes, g_parameter_set.SimBW, g_parameter_set.MGC,
+                 g_parameter_set.SmNum, g_parameter_set.RcvMode, g_parameter_set.WinType);
     write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 

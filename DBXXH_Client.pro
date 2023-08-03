@@ -22,6 +22,7 @@ SOURCES += \
     CombineWidget.cpp \
     DataManager.cpp \
     DataProcess.cpp \
+    Filters.cpp \
     HeapMap.cpp \
     Model.cpp \
     PointTableWidget.cpp \
@@ -50,6 +51,7 @@ HEADERS += \
     CombineWidget.h \
     DataManager.h \
     DataProcess.h \
+    Filters.h \
     FixedThreadPool.hpp \
     HeapMap.h \
     Model.h \

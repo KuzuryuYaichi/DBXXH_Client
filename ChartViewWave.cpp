@@ -55,7 +55,7 @@ void ChartViewWave::replace(unsigned char* const buf)
         auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
         auto DataPoint = param->DataPoint;
         auto amplData = (NarrowDDC*)(param + 1);
-        QVector<double> amplx(DataPoint), amplyI(DataPoint), amplyQ;
+        QVector<double> amplx(DataPoint), amplyI(DataPoint), amplyQ(DataPoint);
         for (int i = 0; i < DataPoint; ++i)
         {
             amplx[i] = i;
