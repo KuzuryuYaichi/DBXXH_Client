@@ -12,14 +12,20 @@ Model::Model(QWidget *parent): QMainWindow(parent)
     m_tabWidget->addTab(m_cxWidget = new ChartWidget(m_socket.get()), tr("宽带"));
     m_tabWidget->addTab(m_zcWidget = new ZCWidget(m_socket.get()), tr("窄带"));
 
+    statusTimer = new QTimer;
+    statusTimer->setSingleShot(true);
     connect(this, &Model::sendDeviceStatus, m_cxWidget->statusEdit, &SideWidget::updateStatus);
     setStatusBar(statusBar = new QStatusBar(this));
-    connect(this, &Model::updatetime, this, [this](QString str) {
-        statusBar->showMessage(str);
+    connect(this, &Model::updatetime, this, [this](unsigned long long timeData) {
+        if (!readyTime)
+            return;
+        readyTime = false;
+        statusBar->showMessage(timeConvert(timeData).toString(DATETIME_FORMAT));
+        statusTimer->start(500);
     });
-
-    pool = std::make_shared<FixedThreadPool>(m_cxWidget);
-    pool->Start();
+    connect(statusTimer, &QTimer::timeout, this, [this] {
+        readyTime = true;
+    });
 
     processThread = std::thread([this]
     {
@@ -104,7 +110,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
                 m_statusList.clear();
                 break;
             }
-            case 0x503:
+            case 0x515:
             {
                 showDataCX(buf);
                 break;
@@ -133,7 +139,7 @@ long long FileTimeToMillSeconds(unsigned long long pTime)
 
 QDateTime Model::timeConvert(unsigned long long time)
 {
-    return QDateTime::fromMSecsSinceEpoch(FileTimeToMillSeconds(time)).addSecs(1);
+    return QDateTime::fromMSecsSinceEpoch(FileTimeToMillSeconds(time));
 }
 
 void Model::showDataCX(unsigned char* const buf)
@@ -141,11 +147,11 @@ void Model::showDataCX(unsigned char* const buf)
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
-    case 0x503:
+    case 0x515:
     {
         auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
         m_cxWidget->chartWB->replace(buf);
-        emit updatetime(timeConvert(param->Time).toString("yyyy/MM/dd hh:mm:ss"));
+        emit updatetime(param->Time);
         break;
     }
     }

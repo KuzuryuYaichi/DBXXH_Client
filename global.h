@@ -19,7 +19,7 @@ static constexpr short BASE_DIRECTION = 130 * 10, UPPER_DIRECTION = BASE_DIRECTI
 static constexpr short MIN_DIRECTION = 0 * 10, MAX_DIRECTION = 359.9 * 10;
 static constexpr short PHASE_MISTAKE = 1 * 10;
 static constexpr int JUDGE_ARRAY_DEPTH = 320;
-static constexpr int MIN_FREQ = 200, MAX_FREQ = 500;
+static constexpr int MIN_FREQ = 0, MAX_FREQ = 30;
 static constexpr int MIN_SAMPLE_FREQ = MIN_FREQ - HALF_BAND_WIDTH_MHZ, MAX_SAMPLE_FREQ = MAX_FREQ + HALF_BAND_WIDTH_MHZ;
 static constexpr int MIN_AMPL = -160, MAX_AMPL = 0;
 static constexpr int MIN_PHASE = -180, MAX_PHASE = 180;
@@ -28,6 +28,7 @@ static constexpr int CONFIDENCE_MINIMUM = 50, CONFIDENCE_MAXIMUM = 100;
 static constexpr int WATERFALL_DEPTH = 100;
 static constexpr int POINTS_ANALYZE_MINIMUM = 10;
 static constexpr int DECIMALS_PRECISION = 6;
+static constexpr char DATETIME_FORMAT[] = "yyyy-MM-dd hh:mm:ss";
 
 enum TABLE_UPDATE_STATE {
     TABLE_INDEX_OUT_OF_RANGE,
@@ -49,10 +50,9 @@ enum workCtrl {
 };
 
 struct PARAMETER_SET {
-    float FreqRes;
+    unsigned int FreqRes;
     unsigned short SmNum;
     unsigned int SimBW;
-    unsigned int WinType;
     signed short MGC;
     unsigned short RcvMode;
     TinyConfig tinyConfig;

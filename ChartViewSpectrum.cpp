@@ -7,20 +7,41 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, QString X_title, int AXISX_M
 {
     plotLayout()->insertRow(1);
     plotLayout()->addElement(1, 0, thresholdLbl = new QCPTextElement(this, tr("Gate: ") + "0dBm", QFont("sans", 9, QFont::Bold)));
+//    plotLayout()->addElement(1, 1, legend);
     xAxis->setRange(AXISX_MIN, AXISX_MAX);
     yAxis->setRange(AXISY_MIN, AXISY_MAX);
 
     SpectrumSeries = addGraph();
+    SpectrumSeries->setName(tr("Spectrum"));
     SpectrumSeries->setPen(QPen(Qt::blue));
     SpectrumSeries->setLineStyle(QCPGraph::lsLine);
     SpectrumSeries->rescaleAxes(true);
 
+    MaxKeepSeries = addGraph();
+    MaxKeepSeries->setName(tr("Max Keep"));
+    MaxKeepSeries->setPen(QPen(Qt::green));
+    MaxKeepSeries->setLineStyle(QCPGraph::lsLine);
+    MaxKeepSeries->rescaleAxes(true);
+
+    MinKeepSeries = addGraph();
+    MinKeepSeries->setName(tr("Min Keep"));
+    MinKeepSeries->setPen(QPen(Qt::yellow));
+    MinKeepSeries->setLineStyle(QCPGraph::lsLine);
+    MinKeepSeries->rescaleAxes(true);
+
     GateSeries = addGraph();
+    GateSeries->setName(tr("Gate"));
     GateSeries->setPen(QPen(Qt::red));
     GateSeries->setLineStyle(QCPGraph::lsLine);
     GateSeries->rescaleAxes(true);
-    QVector<double> x {MIN_SAMPLE_FREQ, MAX_SAMPLE_FREQ}, y {0, 0};
+    QVector<double> x {MIN_FREQ, MAX_FREQ}, y {0, 0};
     GateSeries->setData(x, y);
+
+//    legend->setVisible(true);
+    legend->setBorderPen(Qt::NoPen);
+    legend->item(3)->setVisible(false);
+    legend->setFont(QFont("YaHei", 9));
+    legend->setIconSize(5, 5);
 
     tracer = new QCPItemTracer(this);
     tracer->setPen(QPen(Qt::red));
@@ -49,12 +70,26 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, QString X_title, int AXISX_M
         if (event->button() == Qt::LeftButton)
         {
             isPress = false;
-            auto threshold = graph(1)->data().data()->at(0)->value;
+            auto threshold = GateSeries->data().data()->at(0)->value;
             thresholdLbl->setText(tr("Gate: ") + QString::number(threshold) + "dBm");
             emit thresholdEnterPressedSignal(threshold);
         }
         replot();
     });
+}
+
+void ChartViewSpectrum::analyzeFrame(unsigned char* amplData, size_t DataPoint)
+{
+    if (pointsMax.size() != DataPoint)
+    {
+        pointsMax.resize(DataPoint);
+        for (auto i = 0; i < DataPoint; ++i)
+            pointsMax[i] = MIN_AMPL;
+    }
+    for (auto i = 0ull; i < DataPoint; ++i)
+    {
+        pointsMax[i] = std::max((double)((short)amplData[i] + AMPL_OFFSET), pointsMax[i]);
+    }
 }
 
 void ChartViewSpectrum::UpdateRuler(QMouseEvent *event)
@@ -65,7 +100,7 @@ void ChartViewSpectrum::UpdateRuler(QMouseEvent *event)
         QVector<double> x(2), y(2);
         x[0] = MIN_FREQ; x[1] = MAX_FREQ;
         y[0] = yValue; y[1] = yValue;
-        graph(1)->setData(x, y, true);
+        GateSeries->setData(x, y, true);
     }
 }
 
@@ -74,41 +109,37 @@ void ChartViewSpectrum::UpdateTracer(QMouseEvent *event)
     auto x = xAxis->pixelToCoord(event->pos().x());
     tracer->setGraphKey(x);
     tracer->setInterpolating(true);
-    tracer->setGraph(graph(0));
+    tracer->setGraph(SpectrumSeries);
     double xValue = tracer->position->key();
     double yValue = tracer->position->value();
-    QToolTip::showText(tracer->position->pixelPosition().toPoint(), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
+    QToolTip::showText(mapToGlobal(tracer->position->pixelPosition().toPoint()), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
 }
 
 void ChartViewSpectrum::replace(unsigned char* const buf)
 {
-    if (!ready)
-        return;
-    ready = false;
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
     case 0x515:
     {
         auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
-        auto DataPoint = param->DataPoint;
-        const auto GROUP_LENGTH = sizeof(long long) + (sizeof(char) + sizeof(short)) * DataPoint;
         auto data = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
         auto freq_step = param->Resolution / 1e3, start_freq = param->StartFreq / 1e6;
-        QVector<double> amplx(DataPoint), amply(DataPoint);
-        for (int g = 0; g < 1; ++g)
+        auto amplData = (unsigned char*)(data + sizeof(long long));
+//        analyzeFrame(amplData, param->DataPoint);
+        QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
+        auto x = start_freq;
+        for (int i = 0; i < param->DataPoint; ++i)
         {
-            auto amplData = (unsigned char*)(data + sizeof(long long));
-            auto x = start_freq;
-            for (int i = 0; i < DataPoint; ++i)
-            {
-                auto range = (short)amplData[i] + AMPL_OFFSET;
-                amplx[i] = x; amply[i] = range;
-                x += freq_step;
-            }
-            data += GROUP_LENGTH;
+            amplx[i] = x;
+            amply[i] = (short)amplData[i] + AMPL_OFFSET;
+            x += freq_step;
         }
-        graph(0)->setData(amplx, amply, true);
+        if (!ready)
+            return;
+        ready = false;
+        SpectrumSeries->setData(amplx, amply, true);
+//        MaxKeepSeries->setData(amplx, pointsMax, true);
         break;
     }
     case 0x602:

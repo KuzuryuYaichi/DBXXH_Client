@@ -79,17 +79,46 @@ void ChartWidget::createSettings()
     settingLayout->addRow(parameterCheckBox);
     auto parameterLayout = new QFormLayout(parameterCheckBox);
 
+    simBWBox = new QComboBox();
+    simBWBox->addItem("0.9375MHz", 1);
+    simBWBox->addItem("1.875MHz", 2);
+    simBWBox->addItem("3.75MHz", 3);
+    simBWBox->addItem("7.5MHz", 4);
+    simBWBox->addItem("15MHz", 5);
+    simBWBox->addItem("30MHz", 6);
+    simBWBox->setCurrentIndex(5);
+    parameterLayout->addRow(tr("Sim Band:"), simBWBox);
+    connect(simBWBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
+        if (index < 0)
+            return;
+        for (int i = 0; i < 5; ++i)
+        {
+            freqResBox->setItemText(i, QString::number(RESOLUTIONS[index + i]) + "KHz");
+        }
+        g_parameter_set.FreqRes = freqResBox->currentData().toInt();
+        g_parameter_set.SimBW = simBWBox->currentData().toInt();
+        m_socket->parameter_set();
+        //        auto bandWidth = simBWBox->itemData(index).toDouble();
+        //        auto center = centerEdit->value(),
+        //            min = center - bandWidth / 2,
+        //            max = center + bandWidth / 2;
+        //        dfChart->setAxisxMin(min);
+        //        dfChart->setAxisxMax(max);
+    });
+
+
     freqResBox = new QComboBox();
-    freqResBox->addItem("3.125KHz", 3.125);
-    freqResBox->addItem("6.25KHz", 6.25);
-    freqResBox->addItem("12.5KHz", 12.5);
-    freqResBox->addItem("25KHz", 25);
+    auto index = simBWBox->currentIndex();
+    for (auto i = 0; i < 5; ++i)
+    {
+        freqResBox->addItem(QString::number(RESOLUTIONS[index + i]) + "KHz", 14 - i);
+    }
     freqResBox->setCurrentIndex(0);
     parameterLayout->addRow(tr("Resolution:"), freqResBox);
     connect(freqResBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if(index < 0)
             return;
-        g_parameter_set.FreqRes = freqResBox->itemData(index).toFloat();
+        g_parameter_set.FreqRes = freqResBox->itemData(index).toInt();
         m_socket->parameter_set();
     });
 
@@ -100,45 +129,9 @@ void ChartWidget::createSettings()
     }
     parameterLayout->addRow(tr("Smooth:"), smoothBox);
     connect(smoothBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
-        if(index < 0)
+        if (index < 0)
             return;
         g_parameter_set.SmNum = smoothBox->itemData(index).toUInt();
-        m_socket->parameter_set();
-    });
-
-    simBWBox = new QComboBox();
-    simBWBox->addItem("1MHz", 1);
-    simBWBox->addItem("2MHz", 2);
-    simBWBox->addItem("5MHz", 5);
-    simBWBox->addItem("10MHz", 10);
-    simBWBox->addItem("12MHz", 12);
-    simBWBox->addItem("20MHz", 20);
-    simBWBox->setCurrentIndex(5);
-    parameterLayout->addRow(tr("Sim Band:"), simBWBox);
-    connect(simBWBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
-        if (index < 0)
-            return;
-        g_parameter_set.SimBW = simBWBox->itemData(index).toUInt() * 1e3;
-        m_socket->parameter_set();
-//        auto bandWidth = simBWBox->itemData(index).toDouble();
-//        auto center = centerEdit->value(),
-//            min = center - bandWidth / 2,
-//            max = center + bandWidth / 2;
-//        dfChart->setAxisxMin(min);
-//        dfChart->setAxisxMax(max);
-    });
-
-    windowBox = new QComboBox();
-    windowBox->addItem("Blackman", 1);
-    windowBox->addItem("Flagtop", 0);
-    windowBox->addItem("Hanning", 2);
-    windowBox->addItem("Hamming", 3);
-    windowBox->addItem("Kaiser", 5);
-    parameterLayout->addRow(tr("Window:"), windowBox);
-    connect(windowBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
-        if (index < 0)
-            return;
-        g_parameter_set.WinType = windowBox->itemData(index).toUInt();
         m_socket->parameter_set();
     });
 

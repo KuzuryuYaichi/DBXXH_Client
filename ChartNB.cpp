@@ -40,8 +40,8 @@ ChartNB::ChartNB(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, Q
     hBoxLayout->addWidget(showBox = new QComboBox, 2);
     showBox->addItem(tr("Time Domain"), DDC_MODE);
     showBox->addItem(tr("Freq Domain"), FFT_MODE);
-    connect(showBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-//        ChangeAxis();
+    connect(showBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int index) {
+        ChangeMode(index);
     });
     hBoxLayout->addStretch(1);
     hBoxLayout->addWidget(new QLabel(tr("Listen:")), 1);

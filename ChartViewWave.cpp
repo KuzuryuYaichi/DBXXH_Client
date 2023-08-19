@@ -60,7 +60,7 @@ void ChartViewWave::replace(unsigned char* const buf)
         {
             amplx[i] = i;
             amplyI[i] = (short)amplData[i].I;
-            amplyQ[i] = (short)amplData[i].I;
+            amplyQ[i] = (short)amplData[i].Q;
         }
         ISeries->setData(amplx, amplyI, true);
         QSeries->setData(amplx, amplyQ, true);

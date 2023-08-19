@@ -151,9 +151,9 @@ void TcpSocket::work_ctrl(const unsigned int mode)
 void TcpSocket::parameter_set()
 {
     char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0103;FreqRes:%d;SimBW:%d;MGC:%d;SmNum:%d;WinType:%d\r\n",
+    std::sprintf(tmp, "Task:%d;Sta:2;Type:0103;FreqRes:%d;SimBW:%d;MGC:%d;SmNum:%d\r\n",
                  task_id, g_parameter_set.FreqRes, g_parameter_set.SimBW, g_parameter_set.MGC,
-                 g_parameter_set.SmNum, g_parameter_set.RcvMode, g_parameter_set.WinType);
+                 g_parameter_set.SmNum, g_parameter_set.RcvMode);
     write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 

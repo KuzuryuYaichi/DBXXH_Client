@@ -83,7 +83,7 @@ void ChartViewWaterfall::replace(unsigned char* const buf)
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
-    case 0x503:
+    case 0x515:
     {
         auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
         auto DataPoint = param->DataPoint;

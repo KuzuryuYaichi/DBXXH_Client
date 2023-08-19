@@ -52,7 +52,6 @@ HEADERS += \
     DataManager.h \
     DataProcess.h \
     Filters.h \
-    FixedThreadPool.hpp \
     HeapMap.h \
     Model.h \
     PointTableWidget.h \

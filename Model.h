@@ -6,7 +6,6 @@
 #include "ZCWidget.h"
 #include "ChartWidget.h"
 #include "TinyConfig.h"
-#include "FixedThreadPool.hpp"
 #include "SqlWidget.h"
 
 class Model: public QMainWindow
@@ -19,7 +18,7 @@ public:
     void showDataZC(unsigned char* const, const QDateTime&);
     static QDateTime timeConvert(unsigned long long);
 signals:
-    void updatetime(QString);
+    void updatetime(unsigned long long);
     void sendDeviceStatus(QString);
 
 private:
@@ -33,7 +32,9 @@ private:
     std::thread processThread;
     std::shared_ptr<TcpSocket> m_socket;
     bool isRunning = true;
-    std::shared_ptr<FixedThreadPool> pool;
+
+    QTimer* statusTimer;
+    bool readyTime = true;
 };
 
 #endif // MODEL_H

@@ -18,7 +18,9 @@ private:
     QCPItemTracer* tracer;
     bool isPress = false;
 
-    QCPGraph *SpectrumSeries, *GateSeries;
+    void analyzeFrame(unsigned char*, size_t);
+    QVector<double> pointsMax, pointsMin;
+    QCPGraph *SpectrumSeries, *GateSeries, *MaxKeepSeries, *MinKeepSeries;
     fftw_complex* inR, * outR;
     fftw_plan planR;
 signals:

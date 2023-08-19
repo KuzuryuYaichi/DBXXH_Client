@@ -2,7 +2,6 @@
 #define CHARTNB_H
 
 #include "CombineWidget.h"
-#include "ChartViewWave.h"
 
 #include <QPushButton>
 #include <QDoubleSpinBox>
@@ -25,7 +24,6 @@ private:
         DDC_MODE = 0,
         FFT_MODE
     };
-    ChartViewWave* chartWave;
     QDoubleSpinBox* freqEdit;
     QComboBox* bandBox;
     QComboBox* showBox;

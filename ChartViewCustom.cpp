@@ -10,7 +10,6 @@ ChartViewCustom::ChartViewCustom(QString title, QString X_title, QString Y_title
     xAxis2->setVisible(false);
     yAxis2->setVisible(false);
     setInteractions(QCP::iRangeZoom);
-    setInteractions(QCP::iRangeZoom);
 
     connect(this, &QCustomPlot::mouseDoubleClick, this, [this](QMouseEvent *event) {
         if (event->button() == Qt::LeftButton)

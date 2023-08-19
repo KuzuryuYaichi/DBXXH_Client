@@ -53,7 +53,6 @@ private:
     QComboBox *freqResBox;
     QComboBox *smoothBox;
     QComboBox *simBWBox;
-    QComboBox *windowBox;
 
     QLineEdit *ipEdit;
     QLineEdit *portEdit;
@@ -61,6 +60,20 @@ private:
     QDoubleSpinBox *gainEdit;
     QLineEdit *LmValEdit;
     QComboBox *rcvModeBox;
+
+    static constexpr double RESOLUTIONS[] =
+    {
+        0.092,
+        0.183,
+        0.366,
+        0.732,
+        1.465,
+        2.930,
+        5.859,
+        11.719,
+        23.438,
+        46.875
+    };
 };
 
 #endif // ChartWidget_H
