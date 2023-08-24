@@ -41,27 +41,8 @@ Model::Model(QWidget *parent): QMainWindow(parent)
             case 0x511:
             {
                 auto parameter = (StructWorkCommandRev*)(buf + sizeof(DataHead));
-                static QString rcvMode;
-                switch (parameter->RcvMode)
-                {
-                case 0:
-                {
-                    rcvMode = tr("Normal");
-                    break;
-                }
-                case 1:
-                {
-                    rcvMode = tr("Low Distortion");
-                    break;
-                }
-                case 2:
-                {
-                    rcvMode = tr("Low Noise");
-                    break;
-                }
-                }
-                static QString LabelText = tr("Work Params:\n Resolution:%1 kHz\n SimBand:20 MHz\n Gain Mode:MGC\n Gain:%2 dB\n Receiver Work Mode:%3");
-                m_statusList.append(LabelText.arg(parameter->FreqRes).arg(parameter->MGC).arg(rcvMode));
+                static QString LabelText = tr("Work Params:\n Resolution:%1 kHz\n SimBand:20 MHz\n Gain Mode:%2\n");
+                m_statusList.append(LabelText.arg(parameter->FreqRes).arg(parameter->GainMode? tr("AGC"): tr("MGC")));
                 emit sendDeviceStatus(m_statusList);
                 m_statusList.clear();
                 break;

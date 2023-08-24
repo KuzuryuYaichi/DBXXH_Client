@@ -15,6 +15,7 @@ public:
 
 protected:
     QVBoxLayout* mainLayout;
+    QHBoxLayout* layoutSpectrum;
     ChartViewSpectrum* chartSpectrum;
     ChartViewWaterfall* chartWaterfall;
     ChartViewWave* chartWave;

@@ -5,7 +5,6 @@
 ChartViewWave::ChartViewWave(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, QString Y_title, int AXISY_MIN, int AXISY_MAX, QWidget* parent):
     ChartViewCustom(title, X_title, Y_title, parent)
 {
-    plotLayout()->insertRow(1);
     xAxis->setRange(AXISX_MIN, AXISX_MAX);
     yAxis->setRange(AXISY_MIN, AXISY_MAX);
 
@@ -59,8 +58,8 @@ void ChartViewWave::replace(unsigned char* const buf)
         for (int i = 0; i < DataPoint; ++i)
         {
             amplx[i] = i;
-            amplyI[i] = (short)amplData[i].I;
-            amplyQ[i] = (short)amplData[i].Q;
+            amplyI[i] = amplData[i].I;
+            amplyQ[i] = amplData[i].Q;
         }
         ISeries->setData(amplx, amplyI, true);
         QSeries->setData(amplx, amplyQ, true);

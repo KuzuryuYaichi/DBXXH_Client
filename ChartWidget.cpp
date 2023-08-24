@@ -79,15 +79,30 @@ void ChartWidget::createSettings()
     settingLayout->addRow(parameterCheckBox);
     auto parameterLayout = new QFormLayout(parameterCheckBox);
 
+    CenterFreqEdit = new QDoubleSpinBox;
+    CenterFreqEdit->setMinimum(MIN_FREQ);
+    CenterFreqEdit->setMaximum(MAX_FREQ);
+    CenterFreqEdit->setSingleStep(1);
+    CenterFreqEdit->setDecimals(0);
+    CenterFreqEdit->setValue(MID_FREQ);
+    parameterLayout->addRow(tr("Center Freq(MHz):"), CenterFreqEdit);
+    connect(CenterFreqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
+        if (CenterFreqEdit->hasFocus())
+        {
+            g_parameter_set.CenterFreq = CenterFreqEdit->value() * 1e6;
+            m_socket->parameter_set();
+        }
+    });
+
     simBWBox = new QComboBox();
-    simBWBox->addItem("0.9375MHz", 1);
-    simBWBox->addItem("1.875MHz", 2);
-    simBWBox->addItem("3.75MHz", 3);
-    simBWBox->addItem("7.5MHz", 4);
-    simBWBox->addItem("15MHz", 5);
-    simBWBox->addItem("30MHz", 6);
+    simBWBox->addItem("0.9375", 1);
+    simBWBox->addItem("1.875", 2);
+    simBWBox->addItem("3.75", 3);
+    simBWBox->addItem("7.5", 4);
+    simBWBox->addItem("15", 5);
+    simBWBox->addItem("30", 6);
     simBWBox->setCurrentIndex(5);
-    parameterLayout->addRow(tr("Sim Band:"), simBWBox);
+    parameterLayout->addRow(tr("Sim Band(MHz):"), simBWBox);
     connect(simBWBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if (index < 0)
             return;
@@ -111,10 +126,10 @@ void ChartWidget::createSettings()
     auto index = simBWBox->currentIndex();
     for (auto i = 0; i < 5; ++i)
     {
-        freqResBox->addItem(QString::number(RESOLUTIONS[index + i]) + "KHz", 14 - i);
+        freqResBox->addItem(QString::number(RESOLUTIONS[index + i]), 14 - i);
     }
     freqResBox->setCurrentIndex(0);
-    parameterLayout->addRow(tr("Resolution:"), freqResBox);
+    parameterLayout->addRow(tr("Resolution(kHz):"), freqResBox);
     connect(freqResBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if(index < 0)
             return;
@@ -135,28 +150,65 @@ void ChartWidget::createSettings()
         m_socket->parameter_set();
     });
 
-    gainEdit = new QDoubleSpinBox;
-    gainEdit->setMinimum(0);
-    gainEdit->setMaximum(60);
-    gainEdit->setSingleStep(1);
-    gainEdit->setDecimals(0);
-    gainEdit->setValue(0);
-    parameterLayout->addRow(tr("Desc(0~60dB):"), gainEdit);
-    connect(gainEdit, &QDoubleSpinBox::editingFinished, this, [this] {
-        if (gainEdit->hasFocus())
+    RfGainModeGroup = new QButtonGroup(this);
+    auto pLayout = new QHBoxLayout;
+    for (int i = 0; i < 2; ++i)
+    {
+        static QString RadioText[] = { tr("MGC"), tr("AGC") };
+        auto pButton = new QRadioButton(RadioText[i], this);
+        pLayout->addWidget(pButton);
+        RfGainModeGroup->addButton(pButton);
+        RfGainModeGroup->setId(pButton, i);
+    }
+    parameterLayout->addRow(tr("Rf Gain Mode:"), pLayout);
+    connect(RfGainModeGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked), this, [this] (QAbstractButton*) {
+        g_parameter_set.GainMode = RfGainModeGroup->checkedId();
+        m_socket->parameter_set();
+    });
+
+    RfGainEdit = new QDoubleSpinBox;
+    RfGainEdit->setMinimum(0);
+    RfGainEdit->setMaximum(60);
+    RfGainEdit->setSingleStep(1);
+    RfGainEdit->setDecimals(0);
+    RfGainEdit->setValue(0);
+    parameterLayout->addRow(tr("Rf Desc(0~31dB):"), RfGainEdit);
+    connect(RfGainEdit, &QDoubleSpinBox::editingFinished, this, [this] {
+        if (RfGainEdit->hasFocus())
         {
-            g_parameter_set.MGC = gainEdit->text().toUInt();
+            g_parameter_set.Rf_MGC = RfGainEdit->text().toUInt();
             m_socket->parameter_set();
         }
     });
 
-    rcvModeBox = new QComboBox();
-    rcvModeBox->addItem(tr("Normal"), 0);
-//    rcvModeBox->addItem(tr("Low Distortion"), 1);
-    rcvModeBox->addItem(tr("Low Noise"), 2);
-    parameterLayout->addRow(tr("Receiver Work Mode:"), rcvModeBox);
-    connect(rcvModeBox, QOverload<int>::of(&QComboBox::activated), this, [this](int) {
-        g_parameter_set.RcvMode = rcvModeBox->currentData().toUInt();
+    DigitGainEdit = new QDoubleSpinBox;
+    DigitGainEdit->setMinimum(0);
+    DigitGainEdit->setMaximum(60);
+    DigitGainEdit->setSingleStep(1);
+    DigitGainEdit->setDecimals(0);
+    DigitGainEdit->setValue(0);
+    parameterLayout->addRow(tr("Digit Desc(0~31dB):"), DigitGainEdit);
+    connect(DigitGainEdit, &QDoubleSpinBox::editingFinished, this, [this] {
+        if (DigitGainEdit->hasFocus())
+        {
+            g_parameter_set.Digit_MGC = DigitGainEdit->text().toUInt();
+            m_socket->parameter_set();
+        }
+    });
+
+    FeedbackGroup = new QButtonGroup(this);
+    pLayout = new QHBoxLayout;
+    for (int i = 0; i < 2; ++i)
+    {
+        static QString RadioText[] = { tr("Close"), tr("Open") };
+        auto pButton = new QRadioButton(RadioText[i], this);
+        pLayout->addWidget(pButton);
+        FeedbackGroup->addButton(pButton);
+        FeedbackGroup->setId(pButton, i);
+    }
+    parameterLayout->addRow(tr("Feedback State:"), pLayout);
+    connect(FeedbackGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked), this, [this] (QAbstractButton*) {
+        g_parameter_set.Feedback = FeedbackGroup->checkedId();
         m_socket->parameter_set();
     });
 

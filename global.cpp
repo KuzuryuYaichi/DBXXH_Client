@@ -1,10 +1,13 @@
 #include "global.h"
 
 PARAMETER_SET g_parameter_set = {
+    .CenterFreq = MID_FREQ_HZ,
     .FreqRes = 0x0E,
-    .SmNum = 4,
     .SimBW = 20000,
-    .MGC = 0,
-    .RcvMode = 0,
+    .SmNum = 4,
+    .Rf_MGC = 0,
+    .Digit_MGC = 0,
+    .GainMode = 0,
+    .Feedback = 0,
     .tinyConfig = TinyConfig()
 };

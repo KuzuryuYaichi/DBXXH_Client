@@ -4,8 +4,10 @@ CombineWidget::CombineWidget(QString title, QString X_title, int AXISX_MIN, int 
 {
     mainLayout = new QVBoxLayout(this);
     mainLayout->addWidget(chartWaterfall = new ChartViewWaterfall(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, AXISY_MIN, AXISY_MAX), 10);
-    mainLayout->addWidget(chartWave = new ChartViewWave(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, SHRT_MIN, SHRT_MAX), 10);
-    chartSpectrum = new ChartViewSpectrum(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, AXISY_MIN, AXISY_MAX);
+    mainLayout->addLayout(layoutSpectrum = new QHBoxLayout, 10);
+    layoutSpectrum->addWidget(chartWave = new ChartViewWave(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, SHRT_MIN, SHRT_MAX));
+    layoutSpectrum->addWidget(chartSpectrum = new ChartViewSpectrum(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, AXISY_MIN, AXISY_MAX));
+    chartWave->hide();
 }
 
 void CombineWidget::replace(unsigned char* const buf)
@@ -17,7 +19,13 @@ void CombineWidget::replace(unsigned char* const buf)
 void CombineWidget::ChangeMode(int index)
 {
     if (index == 0)
-        mainLayout->replaceWidget(chartSpectrum, chartWave);
+    {
+        chartSpectrum->hide();
+        chartWave->show();
+    }
     else
-        mainLayout->replaceWidget(chartWave, chartSpectrum);
+    {
+        chartWave->hide();
+        chartSpectrum->show();
+    }
 }

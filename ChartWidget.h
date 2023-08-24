@@ -57,9 +57,12 @@ private:
     QLineEdit *ipEdit;
     QLineEdit *portEdit;
 
-    QDoubleSpinBox *gainEdit;
+    QDoubleSpinBox *CenterFreqEdit;
+    QButtonGroup* RfGainModeGroup;
+    QDoubleSpinBox *RfGainEdit;
+    QDoubleSpinBox *DigitGainEdit;
     QLineEdit *LmValEdit;
-    QComboBox *rcvModeBox;
+    QButtonGroup *FeedbackGroup;
 
     static constexpr double RESOLUTIONS[] =
     {

@@ -252,18 +252,13 @@ struct StructControlRev
 struct StructWorkCommandRev
 {
     unsigned int Task;
-    short Data = 0;
-    short Detect = 0;
     float FreqRes;
     int SimBW;
-    short GMode = 0;
-    short MGC;
-    short AGC;
+    short Digit_MGC;
+    short Rf_MGC;
     short SmNum;
-    short SmMode = 0;
-    short LmMode;
-    short LmVal;
-    short RcvMode;
+    short GainMode;
+    short Feedback;
 };
 
 struct StructDeviceScheckRev
