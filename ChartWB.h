@@ -7,7 +7,7 @@ class ChartWB: public CombineWidget
 {
     Q_OBJECT
 public:
-    ChartWB(QString, QString, int, int, QString, int, int, QWidget* = nullptr);
+    ChartWB(QString, QWidget* = nullptr);
 };
 
 #endif // CHARTWB_H

@@ -2,9 +2,10 @@
 
 #include <QStyle>
 
-ChartNB::ChartNB(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, QString Y_title, int AXISY_MIN, int AXISY_MAX, QWidget* parent):
-    CombineWidget(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, AXISY_MIN, AXISY_MAX, parent)
+ChartNB::ChartNB(QString title, QWidget* parent): CombineWidget(title, parent)
 {
+    chartSpectrum->hide();
+    chartWave->show();
     auto layoutAdjust = new QWidget;
     mainLayout->insertWidget(0, layoutAdjust, 1);
     auto hBoxLayout = new QHBoxLayout(layoutAdjust);
@@ -17,47 +18,78 @@ ChartNB::ChartNB(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, Q
     connect(freqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
         if (freqEdit->hasFocus())
         {
-//            emit FreqBandwidthChanged(freqEdit->value() * 1e3, bandBox->currentData().toULongLong());
-//            ChangeAxis();
+            emit FreqBandwidthChanged(freqEdit->value() * 1e6, bandBox->currentData().toULongLong(), demodBox->currentData().toUInt());
         }
     });
     hBoxLayout->addStretch(1);
+
     hBoxLayout->addWidget(new QLabel(tr("BW(kHz):")), 1);
     hBoxLayout->addWidget(bandBox = new QComboBox, 2);
-    bandBox->addItem("0.1", 100);
-    bandBox->addItem("500", 500000);
-    bandBox->addItem("9.6", 9600);
-    bandBox->addItem("19.2", 19200);
-    bandBox->addItem("38.4", 38400);
-    bandBox->addItem("76.8", 76800);
-    bandBox->addItem("96", 96000);
+    bandBox->addItem("0.15", 150);
+    bandBox->addItem("0.3", 300);
+    bandBox->addItem("0.6", 600);
+    bandBox->addItem("1.5", 1500);
+    bandBox->addItem("2.4", 2400);
+    bandBox->addItem("6", 6000);
+    bandBox->addItem("9", 9000);
+    bandBox->addItem("15", 15000);
+    bandBox->addItem("30", 30000);
+    bandBox->addItem("50", 50000);
+    bandBox->addItem("120", 120000);
+    bandBox->addItem("150", 150000);
     connect(bandBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-//        emit FreqBandwidthChanged(freqEdit->value() * 1e3, bandBox->currentData().toULongLong());
-//        ChangeAxis();
+        emit FreqBandwidthChanged(freqEdit->value() * 1e6, bandBox->currentData().toULongLong(), demodBox->currentData().toUInt());
     });
     hBoxLayout->addStretch(1);
-    hBoxLayout->addWidget(new QLabel(tr("Mode:")), 1);
+
+    hBoxLayout->addWidget(new QLabel(tr("Demod:")), 1);
+    hBoxLayout->addWidget(demodBox = new QComboBox, 2);
+    static constexpr const char* DEMOD_TYPE[] = { "IQ", "AM", "FM", "PM", "USB", "LSB", "ISB", "CW", "FSK" };
+    for (auto i = 0ull; i < 8; ++i)
+        demodBox->addItem(DEMOD_TYPE[i], i);
+    connect(demodBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
+        emit FreqBandwidthChanged(freqEdit->value() * 1e6, bandBox->currentData().toULongLong(), demodBox->currentData().toUInt());
+    });
+    hBoxLayout->addStretch(1);
+
+    hBoxLayout->addWidget(new QLabel(tr("Domain:")), 1);
     hBoxLayout->addWidget(showBox = new QComboBox, 2);
-    showBox->addItem(tr("Time Domain"), DDC_MODE);
-    showBox->addItem(tr("Freq Domain"), FFT_MODE);
+    showBox->addItem(tr("Time"), DDC_MODE);
+    showBox->addItem(tr("Freq"), FFT_MODE);
     connect(showBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int index) {
         ChangeMode(index);
     });
     hBoxLayout->addStretch(1);
-    hBoxLayout->addWidget(new QLabel(tr("Listen:")), 1);
+
+    hBoxLayout->addWidget(new QLabel(tr("Play:")), 1);
     auto style = QApplication::style();
     hBoxLayout->addWidget(playBtn = new QPushButton(style->standardIcon(QStyle::SP_MediaPlay), ""), 2);
     connect(playBtn, &QPushButton::clicked, this, [this] {
         changedListening(playing);
         emit triggerListening(playing = !playing);
     });
+    hBoxLayout->addStretch(1);
+
+    hBoxLayout->addWidget(new QLabel(tr("Rec:")), 1);
+    hBoxLayout->addWidget(playBtn = new QPushButton(style->standardIcon(QStyle::SP_DialogNoButton), ""), 2);
+    connect(playBtn, &QPushButton::clicked, this, [this] {
+        changedRecording(recording);
+    });
+    hBoxLayout->addStretch(1);
 }
 
-void ChartNB::changedListening(bool playing)
+void ChartNB::changedListening(bool state)
 {
-    this->playing = playing;
+    this->playing = state;
     auto style = QApplication::style();
     playBtn->setIcon(style->standardIcon(playing? QStyle::SP_MediaPlay: QStyle::SP_MediaPause));
+}
+
+void ChartNB::changedRecording(bool state)
+{
+    this->recording = state;
+    auto style = QApplication::style();
+    playBtn->setIcon(style->standardIcon(recording? QStyle::SP_DialogNoButton: QStyle::SP_MediaPause));
 }
 
 void ChartNB::replace(unsigned char* const buf)

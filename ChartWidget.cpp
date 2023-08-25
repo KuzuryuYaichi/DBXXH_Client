@@ -11,7 +11,7 @@
 
 extern PARAMETER_SET g_parameter_set;
 
-ChartWidget::ChartWidget(TcpSocket* socket, QWidget* parent): QWidget(parent), m_socket(socket)
+ChartWidget::ChartWidget(TcpSocket* socket, ChartNB* chartNB, QWidget* parent): QWidget(parent), chartNB(chartNB), m_socket(socket)
 {
     createSettings();
 }
@@ -24,10 +24,10 @@ void ChartWidget::createSettings()
     tabWidget->addTab(tableNoise = new TableNoise, "电磁信号人为噪声电平测量记录");
     auto doaLayout = new QVBoxLayout(zcWidget = new QWidget);
     auto hBoxLayout = new QHBoxLayout;
-    hBoxLayout->addWidget(chartNB = new ChartNB(tr("窄带"), tr("Freq(MHz)"), MIN_FREQ, MAX_FREQ, tr("Power(dBm)"), MIN_AMPL, MAX_AMPL), 1);
+    hBoxLayout->addWidget(chartNB, 1);
     hBoxLayout->addWidget(tabWidget, 1);
     doaLayout->addLayout(hBoxLayout, 4);
-    doaLayout->addWidget(chartWB = new ChartWB(tr("宽带"), tr("Freq(MHz)"), MIN_FREQ, MAX_FREQ, tr("Power(dBm)"), MIN_AMPL, MAX_AMPL), 5);
+    doaLayout->addWidget(chartWB = new ChartWB(tr("宽带")), 5);
 
     auto toolBarLayout = new QVBoxLayout;
     auto style = QApplication::style();

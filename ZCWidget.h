@@ -13,12 +13,11 @@ class ZCWidget: public QWidget
 public:
     explicit ZCWidget(TcpSocket*, QWidget* = nullptr);
     void replace(unsigned char* const, int);
+    ChartNB *chartNB[ZC_NB_CHANNEL_NUMS];
 
 private:
     TcpSocket *m_socket;
-    ChartNB *chartNB[ZC_NB_PAGE_NUMS];
     QGridLayout *mainGridLayout;
-
     QDoubleSpinBox* rfCenterFreq;
     QComboBox* workMode;
     QSpinBox* rfDesc;

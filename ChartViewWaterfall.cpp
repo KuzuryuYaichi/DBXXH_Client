@@ -1,11 +1,11 @@
 #include "ChartViewWaterfall.h"
 
-ChartViewWaterfall::ChartViewWaterfall(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, QString Y_title, int AXISY_MIN, int AXISY_MAX, QWidget* parent):
-    ChartViewCustom(title, X_title, Y_title, parent, REFRESH_INTERVAL), points(WATERFALL_DEPTH)
+ChartViewWaterfall::ChartViewWaterfall(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
+    ChartViewCustom(title, tr("Freq(MHz)"), tr("Time(Tick)"), parent, REFRESH_INTERVAL), points(WATERFALL_DEPTH)
 {
     m_pColorMap = new QCPColorMap(xAxis, yAxis);
     m_pColorMap->data()->setValueSize(WATERFALL_DEPTH);
-    m_pColorMap->data()->setRange(QCPRange(xMin = AXISX_MIN, xMax = AXISX_MAX), QCPRange(yMin = AXISY_MIN, yMax = AXISY_MAX));
+    m_pColorMap->data()->setRange(xRange = { AXISX_MIN, AXISX_MAX }, yRange = { AXISY_MIN, AXISY_MAX });
     m_pColorMap->setGradient(QCPColorGradient::gpJet);
     m_pColorMap->rescaleDataRange(true);
     rescaleAxes();
@@ -21,7 +21,7 @@ ChartViewWaterfall::ChartViewWaterfall(QString title, QString X_title, int AXISX
 
 void ChartViewWaterfall::RegenerateParams(long long StartFreq, long long StopFreq, size_t DataPoint)
 {
-    m_pColorMap->data()->setKeyRange(QCPRange(xMin = StartFreq / 1e6, xMax = StopFreq / 1e6));
+    m_pColorMap->data()->setKeyRange(xRange = {StartFreq / 1e6, StopFreq / 1e6});
     if (points.front().size() != DataPoint)
     {
         for (auto iter = points.begin(); iter != points.end(); ++iter)

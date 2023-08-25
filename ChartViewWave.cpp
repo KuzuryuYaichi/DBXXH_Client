@@ -2,11 +2,11 @@
 
 #include "StructNetData.h"
 
-ChartViewWave::ChartViewWave(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, QString Y_title, int AXISY_MIN, int AXISY_MAX, QWidget* parent):
-    ChartViewCustom(title, X_title, Y_title, parent)
+ChartViewWave::ChartViewWave(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
+    ChartViewCustom(title, tr("Freq(MHz)"), tr("Power"), parent)
 {
-    xAxis->setRange(AXISX_MIN, AXISX_MAX);
-    yAxis->setRange(AXISY_MIN, AXISY_MAX);
+    xAxis->setRange(xRange = { AXISX_MIN, AXISX_MAX });
+    yAxis->setRange(yRange = { AXISY_MIN, AXISY_MAX });
 
     ISeries = addGraph();
     ISeries->setPen(QPen(Qt::green));
@@ -38,7 +38,7 @@ void ChartViewWave::UpdateTracer(QMouseEvent *event)
     tracer->setGraph(graph(0));
     double xValue = tracer->position->key();
     double yValue = tracer->position->value();
-    QToolTip::showText(tracer->position->pixelPosition().toPoint(), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
+    QToolTip::showText(mapToGlobal(tracer->position->pixelPosition().toPoint()), QString("%1MHz, %2").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
 }
 
 void ChartViewWave::replace(unsigned char* const buf)

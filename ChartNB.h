@@ -11,12 +11,14 @@ class ChartNB: public CombineWidget
 {
     Q_OBJECT
 public:
-    ChartNB(QString, QString, int, int, QString, int, int, QWidget* = nullptr);
+    ChartNB(QString, QWidget* = nullptr);
     void replace(unsigned char* const);
 signals:
     void triggerListening(bool);
+    void FreqBandwidthChanged(unsigned long long, unsigned int, unsigned int);
 public slots:
     void changedListening(bool);
+    void changedRecording(bool);
 
 private:
     enum SHOW_MODE
@@ -26,9 +28,11 @@ private:
     };
     QDoubleSpinBox* freqEdit;
     QComboBox* bandBox;
+    QComboBox* demodBox;
     QComboBox* showBox;
     QPushButton* playBtn;
     bool playing = false;
+    bool recording = false;
     static constexpr auto DDC_LEN = 2048;
     static constexpr auto AMPL_OFFSET = -206;
 };

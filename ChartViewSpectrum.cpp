@@ -2,14 +2,14 @@
 
 #include "StructNetData.h"
 
-ChartViewSpectrum::ChartViewSpectrum(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, QString Y_title, int AXISY_MIN, int AXISY_MAX, QWidget* parent):
-    ChartViewCustom(title, X_title, Y_title, parent)
+ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
+    ChartViewCustom(title, tr("Freq(MHz)"), tr("Ampl(dBm)"), parent)
 {
     plotLayout()->insertRow(1);
     plotLayout()->addElement(1, 0, thresholdLbl = new QCPTextElement(this, tr("Gate: ") + "0dBm", QFont("sans", 9, QFont::Bold)));
 //    plotLayout()->addElement(1, 1, legend);
-    xAxis->setRange(AXISX_MIN, AXISX_MAX);
-    yAxis->setRange(AXISY_MIN, AXISY_MAX);
+    xAxis->setRange(xRange = { AXISX_MIN, AXISX_MAX });
+    yAxis->setRange(yRange = { AXISY_MIN, AXISY_MAX });
 
     SpectrumSeries = addGraph();
     SpectrumSeries->setName(tr("Spectrum"));
@@ -76,6 +76,17 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, QString X_title, int AXISX_M
         }
         replot();
     });
+
+    inR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
+    outR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
+    planR = fftw_plan_dft_1d(DDC_LEN, inR, outR, FFTW_FORWARD, FFTW_MEASURE);
+}
+
+ChartViewSpectrum::~ChartViewSpectrum()
+{
+    fftw_destroy_plan(planR);
+    fftw_free(inR);
+    fftw_free(outR);
 }
 
 void ChartViewSpectrum::analyzeFrame(unsigned char* amplData, size_t DataPoint)
@@ -157,16 +168,21 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
         {
             std::swap(outR[p], outR[HALF_LEN + p]);
         }
-        auto RealHalfBandWidth = NB_HALF_BANDWIDTH[0];
+        auto RealHalfBandWidth = NB_HALF_BANDWIDTH[11];
         switch (param->BandWidth)
         {
-        case 2400: RealHalfBandWidth = NB_HALF_BANDWIDTH[0]; break;
-        case 4800: RealHalfBandWidth = NB_HALF_BANDWIDTH[1]; break;
-        case 9600: RealHalfBandWidth = NB_HALF_BANDWIDTH[2]; break;
-        case 19200: RealHalfBandWidth = NB_HALF_BANDWIDTH[3]; break;
-        case 38400: RealHalfBandWidth = NB_HALF_BANDWIDTH[4]; break;
-        case 76800: RealHalfBandWidth = NB_HALF_BANDWIDTH[5]; break;
-        case 96000: RealHalfBandWidth = NB_HALF_BANDWIDTH[6]; break;
+        case 150: RealHalfBandWidth = NB_HALF_BANDWIDTH[0]; break;
+        case 300: RealHalfBandWidth = NB_HALF_BANDWIDTH[1]; break;
+        case 600: RealHalfBandWidth = NB_HALF_BANDWIDTH[2]; break;
+        case 1500: RealHalfBandWidth = NB_HALF_BANDWIDTH[3]; break;
+        case 2400: RealHalfBandWidth = NB_HALF_BANDWIDTH[4]; break;
+        case 6000: RealHalfBandWidth = NB_HALF_BANDWIDTH[5]; break;
+        case 9000: RealHalfBandWidth = NB_HALF_BANDWIDTH[6]; break;
+        case 15000: RealHalfBandWidth = NB_HALF_BANDWIDTH[7]; break;
+        case 30000: RealHalfBandWidth = NB_HALF_BANDWIDTH[8]; break;
+        case 50000: RealHalfBandWidth = NB_HALF_BANDWIDTH[9]; break;
+        case 120000: RealHalfBandWidth = NB_HALF_BANDWIDTH[10]; break;
+        case 150000: RealHalfBandWidth = NB_HALF_BANDWIDTH[11]; break;
         }
         double freq = param->Frequency / 1e6 - RealHalfBandWidth, step = RealHalfBandWidth * 2 / param->DataPoint;
         QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
@@ -176,6 +192,8 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
             amplx[p] = freq;
             freq += step;
         }
+        SpectrumSeries->setData(amplx, amply);
+        SpectrumSeries->rescaleKeyAxis();
     }
     default: return;
     }

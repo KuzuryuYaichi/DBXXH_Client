@@ -7,7 +7,7 @@ class ChartViewWave: public ChartViewCustom
 {
     Q_OBJECT
 public:
-    ChartViewWave(QString, QString, int, int, QString, int, int, QWidget* = nullptr);
+    ChartViewWave(QString, double, double, double, double, QWidget* = nullptr);
     void replace(unsigned char* const buf);
 
 private:

@@ -9,7 +9,7 @@ class CombineWidget: public QWidget
 {
     Q_OBJECT
 public:
-    CombineWidget(QString = "", QString = "", int = 0, int = 0, QString = "", int = 0, int = 0, QWidget* = nullptr);
+    CombineWidget(QString, QWidget* = nullptr);
     void replace(unsigned char* const);
     void ChangeMode(int);
 

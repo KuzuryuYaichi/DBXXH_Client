@@ -8,7 +8,8 @@ class ChartViewSpectrum: public ChartViewCustom
 {
     Q_OBJECT
 public:
-    ChartViewSpectrum(QString, QString, int, int, QString, int, int, QWidget* = nullptr);
+    ChartViewSpectrum(QString, double, double, double, double, QWidget* = nullptr);
+    ~ChartViewSpectrum();
     void replace(unsigned char* const buf);
     QCPTextElement* thresholdLbl;
 
@@ -26,7 +27,10 @@ private:
 signals:
     void thresholdEnterPressedSignal(double);
 private:
-    static constexpr double NB_HALF_BANDWIDTH[] = {3.90625 / 2 / 1e3, 7.8125 / 2 / 1e3, 15.625 / 2 / 1e3, 31.25 / 2 / 1e3, 62.5 / 2 / 1e3, 125 / 2 / 1e3, 156.25 / 2 / 1e3};
+    static constexpr auto DDC_LEN = 2048;
+    static constexpr double NB_HALF_BANDWIDTH[] =
+        {0.15 / 2 / 1e3, 0.3 / 2 / 1e3, 0.6 / 2 / 1e3, 1.5 / 2 / 1e3, 2.4 / 2 / 1e3, 6 / 2 / 1e3,
+         9 / 2 / 1e3, 15 / 2 / 1e3, 30 / 2 / 1e3, 50 / 2 / 1e3, 120 / 2 / 1e3, 150 / 2 / 1e3};
 };
 
 #endif // CHARTVIEWSPECTRUM_H

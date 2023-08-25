@@ -9,8 +9,9 @@ Model::Model(QWidget *parent): QMainWindow(parent)
     setWindowTitle(tr("Client"));
     m_socket = std::make_shared<TcpSocket>();
     setCentralWidget(m_tabWidget = new QTabWidget);
-    m_tabWidget->addTab(m_cxWidget = new ChartWidget(m_socket.get()), tr("宽带"));
     m_tabWidget->addTab(m_zcWidget = new ZCWidget(m_socket.get()), tr("窄带"));
+    m_tabWidget->insertTab(0, m_cxWidget = new ChartWidget(m_socket.get(), m_zcWidget->chartNB[0]), tr("宽带"));
+    m_tabWidget->setCurrentIndex(0);
 
     statusTimer = new QTimer;
     statusTimer->setSingleShot(true);
@@ -143,7 +144,7 @@ void Model::showDataZC(unsigned char* const buf, const QDateTime&)
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
-    case 0x0602:
+    case 0x602:
     {
         m_zcWidget->replace(buf, head->UnUsed);
         break;

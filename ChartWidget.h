@@ -25,15 +25,15 @@ class ChartWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit ChartWidget(TcpSocket*, QWidget* = nullptr);
+    explicit ChartWidget(TcpSocket*, ChartNB* chartNB, QWidget* = nullptr);
     void createSettings();
 
 signals:
     void connectToServer(QString, quint16);
 
 public:
-    ChartNB *chartNB;
-    ChartWB *chartWB;
+    ChartNB*& chartNB;
+    ChartWB* chartWB;
     TableSignals* tableSignals;
     TableInterference* tableInterference;
     TableNoise* tableNoise;

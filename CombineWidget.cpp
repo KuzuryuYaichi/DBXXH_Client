@@ -1,13 +1,21 @@
 #include "CombineWidget.h"
 
-CombineWidget::CombineWidget(QString title, QString X_title, int AXISX_MIN, int AXISX_MAX, QString Y_title, int AXISY_MIN, int AXISY_MAX, QWidget* parent): QWidget(parent)
+CombineWidget::CombineWidget(QString title, QWidget* parent): QWidget(parent)
 {
     mainLayout = new QVBoxLayout(this);
-    mainLayout->addWidget(chartWaterfall = new ChartViewWaterfall(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, AXISY_MIN, AXISY_MAX), 10);
+    mainLayout->addWidget(chartWaterfall = new ChartViewWaterfall(title, MIN_FREQ, MAX_FREQ, -WATERFALL_DEPTH, 0), 10);
     mainLayout->addLayout(layoutSpectrum = new QHBoxLayout, 10);
-    layoutSpectrum->addWidget(chartWave = new ChartViewWave(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, SHRT_MIN, SHRT_MAX));
-    layoutSpectrum->addWidget(chartSpectrum = new ChartViewSpectrum(title, X_title, AXISX_MIN, AXISX_MAX, Y_title, AXISY_MIN, AXISY_MAX));
-    chartWave->hide();
+    layoutSpectrum->addWidget(chartWave = new ChartViewWave(title, 0, 2048, SHRT_MIN, SHRT_MAX));
+    layoutSpectrum->addWidget(chartSpectrum = new ChartViewSpectrum(title, MIN_FREQ, MAX_FREQ, MIN_AMPL, MAX_AMPL));
+
+    connect(chartSpectrum->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
+        chartWaterfall->xAxis->setRange(newRange);
+        chartWaterfall->replot();
+    });
+    connect(chartWaterfall->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
+        chartSpectrum->xAxis->setRange(newRange);
+        chartSpectrum->replot();
+    });
 }
 
 void CombineWidget::replace(unsigned char* const buf)

@@ -5,7 +5,6 @@
 
 static constexpr int CHANNEL_NUM = 4;
 static constexpr int MARKER_NUM = 3;
-static constexpr int ZC_NB_PAGE_NUMS = 7;
 static constexpr int ZC_NB_CHANNEL_NUMS = 8;
 static constexpr short AMPL_OFFSET = -160;
 static constexpr short PHASE_MISTAKE = 1 * 10;

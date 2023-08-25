@@ -14,8 +14,8 @@ ChartViewCustom::ChartViewCustom(QString title, QString X_title, QString Y_title
     connect(this, &QCustomPlot::mouseDoubleClick, this, [this](QMouseEvent *event) {
         if (event->button() == Qt::LeftButton)
         {
-            xAxis->setRange(xMin, xMax);
-            yAxis->setRange(yMin, yMax);
+            xAxis->setRange(xRange);
+            yAxis->setRange(yRange);
         }
         replot();
     });
@@ -52,36 +52,12 @@ ChartViewCustom::ChartViewCustom(QString title, QString X_title, QString Y_title
 
 void ChartViewCustom::xCenterChanged(double min, double max)
 {
-    xAxis->setRange(xMin = min, xMax = max);
+    xAxis->setRange(xRange = {min, max});
     replot(QCustomPlot::rpQueuedReplot);
 }
 
 void ChartViewCustom::yCenterChanged(double min, double max)
 {
-    yAxis->setRange(yMin = min, yMax = max);
-    replot(QCustomPlot::rpQueuedReplot);
-}
-
-void ChartViewCustom::setAxisxMin(double min)
-{
-    xAxis->setRangeLower(xMin = min);
-    replot(QCustomPlot::rpQueuedReplot);
-}
-
-void ChartViewCustom::setAxisxMax(double max)
-{
-    xAxis->setRangeUpper(xMax = max);
-    replot(QCustomPlot::rpQueuedReplot);
-}
-
-void ChartViewCustom::setAxisyMin(double min)
-{
-    yAxis->setRangeLower(yMin = min);
-    replot(QCustomPlot::rpQueuedReplot);
-}
-
-void ChartViewCustom::setAxisyMax(double max)
-{
-    yAxis->setRangeUpper(yMax = max);
+    yAxis->setRange(yRange = {min, max});
     replot(QCustomPlot::rpQueuedReplot);
 }

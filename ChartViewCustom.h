@@ -12,15 +12,10 @@ public:
     ChartViewCustom(QString, QString, QString, QWidget* = nullptr, int = REFRESH_INTERVAL);
     void xCenterChanged(double, double);
     void yCenterChanged(double, double);
-    void setAxisxMin(double);
-    void setAxisxMax(double);
-    void setAxisyMin(double);
-    void setAxisyMax(double);
 
 protected:
     bool ready = true;
-    double xMin = MIN_FREQ, xMax = MAX_FREQ;
-    double yMin = MIN_AMPL, yMax = MAX_AMPL;
+    QCPRange xRange = { MIN_FREQ,  MAX_FREQ }, yRange = { MIN_AMPL, MAX_AMPL };
 
 private:
     QTimer* m_updater;

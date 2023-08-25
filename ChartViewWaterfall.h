@@ -9,7 +9,7 @@ class ChartViewWaterfall: public ChartViewCustom
 {
     Q_OBJECT
 public:
-    ChartViewWaterfall(QString, QString, int, int, QString, int, int, QWidget* = nullptr);
+    ChartViewWaterfall(QString, double, double, double, double, QWidget* = nullptr);
     void replace(unsigned char* const);
 
 private:

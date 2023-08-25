@@ -22,8 +22,7 @@ public:
     void work_ctrl(const unsigned int);
     void parameter_set();
     void test_channel(const unsigned int, unsigned int);
-    void nb_receiver(const unsigned int, const unsigned int);
-    void nb_channel(const unsigned int, const unsigned int, const unsigned int, const unsigned int);
+    void nb_channel(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int);
     boost::system::error_code connectToServer(const std::string&, const unsigned short);
     boost::system::error_code connectToServer();
     bool IsConnected();

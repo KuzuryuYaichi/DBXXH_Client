@@ -13,13 +13,20 @@ ZCWidget::ZCWidget(TcpSocket* socket, QWidget* parent): QWidget(parent), m_socke
     auto scrollArea = new QScrollArea(this);
     auto scrollWidget = new QWidget(this);
     auto scrollLayout = new QHBoxLayout(scrollWidget);
-    for (int i = 0; i < ZC_NB_PAGE_NUMS; ++i)
+    for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
     {
-        scrollLayout->addWidget(chartNB[i] = new ChartNB(tr("窄带") + QString::number(i + 1), tr("Freq(MHz)"), MIN_FREQ, MAX_FREQ, tr("Power(dBm)"), MIN_AMPL, MAX_AMPL));
+        chartNB[i] = new ChartNB(tr("窄带") + (i > 0? QString::number(i): ""));
+        if (i > 0)
+        {
+            scrollLayout->addWidget(chartNB[i]);
+            connect(chartNB[i], &ChartNB::FreqBandwidthChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType) {
+                m_socket->nb_channel(1, i, freq, bandwidth, demodType);
+            });
+        }
     }
-    for (int i = 0; i < ZC_NB_PAGE_NUMS; ++i)
+    for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
     {
-        for (int j = 0; j < ZC_NB_PAGE_NUMS; ++j)
+        for (int j = 0; j < ZC_NB_CHANNEL_NUMS; ++j)
         {
             if (i != j)
                 connect(chartNB[i], &ChartNB::triggerListening, chartNB[j], &ChartNB::changedListening);
@@ -32,7 +39,7 @@ ZCWidget::ZCWidget(TcpSocket* socket, QWidget* parent): QWidget(parent), m_socke
 
 void ZCWidget::replace(unsigned char* const buf, int channel)
 {
-    if (channel < 0 || channel >= ZC_NB_PAGE_NUMS)
+    if (channel < 0 || channel >= ZC_NB_CHANNEL_NUMS)
         return;
     chartNB[channel]->replace(buf);
 }
