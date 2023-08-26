@@ -33,8 +33,6 @@ private:
     QPushButton* playBtn;
     bool playing = false;
     bool recording = false;
-    static constexpr auto DDC_LEN = 2048;
-    static constexpr auto AMPL_OFFSET = -206;
 };
 
 #endif // CHARTNB_H

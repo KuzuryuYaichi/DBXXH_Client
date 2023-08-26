@@ -9,6 +9,7 @@ static constexpr int ZC_NB_CHANNEL_NUMS = 8;
 static constexpr short AMPL_OFFSET = -160;
 static constexpr short PHASE_MISTAKE = 1 * 10;
 static constexpr int JUDGE_ARRAY_DEPTH = 320;
+static constexpr int DDC_LEN = 2048;
 static constexpr int MIN_FREQ = 0, MAX_FREQ = 30, MID_FREQ = (MIN_FREQ + MAX_FREQ) / 2;
 static constexpr int MID_FREQ_HZ = MID_FREQ * 1e6;
 static constexpr int MIN_AMPL = -160, MAX_AMPL = 0;

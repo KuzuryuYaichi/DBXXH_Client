@@ -1,5 +1,6 @@
 #include "ChartViewSpectrum.h"
 
+#include "global.h"
 #include "StructNetData.h"
 
 ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
@@ -157,10 +158,11 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
     {
         auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
         auto data = (NarrowDDC*)(param + 1);
+        static auto WINDOW = HanningWindow<DDC_LEN>();
         for (auto p = 0; p < param->DataPoint; ++p)
         {
-            inR[p][0] = data[p].I;
-            inR[p][1] = data[p].Q;
+            inR[p][0] = data[p].I * WINDOW[p];
+            inR[p][1] = data[p].Q * WINDOW[p];
         }
         fftw_execute(planR);
         const auto HALF_LEN = param->DataPoint / 2;
