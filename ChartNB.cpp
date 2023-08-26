@@ -9,7 +9,7 @@ ChartNB::ChartNB(QString title, QWidget* parent): CombineWidget(title, parent)
     auto layoutAdjust = new QWidget;
     mainLayout->insertWidget(0, layoutAdjust, 1);
     auto hBoxLayout = new QHBoxLayout(layoutAdjust);
-    hBoxLayout->addWidget(new QLabel(tr("NB Freq(MHz):")), 1);
+    hBoxLayout->addWidget(new QLabel(tr("Center Freq(MHz):")), 1);
     hBoxLayout->addWidget(freqEdit = new QDoubleSpinBox, 2);
     freqEdit->setMinimum(MIN_FREQ);
     freqEdit->setMaximum(MAX_FREQ);
@@ -71,25 +71,25 @@ ChartNB::ChartNB(QString title, QWidget* parent): CombineWidget(title, parent)
     hBoxLayout->addStretch(1);
 
     hBoxLayout->addWidget(new QLabel(tr("Rec:")), 1);
-    hBoxLayout->addWidget(playBtn = new QPushButton(style->standardIcon(QStyle::SP_DialogNoButton), ""), 2);
-    connect(playBtn, &QPushButton::clicked, this, [this] {
-        changedRecording(recording);
+    hBoxLayout->addWidget(recordBtn = new QPushButton(style->standardIcon(QStyle::SP_DialogNoButton), ""), 2);
+    connect(recordBtn, &QPushButton::clicked, this, [this] {
+        changedRecording();
     });
     hBoxLayout->addStretch(1);
 }
 
 void ChartNB::changedListening(bool state)
 {
-    this->playing = state;
+    playing = state;
     auto style = QApplication::style();
     playBtn->setIcon(style->standardIcon(playing? QStyle::SP_MediaPlay: QStyle::SP_MediaPause));
 }
 
-void ChartNB::changedRecording(bool state)
+void ChartNB::changedRecording()
 {
-    this->recording = state;
+    recording = !recording;
     auto style = QApplication::style();
-    playBtn->setIcon(style->standardIcon(recording? QStyle::SP_DialogNoButton: QStyle::SP_MediaPause));
+    recordBtn->setIcon(style->standardIcon(recording? QStyle::SP_MediaStop: QStyle::SP_DialogNoButton));
 }
 
 void ChartNB::replace(unsigned char* const buf)

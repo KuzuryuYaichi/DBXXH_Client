@@ -158,7 +158,7 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
     {
         auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
         auto data = (NarrowDDC*)(param + 1);
-        static auto WINDOW = HanningWindow<DDC_LEN>();
+        static const auto WINDOW = HanningWindow<DDC_LEN>();
         for (auto p = 0; p < param->DataPoint; ++p)
         {
             inR[p][0] = data[p].I * WINDOW[p];
@@ -194,8 +194,12 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
             amplx[p] = freq;
             freq += step;
         }
+        if (!ready)
+            return;
+        ready = false;
         SpectrumSeries->setData(amplx, amply);
         SpectrumSeries->rescaleKeyAxis();
+        break;
     }
     default: return;
     }

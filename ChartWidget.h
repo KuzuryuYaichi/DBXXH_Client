@@ -32,7 +32,7 @@ signals:
     void connectToServer(QString, quint16);
 
 public:
-    ChartNB*& chartNB;
+    ChartNB* chartNB;
     ChartWB* chartWB;
     TableSignals* tableSignals;
     TableInterference* tableInterference;

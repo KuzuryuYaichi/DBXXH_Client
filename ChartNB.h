@@ -18,7 +18,7 @@ signals:
     void FreqBandwidthChanged(unsigned long long, unsigned int, unsigned int);
 public slots:
     void changedListening(bool);
-    void changedRecording(bool);
+    void changedRecording();
 
 private:
     enum SHOW_MODE
@@ -31,6 +31,7 @@ private:
     QComboBox* demodBox;
     QComboBox* showBox;
     QPushButton* playBtn;
+    QPushButton* recordBtn;
     bool playing = false;
     bool recording = false;
 };
