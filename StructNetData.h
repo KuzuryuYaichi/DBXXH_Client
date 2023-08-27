@@ -72,7 +72,7 @@ struct StructTestCXResult
 struct ParamPowerWB
 {
     long long Time;
-    float Resolution;
+    int Resolution;
     int DataPoint;
     int SamplePoint;
     short Window;

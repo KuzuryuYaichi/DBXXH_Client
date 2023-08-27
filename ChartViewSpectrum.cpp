@@ -127,6 +127,64 @@ void ChartViewSpectrum::UpdateTracer(QMouseEvent *event)
     QToolTip::showText(mapToGlobal(tracer->position->pixelPosition().toPoint()), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
 }
 
+double ResolveResolution(int Resolution, double BAND_WIDTH)
+{
+    switch (Resolution)
+    {
+    case 0x0E:
+    {
+        if (BAND_WIDTH == 0.9375) return 0.092 / 1e3;
+        if (BAND_WIDTH == 1.875)  return 0.183 / 1e3;
+        if (BAND_WIDTH == 3.75)   return 0.366 / 1e3;
+        if (BAND_WIDTH == 7.5)    return 0.732 / 1e3;
+        if (BAND_WIDTH == 15)     return 1.465 / 1e3;
+        if (BAND_WIDTH == 30)     return 2.93 / 1e3;
+        break;
+    }
+    case 0x0D:
+    {
+        if (BAND_WIDTH == 0.9375) return 0.183 / 1e3;
+        if (BAND_WIDTH == 1.875)  return 0.366 / 1e3;
+        if (BAND_WIDTH == 3.75)   return 0.732 / 1e3;
+        if (BAND_WIDTH == 7.5)    return 1.465 / 1e3;
+        if (BAND_WIDTH == 15)     return 2.93 / 1e3;
+        if (BAND_WIDTH == 30)     return 5.859 / 1e3;
+        break;
+    }
+    case 0x0C:
+    {
+        if (BAND_WIDTH == 0.9375) return 0.366 / 1e3;
+        if (BAND_WIDTH == 1.875)  return 0.732 / 1e3;
+        if (BAND_WIDTH == 3.75)   return 1.465 / 1e3;
+        if (BAND_WIDTH == 7.5)    return 2.93 / 1e3;
+        if (BAND_WIDTH == 15)     return 5.859 / 1e3;
+        if (BAND_WIDTH == 30)     return 11.719 / 1e3;
+        break;
+    }
+    case 0x0B:
+    {
+        if (BAND_WIDTH == 0.9375) return 0.732 / 1e3;
+        if (BAND_WIDTH == 1.875)  return 1.465 / 1e3;
+        if (BAND_WIDTH == 3.75)   return 2.93 / 1e3;
+        if (BAND_WIDTH == 7.5)    return 5.859 / 1e3;
+        if (BAND_WIDTH == 15)     return 11.719 / 1e3;
+        if (BAND_WIDTH == 30)     return 23.438 / 1e3;
+        break;
+    }
+    case 0x0A:
+    {
+        if (BAND_WIDTH == 0.9375) return 1.465 / 1e3;
+        if (BAND_WIDTH == 1.875)  return 2.93 / 1e3;
+        if (BAND_WIDTH == 3.75)   return 5.859 / 1e3;
+        if (BAND_WIDTH == 7.5)    return 11.719 / 1e3;
+        if (BAND_WIDTH == 15)     return 23.438 / 1e3;
+        if (BAND_WIDTH == 30)     return 46.875 / 1e3;
+        break;
+    }
+    }
+    return 0;
+}
+
 void ChartViewSpectrum::replace(unsigned char* const buf)
 {
     auto head = (DataHead*)buf;
@@ -136,7 +194,10 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
     {
         auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
         auto data = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
-        auto freq_step = param->Resolution / 1e3, start_freq = param->StartFreq / 1e6;
+
+        auto BAND_WIDTH = (param->StopFreq - param->StartFreq) / 1e6;
+        auto freq_step = ResolveResolution(param->Resolution, BAND_WIDTH);
+        auto start_freq = param->StartFreq / 1e6;
         auto amplData = (unsigned char*)(data + sizeof(long long));
 //        analyzeFrame(amplData, param->DataPoint);
         QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
