@@ -6,8 +6,7 @@
 
 DisturbNoiseTableView::DisturbNoiseTableView(QWidget *parent): QTableView (parent)
 {
-    horizontalHeader()->setStretchLastSection(true);
-    horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     setSortingEnabled(true);
     verticalHeader()->hide();
 }

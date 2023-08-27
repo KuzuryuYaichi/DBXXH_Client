@@ -17,9 +17,7 @@
 #include "SideWidget.h"
 #include "ChartNB.h"
 #include "ChartWB.h"
-#include "TableSignals.h"
-#include "TableInterference.h"
-#include "TableNoise.h"
+#include "inc/WBSignalDetectWidget.h"
 
 class ChartWidget: public QWidget
 {
@@ -34,9 +32,7 @@ signals:
 public:
     ChartNB* chartNB;
     ChartWB* chartWB;
-    TableSignals* tableSignals;
-    TableInterference* tableInterference;
-    TableNoise* tableNoise;
+    WBSignalDetectWidget* wBSignalDetectWidget;
     PointTableView* freqListTable;
     SideWidget* statusEdit;
     double threshold = 0;

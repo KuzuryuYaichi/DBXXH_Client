@@ -29,9 +29,6 @@ SOURCES += \
     SideWidget.cpp \
     SqlData.cpp \
     SqlWidget.cpp \
-    TableInterference.cpp \
-    TableNoise.cpp \
-    TableSignals.cpp \
     TcpSocket.cpp \
     TinyConfig.cpp \
     ZCWidget.cpp \
@@ -39,8 +36,11 @@ SOURCES += \
     main.cpp \
     src/DisturbNoiseTableView.cpp \
     src/ManMadeNoiseTableView.cpp \
+    src/PopupParamSet.cpp \
     src/SignalDetectTableView.cpp \
-    src/WBSignalDetectModel.cpp
+    src/TypicalFreqSetWidget.cpp \
+    src/WBSignalDetectModel.cpp \
+    src/WBSignalDetectWidget.cpp
 
 HEADERS += \
     CAudioMonitorThread.h \
@@ -63,9 +63,6 @@ HEADERS += \
     SqlWidget.h \
     StructNetData.h \
     StructSample.h \
-    TableInterference.h \
-    TableNoise.h \
-    TableSignals.h \
     TcpSocket.h \
     ThreadSafeQueue.h \
     TinyConfig.h \
@@ -73,8 +70,11 @@ HEADERS += \
     global.h \
     inc/DisturbNoiseTableView.h \
     inc/ManMadeNoiseTableView.h \
+    inc/PopupParamSet.h \
     inc/SignalDetectTableView.h \
-    inc/WBSignalDetectModel.h
+    inc/TypicalFreqSetWidget.h \
+    inc/WBSignalDetectModel.h \
+    inc/WBSignalDetectWidget.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

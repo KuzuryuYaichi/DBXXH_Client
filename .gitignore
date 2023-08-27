@@ -74,3 +74,5 @@ CMakeLists.txt.user*
 
 /boost
 /fftw-3.3.5-dll64
+/QXlsx
+/QCustomPlot

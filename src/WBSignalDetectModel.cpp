@@ -4,21 +4,15 @@
 #include <QSettings>
 
 //考虑使用全局量记录频点识别门限以及带宽识别门限
-uint g_FreqPointThreshold = 0;      //单位为Hz
-uint g_BandwidthThreshold = 0;      //单位为Hz
+uint g_FreqPointThreshold = 0; //单位为Hz
+uint g_BandwidthThreshold = 0; //单位为Hz
 
-WBSignalDetectModel::WBSignalDetectModel(QObject *parent)
-    : QAbstractTableModel(parent)
+WBSignalDetectModel::WBSignalDetectModel(QObject *parent): QAbstractTableModel(parent)
 {
     m_Font.setFamily("Microsoft Yahei");
-    //TODO:根据实际显示结果调整
-    m_Font.setPixelSize(17);
     connect(this, &WBSignalDetectModel::sigTriggerRefreshData, this, &WBSignalDetectModel::UpdateData);
-
     m_pSignalActiveChecker = new QTimer(this);
     connect(m_pSignalActiveChecker, &QTimer::timeout, this, &WBSignalDetectModel::slotCheckSignalActive);
-
-    //TODO: 构造model时初始化一个默认的典型频点列表，可能会有自定义或者读写配置文件需要
     QList<int> exampleFreqList;
     exampleFreqList << 2e6 << 2.5e6 << 5e6 << 10e6 << 15e6 << 20e6 << 25e6;
     setLstTypicalFreq(exampleFreqList);
@@ -58,14 +52,12 @@ int WBSignalDetectModel::columnCount(const QModelIndex &parent) const
     {
         //三个表格同时只能显示其中一个，根据当前使用者表格类型进行显示
         //TODO:后续可能需要三个表格同时显示，则采用对col进行hide的方式实现
-        if(m_eUserViewType == NOT_USED)
+        if (m_eUserViewType == NOT_USED)
             return 0;
-        if(m_eUserViewType == SIGNAL_DETECT_TABLE)
+        if (m_eUserViewType == DISTURB_NOISE_TABLE || m_eUserViewType == MAN_MADE_NOISE_TABLE)
+            return 4;
+        if (m_eUserViewType == SIGNAL_DETECT_TABLE)
             return 9;
-        if(m_eUserViewType == DISTURB_NOISE_TABLE)
-            return 4;
-        if(m_eUserViewType == MAN_MADE_NOISE_TABLE)
-            return 4;
     }
     return 0;
 }
@@ -74,8 +66,7 @@ bool WBSignalDetectModel::setData(const QModelIndex &index, const QVariant &valu
 {
     if (index.isValid() && role == Qt::EditRole)
     {
-        QStringList &rowData = m_DisplayData[index.row()];
-        rowData[index.column()] = value.toString();
+        m_DisplayData[index.row()][index.column()] = value.toString();
         emit dataChanged(index, index);
         return true;
     }
@@ -86,12 +77,11 @@ Qt::ItemFlags WBSignalDetectModel::flags(const QModelIndex &index) const
 {
     if (!index.isValid())
         return Qt::NoItemFlags;
-    Qt::ItemFlags flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
+    auto flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
     if (index.column() == 8 && m_eUserViewType == SIGNAL_DETECT_TABLE && m_bIsSettingLegalFreqFlag)      //仅信号选择表格的最后一列，且当前处于正在编辑合法信号的暂停状态时可编辑
         flags |= Qt::ItemIsEditable;
     return flags;
 }
-
 
 QVariant WBSignalDetectModel::data(const QModelIndex &index, int role) const
 {
@@ -118,7 +108,6 @@ int WBSignalDetectModel::FindSignal(float *FFtin, int InStep, int length, int Fr
     }
     if (!m_pSignalActiveChecker->isActive())
         m_pSignalActiveChecker->start(1000);
-
     Ipp32f * FFtAvg = ippsMalloc_32f(length);
     m_iFullBandWidth = BandWidth;
     //暂时跳过进行fft平滑的步骤
@@ -151,7 +140,6 @@ int WBSignalDetectModel::FindSignal(float *FFtin, int InStep, int length, int Fr
     findPeakCyclically(FFtin, length, Freqency, BandWidth);
     if (!m_lstSignalInfo.isEmpty())
         ret = 0;
-
     bool foundFlag = false;
     //三种情况：当前信号 1、从未有过  2、一直都有  3、曾有现停
     foreach (const SignalInfo& curInfo, m_lstSignalInfo)
@@ -159,10 +147,10 @@ int WBSignalDetectModel::FindSignal(float *FFtin, int InStep, int length, int Fr
         DisplaySignalCharacter newSignalChar;
         foreach (const SignalBaseChar& curBaseInfo, m_mapValidSignalCharacter.keys())
         {
-            if(curInfo.BaseInfo == curBaseInfo) //曾有现停，增加累计list的末尾节点，记录新的起始时间
+            if (curInfo.BaseInfo == curBaseInfo)
             {
                 foundFlag = true;
-                if(m_mapValidSignalCharacter[curBaseInfo].constLast().stopTime != 0) //已经停止过一次
+                if (m_mapValidSignalCharacter[curBaseInfo].constLast().stopTime != 0)
                 {
                     newSignalChar.Info = curInfo;
                     newSignalChar.startTime = QDateTime::currentMSecsSinceEpoch();
@@ -182,11 +170,9 @@ int WBSignalDetectModel::FindSignal(float *FFtin, int InStep, int length, int Fr
         }
     }
     ippsFree(FFtAvg);
-
     //查找典型频率点周围的人为噪声信号特征
     if (findNoiseCharaAroundTypicalFreq(FFtin, length, Freqency, BandWidth))
         ret = 0;
-
     UpdateData();
     return ret;
 }
@@ -232,8 +218,7 @@ void WBSignalDetectModel::SlotTriggerLegalFreqSet(bool checked)
 
 void WBSignalDetectModel::SlotCleanUp()
 {
-    //直接清理，不存在跨线程访问的问题
-    m_mapValidSignalCharacter.clear();
+    m_mapValidSignalCharacter.clear(); //直接清理，不存在跨线程访问的问题
 }
 
 bool WBSignalDetectModel::SlotImportLegalFreqConf()
@@ -280,17 +265,10 @@ bool WBSignalDetectModel::SlotExportLegalFreqConf()
 bool WBSignalDetectModel::findPeakIteratively(Ipp32f * FFtAvg, int length, int Freqency, int BandWidth)
 {
     //从左向右查找第一个峰值的位置
-    Ipp32f SignalPower = 0;
-    Ipp32f NoisePower = 0;
-    Ipp32f NoiseLeftPower = 0;
-    Ipp32f NoiseRightPower = 0;
-    Ipp32f FFtMax = m_fThreshold;
     int MaxAddr = 0;
-    int LeftAddr = 0;
-    int RightAddr = length;
-
     //LZMK:对原有逻辑进行改造，原有逻辑为根据对应区间获取最大值最高点作为信号peak；
     //当前采用门限进行限制，只要存在某一点比前后两个点的幅度大的情况，即可认为是一个尖峰
+    Ipp32f FFtMax = m_fThreshold;
     for (int index = 1; index < length - 1; ++index)
     {
         if (FFtAvg[index] <= m_fThreshold || FFtAvg[index + 1] >= FFtAvg[index] || FFtAvg[index] <= FFtAvg[index - 1])
@@ -299,11 +277,10 @@ bool WBSignalDetectModel::findPeakIteratively(Ipp32f * FFtAvg, int length, int F
         MaxAddr = index;
         break;
     }
-
     //找不到最大点了就可以退出了
     if (MaxAddr == 0)
         return true;
-
+    int LeftAddr = 0, RightAddr = length;
     //TODO: 是否需要处理两个波峰过于接近，导致没能在右侧找到6dB边界的情况？
     //处理出现未找到6dB右边界的情况且包络走势出现上扬的趋势时直接作为右边界
     for (int index = MaxAddr; index < length - 1; ++index)
@@ -312,7 +289,6 @@ bool WBSignalDetectModel::findPeakIteratively(Ipp32f * FFtAvg, int length, int F
         if (FFtAvg[index + 1] > FFtAvg[index] || FFtMax - FFtAvg[index] > 6)
             break;
     }
-
     //按照最高峰位置反向搜索信号 寻找左边界
     for (int index = MaxAddr; index > 0; --index)
     {
@@ -320,18 +296,15 @@ bool WBSignalDetectModel::findPeakIteratively(Ipp32f * FFtAvg, int length, int F
         if (FFtAvg[index - 1] > FFtAvg[index] || FFtMax - FFtAvg[index] > 6)
             break;
     }
-
-    //计算信号属性
-    SignalInfoStr currentSignalInfo;
+    SignalInfoStr currentSignalInfo; //计算信号属性
     currentSignalInfo.BaseInfo.Bound = (RightAddr - LeftAddr) * (float)((float)BandWidth / (float)length);
     currentSignalInfo.BaseInfo.CentFreq = Freqency + ((RightAddr + LeftAddr)/2 - length / 2)*(float)((float)BandWidth / (float)length);
     currentSignalInfo.Amp = FFtMax;
-    //获取信号平均功率
-    ippsMean_32f(&FFtAvg[LeftAddr], RightAddr - LeftAddr + 1, &SignalPower, ippAlgHintFast);
-    //获取噪声平均功率
-    ippsMean_32f(FFtAvg, LeftAddr, &NoiseLeftPower, ippAlgHintFast);
-    ippsMean_32f(&FFtAvg[RightAddr], length - RightAddr, &NoiseRightPower, ippAlgHintFast);
-    NoisePower = (NoiseRightPower + NoiseLeftPower) / 2;
+    Ipp32f SignalPower, NoiseLeftPower, NoiseRightPower;
+    ippsMean_32f(&FFtAvg[LeftAddr], RightAddr - LeftAddr + 1, &SignalPower, ippAlgHintFast); //获取信号平均功率
+    ippsMean_32f(FFtAvg, LeftAddr, &NoiseLeftPower, ippAlgHintFast); //获取噪声平均功率
+    ippsMean_32f(&FFtAvg[RightAddr], length - RightAddr, &NoiseRightPower, ippAlgHintFast); //获取噪声平均功率
+    auto NoisePower = (NoiseRightPower + NoiseLeftPower) / 2;
     currentSignalInfo.Snr = SignalPower - NoisePower;
     m_lstSignalInfo.append(currentSignalInfo);
 
@@ -356,7 +329,7 @@ bool WBSignalDetectModel::findPeakCyclically(Ipp32f * FFtAvg, int length, int Fr
         int MaxAddr = 0;
         int LeftAddr = 0;
         int RightAddr = length;
-        for (int index = totalIndex + 1; index < length - 1; ++index)
+        for (auto index = totalIndex + 1; index < length - 1; ++index)
         {
             if (FFtAvg[index] <= m_fThreshold || FFtAvg[index + 1] >= FFtAvg[index] || FFtAvg[index] <= FFtAvg[index - 1])
                 continue;
@@ -364,14 +337,13 @@ bool WBSignalDetectModel::findPeakCyclically(Ipp32f * FFtAvg, int length, int Fr
             MaxAddr = index;
             break;
         }
-
         //找不到最大点了就可以退出了
         if (MaxAddr == 0)
             return true;
 
         //TODO: 是否需要处理两个波峰过于接近，导致没能在右侧找到6dB边界的情况？
         //处理出现未找到6dB右边界的情况且包络走势出现上扬的趋势时直接作为右边界
-        for(int index = MaxAddr; index < length - 1; ++index)
+        for (auto index = MaxAddr; index < length - 1; ++index)
         {
             RightAddr = index;
             if(FFtAvg[index + 1] > FFtAvg[index] || FFtMax - FFtAvg[index] > 6)
@@ -379,7 +351,7 @@ bool WBSignalDetectModel::findPeakCyclically(Ipp32f * FFtAvg, int length, int Fr
         }
 
         //按照最高峰位置反向搜索信号 寻找左边界
-        for (int index = MaxAddr; index > totalIndex; index--)
+        for (auto index = MaxAddr; index > totalIndex; index--)
         {
             LeftAddr = index;//获取左边界
             if(FFtAvg[index - 1] > FFtAvg[index] || FFtMax - FFtAvg[index] > 6)
@@ -440,7 +412,7 @@ bool WBSignalDetectModel::findNoiseCharaAroundTypicalFreq(Ipp32f *FFtAvg, int le
         return true;
     m_iFindNoiseCharaTimeGap = nowtime;
     bool lackOfTestFreqFlag = false;
-    foreach (const int& testFreqValue, m_mapTypicalFreqAndItsTestFreq.values())
+    foreach (const auto& testFreqValue, m_mapTypicalFreqAndItsTestFreq.values())
     {
         if (testFreqValue == 0)
         {
@@ -454,17 +426,17 @@ bool WBSignalDetectModel::findNoiseCharaAroundTypicalFreq(Ipp32f *FFtAvg, int le
     int startFreq = Freqency - BandWidth / 2;
     int endFreq = Freqency + BandWidth / 2;
 
-    foreach(const int& typicalFreq, m_mapTypicalFreqAndItsTestFreq.keys())
+    foreach (const auto& typicalFreq, m_mapTypicalFreqAndItsTestFreq.keys())
     {
         int curIndex;
         if (m_mapTypicalFreqAndItsTestFreq[typicalFreq] < startFreq)
             curIndex = 0;
-        else if(m_mapTypicalFreqAndItsTestFreq[typicalFreq] > endFreq)
+        else if (m_mapTypicalFreqAndItsTestFreq[typicalFreq] > endFreq)
             curIndex = length - 1;
         else
             curIndex = (m_mapTypicalFreqAndItsTestFreq[typicalFreq] - startFreq) / BandWidth * length;
         int curAmp = FFtAvg[curIndex];
-        if (!m_mapStoreAmpValueToGetManMadeNoiseValue.keys().contains(typicalFreq))
+        if (!m_mapStoreAmpValueToGetManMadeNoiseValue.contains(typicalFreq))
         {
             QList<int> lstStarter;
             lstStarter.append(curAmp);
@@ -475,7 +447,7 @@ bool WBSignalDetectModel::findNoiseCharaAroundTypicalFreq(Ipp32f *FFtAvg, int le
     }
 
     //积累了100条记录后更新一次
-    foreach (const int& typicalFreq, m_mapStoreAmpValueToGetManMadeNoiseValue.keys())
+    foreach (const auto& typicalFreq, m_mapStoreAmpValueToGetManMadeNoiseValue.keys())
     {
         if (m_mapStoreAmpValueToGetManMadeNoiseValue[typicalFreq].length() >= 100)
         {
@@ -490,7 +462,7 @@ bool WBSignalDetectModel::findNoiseCharaAroundTypicalFreq(Ipp32f *FFtAvg, int le
             targetAmp /= 20;
             curItem.Info.Amp = targetAmp;
             curItem.startTime = QDateTime::currentMSecsSinceEpoch(); //用于记录当前频点截获时的时间
-            if (!m_mapManMadeNoiseCharacter.keys().contains(typicalFreq))
+            if (!m_mapManMadeNoiseCharacter.contains(typicalFreq))
             {
                 QList<DisplaySignalCharacter> lstStarter;
                 lstStarter.append(curItem);
@@ -546,12 +518,11 @@ void WBSignalDetectModel::setLstTypicalFreq(const QList<int> &newLstTypicalFreq)
 
 void WBSignalDetectModel::slotCheckSignalActive()
 {
-    qint64 nowTime = QDateTime::currentMSecsSinceEpoch();
+    auto timeNow = QDateTime::currentMSecsSinceEpoch();
     foreach (const auto& existKey, m_mapValidSignalCharacter.keys())
     {
-        if (m_mapValidSignalCharacter[existKey].constLast().stopTime == 0 &&
-            nowTime - m_mapValidSignalCharacter[existKey].constLast().stopTime >= m_ActiveThreshold * 1000)
-            m_mapValidSignalCharacter[existKey].last().stopTime = nowTime;
+        if (m_mapValidSignalCharacter[existKey].constLast().stopTime == 0 && timeNow - m_mapValidSignalCharacter[existKey].constLast().stopTime >= m_ActiveThreshold * 1000)
+            m_mapValidSignalCharacter[existKey].last().stopTime = timeNow;
     }
     UpdateData();
 }
@@ -590,10 +561,8 @@ void WBSignalDetectModel::UpdateData()
 {
     if (m_bIsSettingLegalFreqFlag)
         return;
-
     beginResetModel();
     m_DisplayData.clear();
-
     if (m_eUserViewType == SIGNAL_DETECT_TABLE || m_eUserViewType == DISTURB_NOISE_TABLE)
     {
         //对检测信号map进行统计处理
@@ -604,8 +573,7 @@ void WBSignalDetectModel::UpdateData()
             //根据当前用于显示的view类型进行区分
             if(m_eUserViewType == NOT_USED)
                 break;
-
-            QVector<QString> line;
+            QVector<QVariant> line;
             line.append(QString("%1").arg(i));
             if (m_eUserViewType == SIGNAL_DETECT_TABLE)
             {
@@ -620,7 +588,7 @@ void WBSignalDetectModel::UpdateData()
                 else
                 {
                     time.setMSecsSinceEpoch(m_mapValidSignalCharacter.value(curSigBaseInfo).constFirst().startTime);
-                    line.append(time.toString("MM-dd hh:mm:ss"));          //起始时间      //仅显示到s
+                    line.append(time.toString("MM-dd hh:mm:ss")); //起始时间
                 }
 
                 if (m_mapValidSignalCharacter.value(curSigBaseInfo).constLast().stopTime == 0)
@@ -628,7 +596,7 @@ void WBSignalDetectModel::UpdateData()
                 else
                 {
                     time.setMSecsSinceEpoch(m_mapValidSignalCharacter.value(curSigBaseInfo).constLast().stopTime);
-                    line.append(time.toString("MM-dd hh:mm:ss"));      //结束时间          //仅显示到s
+                    line.append(time.toString("MM-dd hh:mm:ss")); //结束时间
                 }
 
                 if (m_iFullBandWidth <= 0 || m_iFullBandWidth < m_mapValidSignalCharacter.value(curSigBaseInfo).constLast().Info.BaseInfo.Bound)
@@ -641,7 +609,7 @@ void WBSignalDetectModel::UpdateData()
                 //计算一个确定频点带宽特征的信号在持续的总时间长度
                 foreach (const auto& curSigInfoInList, m_mapValidSignalCharacter.value(curSigBaseInfo))
                 {
-                    if(curSigInfoInList.stopTime == 0)
+                    if (curSigInfoInList.stopTime == 0)
                     {
                         duringTime += nowTime - curSigInfoInList.startTime;
                         break;
@@ -667,13 +635,15 @@ void WBSignalDetectModel::UpdateData()
                     m_DisplayData.append(line);
             }
         }
-    }else if(m_eUserViewType == MAN_MADE_NOISE_TABLE){
+    }
+    else if (m_eUserViewType == MAN_MADE_NOISE_TABLE)
+    {
         //电磁环境人为噪声电平测量表格 //对人为噪声统计map进行统计处理
         foreach (const auto& curNoiseFreq, m_mapManMadeNoiseCharacter.keys())
         {
             foreach (const auto& restoredNoiseCharacter, m_mapManMadeNoiseCharacter.value(curNoiseFreq))
             {
-                QVector<QString> line;
+                QVector<QVariant> line;
                 line.append(QString::number(double(curNoiseFreq) / double(1e6), 'f', 6));
                 line.append(QString::number(double(restoredNoiseCharacter.Info.BaseInfo.CentFreq) / double(1e6), 'f', 6));
                 line.append("");            //TODO: 用于根据时间进行调整
@@ -702,5 +672,5 @@ bool SignalBaseChar::operator==(const SignalBaseChar &other) const
 
 bool SignalBaseChar::operator<(const SignalBaseChar &other) const
 {
-    return ((std::abs(CentFreq - other.CentFreq) < g_FreqPointThreshold && Bound < other.Bound) || CentFreq < other.CentFreq);
+    return (std::abs(CentFreq - other.CentFreq) < g_FreqPointThreshold && Bound < other.Bound) || CentFreq < other.CentFreq;
 }

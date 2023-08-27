@@ -18,14 +18,12 @@ ChartWidget::ChartWidget(TcpSocket* socket, ChartNB* chartNB, QWidget* parent): 
 
 void ChartWidget::createSettings()
 {
-    auto tabWidget = new QTabWidget;
-    tabWidget->addTab(tableSignals = new TableSignals, "信号检测列表");
-    tabWidget->addTab(tableInterference = new TableInterference, "干扰信号测量记录");
-    tabWidget->addTab(tableNoise = new TableNoise, "电磁信号人为噪声电平测量记录");
     auto doaLayout = new QVBoxLayout(zcWidget = new QWidget);
     auto hBoxLayout = new QHBoxLayout;
     hBoxLayout->addWidget(chartNB, 1);
-    hBoxLayout->addWidget(tabWidget, 1);
+    hBoxLayout->addWidget(wBSignalDetectWidget = new WBSignalDetectWidget, 1);
+//    emit wBSignalDetectWidget->sigSetValidAmpThreshold(500);
+//    emit wBSignalDetectWidget->sigTriggerSignalDetect(m_pFFTIn, 32, 640, 15e6, 30e6);
     doaLayout->addLayout(hBoxLayout, 4);
     doaLayout->addWidget(chartWB = new ChartWB(tr("宽带")), 5);
 
