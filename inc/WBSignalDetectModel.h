@@ -134,6 +134,7 @@ private:
     int m_iCheckBandAroundTypicalFreq = 2e6;    //默认检测典型频率点周围2m范围内信号的噪声特性
     qint64 m_iFindNoiseCharaTimeGap = 0;
     bool m_bManuallySetManMadeNoiseFreq = false;    //手动设置人为噪声测量频点标志位
+    std::mutex m_mutex;
 
 private slots:
     void slotCheckSignalActive();

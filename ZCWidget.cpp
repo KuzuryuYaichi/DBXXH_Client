@@ -8,7 +8,7 @@ ZCWidget::ZCWidget(TcpSocket* socket, QWidget* parent): QWidget(parent), m_socke
     rfLayout->setAlignment(Qt::AlignLeft);
     rfLayout->addWidget(new QLabel(tr("复听:")));
     rfLayout->addWidget(reListen = new QPushButton(tr("选择文件")));
-    mainLayout->addLayout(rfLayout, 1);
+//    mainLayout->addLayout(rfLayout, 1);
 
     auto scrollArea = new QScrollArea(this);
     auto scrollWidget = new QWidget(this);

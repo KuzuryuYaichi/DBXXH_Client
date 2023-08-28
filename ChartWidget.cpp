@@ -22,8 +22,6 @@ void ChartWidget::createSettings()
     auto hBoxLayout = new QHBoxLayout;
     hBoxLayout->addWidget(chartNB, 1);
     hBoxLayout->addWidget(wBSignalDetectWidget = new WBSignalDetectWidget, 1);
-//    emit wBSignalDetectWidget->sigSetValidAmpThreshold(500);
-//    emit wBSignalDetectWidget->sigTriggerSignalDetect(m_pFFTIn, 32, 640, 15e6, 30e6);
     doaLayout->addLayout(hBoxLayout, 4);
     doaLayout->addWidget(chartWB = new ChartWB(tr("宽带")), 5);
 

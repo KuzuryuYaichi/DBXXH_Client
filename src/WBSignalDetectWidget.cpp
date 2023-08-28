@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QBoxLayout>
+#include "global.h"
 
 WBSignalDetectWidget::WBSignalDetectWidget(QWidget *parent): QWidget(parent)
 {
@@ -19,8 +20,6 @@ WBSignalDetectWidget::WBSignalDetectWidget(QWidget *parent): QWidget(parent)
     turnToCorrectTableModel();
     connect(this, &WBSignalDetectWidget::startDetect, m_pGenericModel, &WBSignalDetectModel::SetStartTime);
     connect(this, &WBSignalDetectWidget::stopDetect, m_pGenericModel, &WBSignalDetectModel::SetStopTime);
-    connect(this, &WBSignalDetectWidget::sigTriggerSignalDetect, m_pGenericModel, &WBSignalDetectModel::FindSignal);
-    connect(this, &WBSignalDetectWidget::sigSetValidAmpThreshold, m_pGenericModel,&WBSignalDetectModel::setFThreshold);
     connect(m_pPopupParamSet = new PopupParamSet, &PopupParamSet::sigUpdateParam, this, [this](ParamSet param) {
         m_DetectParam = param;
         m_pGenericModel->setBandwidthThreshold(m_DetectParam.BandwidthThreshold);
@@ -32,6 +31,22 @@ WBSignalDetectWidget::WBSignalDetectWidget(QWidget *parent): QWidget(parent)
     connect(m_pTypicalFreqSetWidget = new TypicalFreqSetWidget, &TypicalFreqSetWidget::sigHaveTypicalFreq, m_pGenericModel, &WBSignalDetectModel::setMapTypicalFreqAndItsTestFreq);
     m_pTypicalFreqSetWidget->setModal(false);
     m_pTypicalFreqSetWidget->hide();
+}
+
+void WBSignalDetectWidget::sigTriggerSignalDetect(unsigned char* amplData, int InStep, int length, int Freqency, int BandWidth)
+{
+    auto FFtin = ippsMalloc_32f(length);
+    for (int i = 0; i < length; ++i)
+    {
+        FFtin[i] = (short)amplData[i] + AMPL_OFFSET;
+    }
+    m_pGenericModel->FindSignal(FFtin, InStep, length, Freqency, BandWidth);
+    ippsFree(FFtin);
+}
+
+void WBSignalDetectWidget::sigSetValidAmpThreshold(float amp)
+{
+    m_pGenericModel->setFThreshold(amp);
 }
 
 void WBSignalDetectWidget::setupUi()

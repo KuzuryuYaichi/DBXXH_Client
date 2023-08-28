@@ -4,15 +4,20 @@
 #include <QSettings>
 
 //考虑使用全局量记录频点识别门限以及带宽识别门限
-uint g_FreqPointThreshold = 0; //单位为Hz
-uint g_BandwidthThreshold = 0; //单位为Hz
+uint g_FreqPointThreshold = 10; //单位为Hz
+uint g_BandwidthThreshold = 10; //单位为Hz
 
 WBSignalDetectModel::WBSignalDetectModel(QObject *parent): QAbstractTableModel(parent)
 {
     m_Font.setFamily("Microsoft Yahei");
     connect(this, &WBSignalDetectModel::sigTriggerRefreshData, this, &WBSignalDetectModel::UpdateData);
     m_pSignalActiveChecker = new QTimer(this);
-    connect(m_pSignalActiveChecker, &QTimer::timeout, this, &WBSignalDetectModel::slotCheckSignalActive);
+    m_pSignalActiveChecker->setInterval(1000);
+    connect(m_pSignalActiveChecker, &QTimer::timeout, this, [this] {
+        slotCheckSignalActive();
+        m_pSignalActiveChecker->start();
+    });
+    m_pSignalActiveChecker->start();
     QList<int> exampleFreqList;
     exampleFreqList << 2e6 << 2.5e6 << 5e6 << 10e6 << 15e6 << 20e6 << 25e6;
     setLstTypicalFreq(exampleFreqList);
@@ -66,7 +71,7 @@ bool WBSignalDetectModel::setData(const QModelIndex &index, const QVariant &valu
 {
     if (index.isValid() && role == Qt::EditRole)
     {
-        m_DisplayData[index.row()][index.column()] = value.toString();
+        m_DisplayData[index.row()][index.column()] = value;
         emit dataChanged(index, index);
         return true;
     }
@@ -88,13 +93,16 @@ QVariant WBSignalDetectModel::data(const QModelIndex &index, int role) const
     if (index.isValid() && m_eUserViewType != NOT_USED)
     {
         if (role == Qt::DisplayRole || role == Qt::EditRole) //显示内容
-            return m_DisplayData[index.row()].at(index.column());
+        {
+            if (index.column() == 8)
+                return m_DisplayData[index.row()][index.column()].toBool()? "是": "否";
+            else
+                return m_DisplayData[index.row()][index.column()];
+        }
         else if (role == Qt::TextAlignmentRole) //内容排版
             return Qt::AlignCenter;
         else if (role == Qt::FontRole) //字体
             return m_Font;
-        else if(role == Qt::UserRole)
-            return QVariant::fromValue(m_DisplayData[index.row()].at(index.column()));
     }
     return QVariant();
 }
@@ -106,8 +114,8 @@ int WBSignalDetectModel::FindSignal(float *FFtin, int InStep, int length, int Fr
         m_i64SystemStartTime = QDateTime::currentMSecsSinceEpoch();
         m_i64SystemStopTime = m_i64SystemStartTime;
     }
-    if (!m_pSignalActiveChecker->isActive())
-        m_pSignalActiveChecker->start(1000);
+//    if (!m_pSignalActiveChecker->isActive())
+//        m_pSignalActiveChecker->start(1000);
     Ipp32f * FFtAvg = ippsMalloc_32f(length);
     m_iFullBandWidth = BandWidth;
     //暂时跳过进行fft平滑的步骤
@@ -173,7 +181,7 @@ int WBSignalDetectModel::FindSignal(float *FFtin, int InStep, int length, int Fr
     //查找典型频率点周围的人为噪声信号特征
     if (findNoiseCharaAroundTypicalFreq(FFtin, length, Freqency, BandWidth))
         ret = 0;
-    UpdateData();
+//    UpdateData();
     return ret;
 }
 
@@ -204,10 +212,7 @@ void WBSignalDetectModel::SlotTriggerLegalFreqSet(bool checked)
                 {
                     if (keyOfMap.CentFreq == curKey.CentFreq && keyOfMap.Bound == curKey.Bound)
                     {
-                        if(signalIndex.at(8) == "否")
-                            m_mapValidSignalCharacter[keyOfMap].first().isLegal = false;
-                        else if(signalIndex.at(8) == "是")
-                            m_mapValidSignalCharacter[keyOfMap].first().isLegal = true;
+                        m_mapValidSignalCharacter[keyOfMap].first().isLegal = signalIndex.at(8).toBool();
                         break;
                     }
                 }
@@ -561,6 +566,7 @@ void WBSignalDetectModel::UpdateData()
 {
     if (m_bIsSettingLegalFreqFlag)
         return;
+//    std::lock_guard<std::mutex> lk(m_mutex);
     beginResetModel();
     m_DisplayData.clear();
     if (m_eUserViewType == SIGNAL_DETECT_TABLE || m_eUserViewType == DISTURB_NOISE_TABLE)
@@ -571,7 +577,7 @@ void WBSignalDetectModel::UpdateData()
         {
             ++i;
             //根据当前用于显示的view类型进行区分
-            if(m_eUserViewType == NOT_USED)
+            if (m_eUserViewType == NOT_USED)
                 break;
             QVector<QVariant> line;
             line.append(QString("%1").arg(i));
@@ -622,7 +628,7 @@ void WBSignalDetectModel::UpdateData()
                 else
                     line.append(QString("%1%").arg(100 * double(duringTime) / double(m_i64SystemStopTime - m_i64SystemStartTime)));
                 //当前频点的信号是否合法记录在每个数据链的头部元素中
-                line.append(m_mapValidSignalCharacter.value(curSigBaseInfo).constFirst().isLegal ? QString("是") : QString("否"));
+                line.append(m_mapValidSignalCharacter.value(curSigBaseInfo).constFirst().isLegal);
                 m_DisplayData.append(line);
             }
             else

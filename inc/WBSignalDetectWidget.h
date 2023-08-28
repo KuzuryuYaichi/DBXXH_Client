@@ -15,20 +15,20 @@ class WBSignalDetectWidget: public QWidget
     Q_OBJECT
 public:
     explicit WBSignalDetectWidget(QWidget *parent = nullptr);
-
-signals:
-    //记录开始检测时间
-    void startDetect();
-    //记录最终完成检测时间
-    void stopDetect();
     //单次数据传入触发处理
-    void sigTriggerSignalDetect(float *FFtin,       //FFT输入数据
+    void sigTriggerSignalDetect(unsigned char *FFtin, //FFT输入数据
                                 int InStep,         //平滑滑窗的宽度
                                 int length,         //FFT的点数
                                 int Freqency,       //中心频点
                                 int BandWidth);     //当前FFT覆盖带宽
     //设置有效电平门限   dBm
     void sigSetValidAmpThreshold(float amp);
+
+signals:
+    //记录开始检测时间
+    void startDetect();
+    //记录最终完成检测时间
+    void stopDetect();
 
 private:
     void setupUi();

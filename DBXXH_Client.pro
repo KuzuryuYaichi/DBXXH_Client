@@ -98,3 +98,6 @@ TRANSLATIONS += \
 TR_EXCLUDE += $$PWD/boost/*
 TR_EXCLUDE += $$PWD/QCustomPlot/*
 TR_EXCLUDE += $$PWD/QXlsx/*
+
+RESOURCES += \
+    Resource.qrc

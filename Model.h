@@ -7,6 +7,7 @@
 #include "ChartWidget.h"
 #include "TinyConfig.h"
 #include "SqlWidget.h"
+#include "DataProcess.h"
 
 class Model: public QMainWindow
 {
@@ -29,12 +30,12 @@ private:
     QTabWidget* m_tabWidget;
     QString m_statusList;
     QStatusBar *statusBar;
+    std::unique_ptr<DataProcess> dataProcess;
     std::thread processThread;
-    std::shared_ptr<TcpSocket> m_socket;
-    bool isRunning = true;
-
+    std::shared_ptr<TcpSocket> socket;
     QTimer* statusTimer;
     bool readyTime = true;
+    bool Running = true;
 };
 
 #endif // MODEL_H

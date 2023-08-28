@@ -7,10 +7,10 @@
 Model::Model(QWidget *parent): QMainWindow(parent)
 {
     setWindowTitle(tr("Client"));
-    m_socket = std::make_shared<TcpSocket>();
+    socket = std::make_shared<TcpSocket>();
     setCentralWidget(m_tabWidget = new QTabWidget);
-    m_tabWidget->addTab(m_zcWidget = new ZCWidget(m_socket.get()), tr("窄带"));
-    m_tabWidget->insertTab(0, m_cxWidget = new ChartWidget(m_socket.get(), m_zcWidget->chartNB[0]), tr("宽带"));
+    m_tabWidget->addTab(m_zcWidget = new ZCWidget(socket.get()), tr("窄带"));
+    m_tabWidget->insertTab(0, m_cxWidget = new ChartWidget(socket.get(), m_zcWidget->chartNB[0]), tr("宽带"));
     m_tabWidget->setCurrentIndex(0);
 
     statusTimer = new QTimer;
@@ -28,12 +28,15 @@ Model::Model(QWidget *parent): QMainWindow(parent)
         readyTime = true;
     });
 
+    dataProcess = std::make_unique<DataProcess>(m_cxWidget->wBSignalDetectWidget);
+    dataProcess->ProcessData();
+
     processThread = std::thread([this]
     {
-        while (isRunning)
+        while (Running)
         {
-            auto packet = m_socket->spsc_queue.wait_and_pop();
-            if (packet == nullptr)
+            auto [res, packet] = socket->spsc_queue.wait_and_pop();
+            if (!res)
                 continue;
             auto buf = packet.get();
             auto head = (DataHead*)buf;
@@ -94,6 +97,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
             }
             case 0x515:
             {
+                dataProcess->execute(packet);
                 showDataCX(buf);
                 break;
             }
@@ -109,7 +113,8 @@ Model::Model(QWidget *parent): QMainWindow(parent)
 
 Model::~Model()
 {
-    isRunning = false;
+    Running = false;
+    socket->spsc_queue.clean();
     if (processThread.joinable())
         processThread.join();
 }

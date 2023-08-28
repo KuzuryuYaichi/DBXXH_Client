@@ -6,14 +6,14 @@
 
 extern PARAMETER_SET g_parameter_set;
 
-TcpSocket::TcpSocket(): spsc_queue(isRunning), write_queue(isRunning), socket(ioService)
+TcpSocket::TcpSocket(): socket(ioService)
 {
     ReInitSocket();
 }
 
 TcpSocket::~TcpSocket()
 {
-    isRunning = false;
+    Connected = false;
     write_queue.clean();
     if (read_thread.joinable())
         read_thread.join();
@@ -30,14 +30,14 @@ void TcpSocket::ReInitSocket()
 
 bool TcpSocket::IsConnected()
 {
-    return isRunning;
+    return Connected;
 }
 
 void TcpSocket::StartWork()
 {
     read_thread = std::thread([this]
     {
-        while (isRunning)
+        while (Connected)
         {
             read();
         }
@@ -47,7 +47,7 @@ void TcpSocket::StartWork()
 
     write_thread = std::thread([this]
     {
-        while (isRunning)
+        while (Connected)
         {
             write();
         }
@@ -68,7 +68,7 @@ void TcpSocket::read()
             if (ec.failed())
             {
                 std::cout << "Read Failed: " << ec.what() << std::endl;
-                isRunning = false;
+                Connected = false;
                 return;
             }
             left -= bytes_transferred;
@@ -85,7 +85,7 @@ void TcpSocket::read()
             if (ec.failed())
             {
                 std::cout << "Read Failed: " << ec.what() << std::endl;
-                isRunning = false;
+                Connected = false;
                 return;
             }
             left -= bytes_transferred;
@@ -96,7 +96,7 @@ void TcpSocket::read()
     catch (const std::exception& e)
     {
         std::cout << "Read Exception:" << e.what() << std::endl;
-        isRunning = false;
+        Connected = false;
     }
 }
 
@@ -109,8 +109,8 @@ void TcpSocket::write()
 {
     try
     {
-        auto data = write_queue.wait_and_pop();
-        if (!isRunning)
+        auto [res, data] = write_queue.wait_and_pop();
+        if (!res)
             return;
         boost::system::error_code ec;
         size_t left = data->len, offset = 0;
@@ -120,7 +120,7 @@ void TcpSocket::write()
             if (ec.failed())
             {
                 std::cout << "Write Failed: " << ec.what() << std::endl;
-                isRunning = false;
+                Connected = false;
                 return;
             }
             left -= bytes_transferred;
@@ -130,7 +130,7 @@ void TcpSocket::write()
     catch (const std::exception& e)
     {
         std::cout << "Write Exception: " << e.what() << std::endl;
-        isRunning = false;
+        Connected = false;
     }
 }
 
@@ -175,7 +175,7 @@ boost::system::error_code TcpSocket::connectToServer(const std::string& addr, co
 boost::system::error_code TcpSocket::connectToServer()
 {
     boost::system::error_code ec;
-    if (isRunning)
+    if (Connected)
     {
         socket.shutdown(boost::asio::ip::tcp::socket::shutdown_both, ec);
         if (ec.failed())
@@ -201,7 +201,7 @@ boost::system::error_code TcpSocket::connectToServer()
         std::cout << ec.what() << std::endl;
         return ec;
     }
-    isRunning = true;
+    Connected = true;
     StartWork();
     return ec;
 }

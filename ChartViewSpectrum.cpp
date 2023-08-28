@@ -193,12 +193,10 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
     case 0x515:
     {
         auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
-        auto data = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
-
         auto BAND_WIDTH = (param->StopFreq - param->StartFreq) / 1e6;
         auto freq_step = ResolveResolution(param->Resolution, BAND_WIDTH);
         auto start_freq = param->StartFreq / 1e6;
-        auto amplData = (unsigned char*)(data + sizeof(long long));
+        auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
 //        analyzeFrame(amplData, param->DataPoint);
         QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
         auto x = start_freq;

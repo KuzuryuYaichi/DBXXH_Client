@@ -2,42 +2,42 @@
 
 #include <QHeaderView>
 #include <QFileInfo>
+#include <QCheckBox>
 #include "QXlsx/xlsxdocument.h"
 
-ComboBoxDelegate::ComboBoxDelegate(QObject *parent): QItemDelegate(parent) {}
+CheckBoxDelegate::CheckBoxDelegate(QObject *parent): QItemDelegate(parent) {}
 
-QWidget *ComboBoxDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &) const
+QWidget *CheckBoxDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &) const
 {
-    QComboBox *comboBox = new QComboBox(parent);
-    comboBox->addItem("是");
-    comboBox->addItem("否");
-    return comboBox;
+    auto checkBox = new QCheckBox(parent);
+    checkBox->setTristate(false);
+    return checkBox;
 }
 
-void ComboBoxDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
+void CheckBoxDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
 {
-    QComboBox *comboBox = qobject_cast<QComboBox *>(editor);
-    if (!comboBox || index.column() != 8)
+    auto checkBox = qobject_cast<QCheckBox*>(editor);
+    if (!checkBox || index.column() != 8)
         return;
-    QString currentText = index.data(Qt::DisplayRole).toString();
-    int currentIndex = comboBox->findText(currentText);
-    comboBox->setCurrentIndex(currentIndex);
+    qDebug() << "SetEditorData " << index.data(Qt::DisplayRole).toBool();
+    checkBox->setCheckState((Qt::CheckState)index.data(Qt::DisplayRole).toBool());
 }
 
-void ComboBoxDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
+void CheckBoxDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const
 {
-    QComboBox *comboBox = qobject_cast<QComboBox *>(editor);
-    if (!comboBox || index.column() != 8)
+    auto checkBox = qobject_cast<QCheckBox*>(editor);
+    if (!checkBox || index.column() != 8)
         return;
-    model->setData(index, comboBox->currentText(), Qt::EditRole);
+    qDebug() << "SetModelData " << index.data(Qt::DisplayRole).toBool();
+    model->setData(index, checkBox->checkState());
 }
 
-void ComboBoxDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &) const
+void CheckBoxDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionViewItem &option, const QModelIndex &) const
 {
     editor->setGeometry(option.rect);
 }
 
-//void ComboBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
+//void CheckBoxDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
 //{
 //    if (index.column() == 8)
 //    {
@@ -52,10 +52,11 @@ void ComboBoxDelegate::updateEditorGeometry(QWidget *editor, const QStyleOptionV
 
 SignalDetectTableView::SignalDetectTableView(QWidget *parent): QTableView(parent)
 {
-    horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    horizontalHeader()->setStretchLastSection(true);
+    horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     setSortingEnabled(true);
     verticalHeader()->hide();
-    setItemDelegateForColumn(8, new ComboBoxDelegate);
+    setItemDelegateForColumn(8, new CheckBoxDelegate);
 }
 
 bool SignalDetectTableView::GenerateExcelTable(QString folderName)

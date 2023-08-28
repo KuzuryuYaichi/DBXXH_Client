@@ -1,27 +1,27 @@
 #ifndef DATAPROCESS_H
 #define DATAPROCESS_H
 
-#include "ChartWidget.h"
+#include "inc/WBSignalDetectWidget.h"
 
-#include <QObject>
 #include <tuple>
 #include <vector>
-#include "global.h"
-#include "SqlData.h"
+#include "ThreadSafeQueue.h"
 
-class DataProcess: public QObject
+using DATA_TYPE = std::shared_ptr<unsigned char[]>;
+
+class DataProcess
 {
-    Q_OBJECT
 public:
-    DataProcess(QString, ChartWidget* = nullptr);
+    DataProcess(WBSignalDetectWidget*);
     ~DataProcess();
-
-signals:
-    void UpdateFreqListTable(const QVector<std::tuple<double, double, int>>&, const QDateTime&);
+    void ProcessData();
+    void execute(const DATA_TYPE& task);
 
 private:
-    ChartWidget* m_cxWidget = nullptr;
-    SqlData sqlData;
+    WBSignalDetectWidget* m_wbWidget;
+    std::pair<double, double> DirectionConfidence(int*);
+    threadsafe_queue<DATA_TYPE> queue;
+    std::thread ProcessThread;
 };
 
 #endif // DATAPROCESS_H

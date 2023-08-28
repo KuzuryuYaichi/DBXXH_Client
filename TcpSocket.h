@@ -33,7 +33,7 @@ protected:
     void StartWork();
 
 private:
-    bool isRunning = false;
+    bool Connected = false;
     void read();
     void write();
     void ReInitSocket();

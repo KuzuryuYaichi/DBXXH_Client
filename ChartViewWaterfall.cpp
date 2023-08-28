@@ -6,7 +6,7 @@ ChartViewWaterfall::ChartViewWaterfall(QString title, double AXISX_MIN, double A
     m_pColorMap = new QCPColorMap(xAxis, yAxis);
     m_pColorMap->data()->setValueSize(WATERFALL_DEPTH);
     m_pColorMap->data()->setRange(xRange = { AXISX_MIN, AXISX_MAX }, yRange = { AXISY_MIN, AXISY_MAX });
-    m_pColorMap->setGradient(QCPColorGradient::gpJet);
+    m_pColorMap->setGradient(QCPColorGradient::gpHot);
     m_pColorMap->rescaleDataRange(true);
     rescaleAxes();
 
