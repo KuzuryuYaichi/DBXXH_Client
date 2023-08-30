@@ -1,7 +1,5 @@
 #include "ChartViewWave.h"
 
-#include "StructNetData.h"
-
 ChartViewWave::ChartViewWave(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
     ChartViewCustom(title, tr("Freq(MHz)"), tr("Power"), parent)
 {

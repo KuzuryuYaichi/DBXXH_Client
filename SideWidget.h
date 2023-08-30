@@ -10,7 +10,7 @@
 class SideWidget: public QTextEdit
 {
 public:
-    SideWidget(QPushButton*, QPushButton*, QWidget* = nullptr);
+    SideWidget(QPushButton* = nullptr, QPushButton* = nullptr, QWidget* = nullptr);
 
 public slots:
     void updateStatus(QString);

@@ -8,42 +8,38 @@
         <translation type="vanished">窄带中心频点(MHz):</translation>
     </message>
     <message>
-        <location filename="ChartNB.cpp" line="12"/>
         <source>Center Freq(MHz):</source>
-        <translation>中心频点(MHz):</translation>
+        <translation type="vanished">中心频点(MHz):</translation>
     </message>
     <message>
-        <location filename="ChartNB.cpp" line="26"/>
+        <location filename="ChartNB.cpp" line="18"/>
         <source>BW(kHz):</source>
         <translation>带宽(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartNB.cpp" line="45"/>
+        <location filename="ChartNB.cpp" line="37"/>
         <source>Demod:</source>
         <translation>解调模式:</translation>
     </message>
     <message>
-        <location filename="ChartNB.cpp" line="55"/>
         <source>Domain:</source>
-        <translation>波形:</translation>
+        <translation type="vanished">波形:</translation>
     </message>
     <message>
-        <location filename="ChartNB.cpp" line="57"/>
         <source>Time</source>
-        <translation>时域</translation>
+        <translation type="vanished">时域</translation>
     </message>
     <message>
-        <location filename="ChartNB.cpp" line="58"/>
         <source>Freq</source>
-        <translation>频域</translation>
+        <translation type="vanished">频域</translation>
     </message>
     <message>
-        <location filename="ChartNB.cpp" line="64"/>
+        <location filename="ChartNB.cpp" line="47"/>
         <source>Play:</source>
         <translation>播放:</translation>
     </message>
     <message>
-        <location filename="ChartNB.cpp" line="73"/>
+        <location filename="ChartNB.cpp" line="56"/>
         <source>Rec:</source>
         <translation>录音:</translation>
     </message>
@@ -87,40 +83,53 @@
     </message>
 </context>
 <context>
-    <name>ChartViewSpectrum</name>
+    <name>ChartViewHeatmap</name>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="7"/>
+        <location filename="ChartViewHeatmap.cpp" line="4"/>
         <source>Freq(MHz)</source>
         <translation>频点(MHz)</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="7"/>
+        <location filename="ChartViewHeatmap.cpp" line="4"/>
+        <source>Ampl(dBm)</source>
+        <translation>幅度(dBm)</translation>
+    </message>
+</context>
+<context>
+    <name>ChartViewSpectrum</name>
+    <message>
+        <location filename="ChartViewSpectrum.cpp" line="6"/>
+        <source>Freq(MHz)</source>
+        <translation>频点(MHz)</translation>
+    </message>
+    <message>
+        <location filename="ChartViewSpectrum.cpp" line="6"/>
         <source>Ampl(dBm)</source>
         <translation>幅度(dBm)</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="10"/>
-        <location filename="ChartViewSpectrum.cpp" line="75"/>
+        <location filename="ChartViewSpectrum.cpp" line="9"/>
+        <location filename="ChartViewSpectrum.cpp" line="74"/>
         <source>Gate: </source>
         <translation>门限:</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="16"/>
+        <location filename="ChartViewSpectrum.cpp" line="15"/>
         <source>Spectrum</source>
         <translation>合成谱</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="22"/>
+        <location filename="ChartViewSpectrum.cpp" line="21"/>
         <source>Max Keep</source>
-        <translation type="unfinished"></translation>
+        <translation>最大保持</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="28"/>
+        <location filename="ChartViewSpectrum.cpp" line="27"/>
         <source>Min Keep</source>
-        <translation type="unfinished"></translation>
+        <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="34"/>
+        <location filename="ChartViewSpectrum.cpp" line="33"/>
         <source>Gate</source>
         <translation>门限</translation>
     </message>
@@ -141,12 +150,12 @@
 <context>
     <name>ChartViewWave</name>
     <message>
-        <location filename="ChartViewWave.cpp" line="6"/>
+        <location filename="ChartViewWave.cpp" line="4"/>
         <source>Freq(MHz)</source>
         <translation>频点(MHz)</translation>
     </message>
     <message>
-        <location filename="ChartViewWave.cpp" line="6"/>
+        <location filename="ChartViewWave.cpp" line="4"/>
         <source>Power</source>
         <translation>功率</translation>
     </message>
@@ -200,6 +209,68 @@
     </message>
 </context>
 <context>
+    <name>ChartWB</name>
+    <message>
+        <source>Center Freq(MHz):</source>
+        <translation type="vanished">中心频点(MHz):</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="19"/>
+        <source>Sim Band(MHz):</source>
+        <translation>模拟带宽(MHz):</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="47"/>
+        <source>Resolution(kHz):</source>
+        <translation>分辨率(kHz):</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="63"/>
+        <source>Smooth:</source>
+        <translation>平滑次数:</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="79"/>
+        <source>Rf Gain Mode:</source>
+        <translation>射频增益模式:</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="83"/>
+        <source>MGC</source>
+        <translation>手动</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="83"/>
+        <source>AGC</source>
+        <translation>自动</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="95"/>
+        <source>Rf Desc(0~31dB):</source>
+        <translation>射频衰减(0~31dBm):</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="111"/>
+        <source>Digit Desc(0~31dB):</source>
+        <translation>数字衰减(0~31dB):</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="127"/>
+        <source>Feedback State:</source>
+        <translation>馈电状态:</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="132"/>
+        <source>Close</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <location filename="ChartWB.cpp" line="132"/>
+        <source>Open</source>
+        <translation>打开</translation>
+    </message>
+</context>
+<context>
     <name>ChartWidget</name>
     <message>
         <source>Power(dBm)</source>
@@ -215,7 +286,7 @@
         <translation type="vanished">日志:</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="58"/>
+        <location filename="ChartWidget.cpp" line="44"/>
         <source>Receiver Settings</source>
         <translation>接收机设置</translation>
     </message>
@@ -230,95 +301,83 @@
     <message>
         <location filename="ChartWidget.cpp" line="26"/>
         <source>宽带</source>
-        <translation type="unfinished"></translation>
+        <translation></translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="62"/>
+        <location filename="ChartWidget.cpp" line="48"/>
         <source>All Check</source>
         <translation>全检</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="63"/>
+        <location filename="ChartWidget.cpp" line="49"/>
         <source>Device SelfCheck:</source>
         <translation>设备自检:</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="68"/>
+        <location filename="ChartWidget.cpp" line="54"/>
         <source>Work Param Query</source>
         <translation>工作参数查询</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="69"/>
+        <location filename="ChartWidget.cpp" line="55"/>
         <source>Work Ctrl:</source>
         <translation>工作控制:</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="74"/>
         <source>Params Setting</source>
-        <translation>参数设置</translation>
+        <translation type="vanished">参数设置</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="84"/>
         <source>Center Freq(MHz):</source>
-        <translation>中心频点(MHz):</translation>
+        <translation type="vanished">中心频点(MHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="101"/>
         <source>Sim Band(MHz):</source>
-        <translation>模拟带宽(MHz):</translation>
+        <translation type="vanished">模拟带宽(MHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="128"/>
         <source>Resolution(kHz):</source>
-        <translation>分辨率(kHz):</translation>
+        <translation type="vanished">分辨率(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="153"/>
         <source>MGC</source>
-        <translation>手动</translation>
+        <translation type="vanished">手动</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="153"/>
         <source>AGC</source>
-        <translation>自动</translation>
+        <translation type="vanished">自动</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="159"/>
         <source>Rf Gain Mode:</source>
-        <translation>射频增益模式:</translation>
+        <translation type="vanished">射频增益模式:</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="171"/>
         <source>Rf Desc(0~31dB):</source>
-        <translation>射频衰减(0~31dBm):</translation>
+        <translation type="vanished">射频衰减(0~31dBm):</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="186"/>
         <source>Digit Desc(0~31dB):</source>
-        <translation>数字衰减(0~31dB):</translation>
+        <translation type="vanished">数字衰减(0~31dB):</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="199"/>
         <source>Close</source>
-        <translation>关闭</translation>
+        <translation type="vanished">关闭</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="199"/>
         <source>Open</source>
-        <translation>打开</translation>
+        <translation type="vanished">打开</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="205"/>
         <source>Feedback State:</source>
-        <translation>馈电状态:</translation>
+        <translation type="vanished">馈电状态:</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="227"/>
+        <location filename="ChartWidget.cpp" line="80"/>
         <source>Failed to Connect To Server: </source>
         <translation>连接服务器失败: </translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="231"/>
+        <location filename="ChartWidget.cpp" line="84"/>
         <source>Connected To Server</source>
         <translation>连接服务器成功</translation>
     </message>
@@ -327,9 +386,8 @@
         <translation type="vanished">分辨率:</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="141"/>
         <source>Smooth:</source>
-        <translation>平滑次数:</translation>
+        <translation type="vanished">平滑次数:</translation>
     </message>
     <message>
         <source>Sim Band:</source>
@@ -404,13 +462,13 @@
         <translation type="vanished">列表设置</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="211"/>
+        <location filename="ChartWidget.cpp" line="64"/>
         <source>Network</source>
         <oldsource>Netword</oldsource>
         <translation>网络连接</translation>
     </message>
     <message>
-        <location filename="ChartWidget.cpp" line="221"/>
+        <location filename="ChartWidget.cpp" line="74"/>
         <source>Connect</source>
         <translation>连接</translation>
     </message>
@@ -453,6 +511,39 @@
     <message>
         <source>Phase Sub(degree)</source>
         <translation type="vanished">相位差(degree)</translation>
+    </message>
+</context>
+<context>
+    <name>CombineWidget</name>
+    <message>
+        <location filename="CombineWidget.cpp" line="8"/>
+        <source>Domain:</source>
+        <translation>图谱:</translation>
+    </message>
+    <message>
+        <location filename="CombineWidget.cpp" line="10"/>
+        <source>Time</source>
+        <translation>波形图</translation>
+    </message>
+    <message>
+        <location filename="CombineWidget.cpp" line="11"/>
+        <source>Freq</source>
+        <translation>频谱图</translation>
+    </message>
+    <message>
+        <location filename="CombineWidget.cpp" line="12"/>
+        <source>Heapmap</source>
+        <translation>热力图</translation>
+    </message>
+    <message>
+        <location filename="CombineWidget.cpp" line="13"/>
+        <source>Afterflow</source>
+        <translation>余晖图</translation>
+    </message>
+    <message>
+        <location filename="CombineWidget.cpp" line="19"/>
+        <source>Center Freq(MHz):</source>
+        <translation>中心频点(MHz):</translation>
     </message>
 </context>
 <context>
@@ -566,12 +657,12 @@
     <message>
         <location filename="Model.cpp" line="49"/>
         <source>AGC</source>
-        <translation type="unfinished"></translation>
+        <translation>自动</translation>
     </message>
     <message>
         <location filename="Model.cpp" line="49"/>
         <source>MGC</source>
-        <translation type="unfinished"></translation>
+        <translation>手动</translation>
     </message>
     <message>
         <location filename="Model.cpp" line="81"/>

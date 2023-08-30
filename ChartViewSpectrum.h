@@ -30,6 +30,7 @@ public:
 private:
     void UpdateRuler(QMouseEvent *);
     void UpdateTracer(QMouseEvent *);
+    void rescaleKeyAxis();
     QCPItemTracer* tracer;
     bool isPress = false;
 

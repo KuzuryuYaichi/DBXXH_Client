@@ -5,40 +5,32 @@
 ChartNB::ChartNB(QString title, QWidget* parent): CombineWidget(title, parent)
 {
     chartSpectrum->hide();
+    chartHeatmap->hide();
     chartWave->show();
-    auto layoutAdjust = new QWidget;
-    mainLayout->insertWidget(0, layoutAdjust, 1);
-    auto hBoxLayout = new QHBoxLayout(layoutAdjust);
-    hBoxLayout->addWidget(new QLabel(tr("Center Freq(MHz):")), 1);
-    hBoxLayout->addWidget(freqEdit = new QDoubleSpinBox, 2);
-    freqEdit->setMinimum(MIN_FREQ);
-    freqEdit->setMaximum(MAX_FREQ);
-    freqEdit->setSingleStep(1);
-    freqEdit->setDecimals(3);
+
     connect(freqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
         if (freqEdit->hasFocus())
         {
-            emit FreqBandwidthChanged(freqEdit->value() * 1e6, bandBox->currentData().toULongLong(), demodBox->currentData().toUInt());
+            emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt());
         }
     });
-    hBoxLayout->addStretch(1);
 
     hBoxLayout->addWidget(new QLabel(tr("BW(kHz):")), 1);
-    hBoxLayout->addWidget(bandBox = new QComboBox, 2);
-    bandBox->addItem("0.15", 150);
-    bandBox->addItem("0.3", 300);
-    bandBox->addItem("0.6", 600);
-    bandBox->addItem("1.5", 1500);
-    bandBox->addItem("2.4", 2400);
-    bandBox->addItem("6", 6000);
-    bandBox->addItem("9", 9000);
-    bandBox->addItem("15", 15000);
-    bandBox->addItem("30", 30000);
-    bandBox->addItem("50", 50000);
-    bandBox->addItem("120", 120000);
-    bandBox->addItem("150", 150000);
-    connect(bandBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-        emit FreqBandwidthChanged(freqEdit->value() * 1e6, bandBox->currentData().toULongLong(), demodBox->currentData().toUInt());
+    hBoxLayout->addWidget(boundBox = new QComboBox, 2);
+    boundBox->addItem("0.15", 150);
+    boundBox->addItem("0.3", 300);
+    boundBox->addItem("0.6", 600);
+    boundBox->addItem("1.5", 1500);
+    boundBox->addItem("2.4", 2400);
+    boundBox->addItem("6", 6000);
+    boundBox->addItem("9", 9000);
+    boundBox->addItem("15", 15000);
+    boundBox->addItem("30", 30000);
+    boundBox->addItem("50", 50000);
+    boundBox->addItem("120", 120000);
+    boundBox->addItem("150", 150000);
+    connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
+        emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt());
     });
     hBoxLayout->addStretch(1);
 
@@ -48,16 +40,7 @@ ChartNB::ChartNB(QString title, QWidget* parent): CombineWidget(title, parent)
     for (auto i = 0ull; i < 8; ++i)
         demodBox->addItem(DEMOD_TYPE[i], i);
     connect(demodBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-        emit FreqBandwidthChanged(freqEdit->value() * 1e6, bandBox->currentData().toULongLong(), demodBox->currentData().toUInt());
-    });
-    hBoxLayout->addStretch(1);
-
-    hBoxLayout->addWidget(new QLabel(tr("Domain:")), 1);
-    hBoxLayout->addWidget(showBox = new QComboBox, 2);
-    showBox->addItem(tr("Time"), DDC_MODE);
-    showBox->addItem(tr("Freq"), FFT_MODE);
-    connect(showBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int index) {
-        ChangeMode(index);
+        emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt());
     });
     hBoxLayout->addStretch(1);
 
@@ -96,14 +79,19 @@ void ChartNB::replace(unsigned char* const buf)
 {
     switch (showBox->currentData().toInt())
     {
-    case DDC_MODE:
+    case WAVE_MODE:
     {
         chartWave->replace(buf);
         break;
     }
-    case FFT_MODE:
+    case SPECTRUM_MODE:
     {
         chartSpectrum->replace(buf);
+        break;
+    }
+    case HEATMAP_MODE:
+    {
+        chartHeatmap->replace(buf);
         break;
     }
     }

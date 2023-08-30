@@ -33,46 +33,14 @@ public:
     ChartNB* chartNB;
     ChartWB* chartWB;
     WBSignalDetectWidget* wBSignalDetectWidget;
-    PointTableView* freqListTable;
     SideWidget* statusEdit;
-    double threshold = 0;
 
 private:
     TcpSocket *m_socket;
-
     QWidget *zcWidget;
-
-    QPushButton *hideBtn;
-    QPushButton *continueBtn;
-    QPushButton *clrBtn;
-
-    QComboBox *freqResBox;
-    QComboBox *smoothBox;
-    QComboBox *simBWBox;
 
     QLineEdit *ipEdit;
     QLineEdit *portEdit;
-
-    QDoubleSpinBox *CenterFreqEdit;
-    QButtonGroup* RfGainModeGroup;
-    QDoubleSpinBox *RfGainEdit;
-    QDoubleSpinBox *DigitGainEdit;
-    QLineEdit *LmValEdit;
-    QButtonGroup *FeedbackGroup;
-
-    static constexpr double RESOLUTIONS[] =
-    {
-        0.092,
-        0.183,
-        0.366,
-        0.732,
-        1.465,
-        2.930,
-        5.859,
-        11.719,
-        23.438,
-        46.875
-    };
 };
 
 #endif // ChartWidget_H

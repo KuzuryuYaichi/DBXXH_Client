@@ -14,6 +14,7 @@ SOURCES += \
     CAudioMonitorThread.cpp \
     ChartNB.cpp \
     ChartViewCustom.cpp \
+    ChartViewHeatmap.cpp \
     ChartViewSpectrum.cpp \
     ChartViewWaterfall.cpp \
     ChartViewWave.cpp \
@@ -46,6 +47,7 @@ HEADERS += \
     CAudioMonitorThread.h \
     ChartNB.h \
     ChartViewCustom.h \
+    ChartViewHeatmap.h \
     ChartViewSpectrum.h \
     ChartViewWaterfall.h \
     ChartViewWave.h \

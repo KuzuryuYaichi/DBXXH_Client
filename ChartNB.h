@@ -15,21 +15,13 @@ public:
     void replace(unsigned char* const);
 signals:
     void triggerListening(bool);
-    void FreqBandwidthChanged(unsigned long long, unsigned int, unsigned int);
+    void ParamsChanged(unsigned long long, unsigned int, unsigned int);
 public slots:
     void changedListening(bool);
     void changedRecording();
 
 private:
-    enum SHOW_MODE
-    {
-        DDC_MODE = 0,
-        FFT_MODE
-    };
-    QDoubleSpinBox* freqEdit;
-    QComboBox* bandBox;
     QComboBox* demodBox;
-    QComboBox* showBox;
     QPushButton* playBtn;
     QPushButton* recordBtn;
     bool playing = false;

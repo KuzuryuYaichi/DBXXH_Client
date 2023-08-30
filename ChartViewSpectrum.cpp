@@ -1,7 +1,6 @@
 #include "ChartViewSpectrum.h"
 
 #include "global.h"
-#include "StructNetData.h"
 
 ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
     ChartViewCustom(title, tr("Freq(MHz)"), tr("Ampl(dBm)"), parent)
@@ -35,7 +34,7 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     GateSeries->setPen(QPen(Qt::red));
     GateSeries->setLineStyle(QCPGraph::lsLine);
     GateSeries->rescaleAxes(true);
-    QVector<double> x {MIN_FREQ, MAX_FREQ}, y {0, 0};
+    QVector<double> x { MIN_FREQ, MAX_FREQ }, y {0, 0};
     GateSeries->setData(x, y);
 
 //    legend->setVisible(true);
@@ -127,62 +126,14 @@ void ChartViewSpectrum::UpdateTracer(QMouseEvent *event)
     QToolTip::showText(mapToGlobal(tracer->position->pixelPosition().toPoint()), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
 }
 
-double ResolveResolution(int Resolution, double BAND_WIDTH)
+void ChartViewSpectrum::rescaleKeyAxis()
 {
-    switch (Resolution)
+    bool res;
+    auto range = SpectrumSeries->getKeyRange(res);
+    if (res && range != xRange)
     {
-    case 0x0E:
-    {
-        if (BAND_WIDTH == 0.9375) return 0.092 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 0.183 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 0.366 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 0.732 / 1e3;
-        if (BAND_WIDTH == 15)     return 1.465 / 1e3;
-        if (BAND_WIDTH == 30)     return 2.93 / 1e3;
-        break;
+        SpectrumSeries->rescaleKeyAxis();
     }
-    case 0x0D:
-    {
-        if (BAND_WIDTH == 0.9375) return 0.183 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 0.366 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 0.732 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 1.465 / 1e3;
-        if (BAND_WIDTH == 15)     return 2.93 / 1e3;
-        if (BAND_WIDTH == 30)     return 5.859 / 1e3;
-        break;
-    }
-    case 0x0C:
-    {
-        if (BAND_WIDTH == 0.9375) return 0.366 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 0.732 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 1.465 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 2.93 / 1e3;
-        if (BAND_WIDTH == 15)     return 5.859 / 1e3;
-        if (BAND_WIDTH == 30)     return 11.719 / 1e3;
-        break;
-    }
-    case 0x0B:
-    {
-        if (BAND_WIDTH == 0.9375) return 0.732 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 1.465 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 2.93 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 5.859 / 1e3;
-        if (BAND_WIDTH == 15)     return 11.719 / 1e3;
-        if (BAND_WIDTH == 30)     return 23.438 / 1e3;
-        break;
-    }
-    case 0x0A:
-    {
-        if (BAND_WIDTH == 0.9375) return 1.465 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 2.93 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 5.859 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 11.719 / 1e3;
-        if (BAND_WIDTH == 15)     return 23.438 / 1e3;
-        if (BAND_WIDTH == 30)     return 46.875 / 1e3;
-        break;
-    }
-    }
-    return 0;
 }
 
 void ChartViewSpectrum::replace(unsigned char* const buf)
@@ -257,7 +208,7 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
             return;
         ready = false;
         SpectrumSeries->setData(amplx, amply);
-        SpectrumSeries->rescaleKeyAxis();
+        rescaleKeyAxis();
         break;
     }
     default: return;

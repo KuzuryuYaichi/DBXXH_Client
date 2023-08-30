@@ -1,8 +1,9 @@
 #ifndef CHARTVIEWCUSTOM_H
 #define CHARTVIEWCUSTOM_H
 
-#include "global.h"
 #include "QCustomPlot/qcustomplot.h"
+#include "global.h"
+#include "StructNetData.h"
 #include <QTimer>
 
 class ChartViewCustom: public QCustomPlot
@@ -16,6 +17,7 @@ public:
 protected:
     bool ready = true;
     QCPRange xRange = { MIN_FREQ,  MAX_FREQ }, yRange = { MIN_AMPL, MAX_AMPL };
+    double ResolveResolution(int, double);
 
 private:
     QTimer* m_updater;

@@ -19,7 +19,7 @@ ZCWidget::ZCWidget(TcpSocket* socket, QWidget* parent): QWidget(parent), m_socke
         if (i > 0)
         {
             scrollLayout->addWidget(chartNB[i]);
-            connect(chartNB[i], &ChartNB::FreqBandwidthChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType) {
+            connect(chartNB[i], &ChartNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType) {
                 m_socket->nb_channel(1, i, freq, bandwidth, demodType);
             });
         }
