@@ -9,13 +9,13 @@ Model::Model(QWidget *parent): QMainWindow(parent)
     setWindowTitle(tr("Client"));
     socket = std::make_shared<TcpSocket>();
     setCentralWidget(m_tabWidget = new QTabWidget);
-    m_tabWidget->addTab(m_zcWidget = new ZCWidget(socket.get()), tr("窄带"));
-    m_tabWidget->insertTab(0, m_cxWidget = new ChartWidget(socket.get(), m_zcWidget->chartNB[0]), tr("宽带"));
+    m_tabWidget->addTab(m_channelWidget = new ChannelWidget(socket.get()), tr("NB"));
+    m_tabWidget->insertTab(0, m_mainWidget = new MainWidget(socket.get(), m_channelWidget->chartNB[0]), tr("WB"));
     m_tabWidget->setCurrentIndex(0);
 
     statusTimer = new QTimer;
     statusTimer->setSingleShot(true);
-    connect(this, &Model::sendDeviceStatus, m_cxWidget->statusEdit, &SideWidget::updateStatus);
+    connect(this, &Model::sendDeviceStatus, m_mainWidget->statusEdit, &SideWidget::updateStatus);
     setStatusBar(statusBar = new QStatusBar(this));
     connect(this, &Model::updatetime, this, [this](unsigned long long timeData) {
         if (!readyTime)
@@ -28,7 +28,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
         readyTime = true;
     });
 
-    dataProcess = std::make_unique<DataProcess>(m_cxWidget->wBSignalDetectWidget);
+    dataProcess = std::make_unique<DataProcess>(m_mainWidget->wBSignalDetectWidget);
     dataProcess->ProcessData();
 
     processThread = std::thread([this]
@@ -98,12 +98,12 @@ Model::Model(QWidget *parent): QMainWindow(parent)
             case 0x515:
             {
                 dataProcess->execute(packet);
-                showDataCX(buf);
+                showDataWB(buf);
                 break;
             }
             case 0x602:
             {
-                showDataZC(buf, QDateTime());
+                showDataNB(buf, QDateTime());
                 break;
             }
             }
@@ -129,7 +129,7 @@ QDateTime Model::timeConvert(unsigned long long time)
     return QDateTime::fromMSecsSinceEpoch(FileTimeToMillSeconds(time));
 }
 
-void Model::showDataCX(unsigned char* const buf)
+void Model::showDataWB(unsigned char* const buf)
 {
     auto head = (DataHead*)buf;
     switch (head->PackType)
@@ -137,21 +137,21 @@ void Model::showDataCX(unsigned char* const buf)
     case 0x515:
     {
         auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
-        m_cxWidget->chartWB->replace(buf);
+        m_mainWidget->chartWB->replace(buf);
         emit updatetime(param->Time);
         break;
     }
     }
 }
 
-void Model::showDataZC(unsigned char* const buf, const QDateTime&)
+void Model::showDataNB(unsigned char* const buf, const QDateTime&)
 {
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
     case 0x602:
     {
-        m_zcWidget->replace(buf, head->UnUsed);
+        m_channelWidget->replace(buf, head->UnUsed);
         break;
     }
     }

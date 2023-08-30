@@ -12,27 +12,25 @@ INCLUDEPATH += \
 
 SOURCES += \
     CAudioMonitorThread.cpp \
-    ChartNB.cpp \
+    ChannelWidget.cpp \
     ChartViewCustom.cpp \
     ChartViewHeatmap.cpp \
     ChartViewSpectrum.cpp \
     ChartViewWaterfall.cpp \
     ChartViewWave.cpp \
-    ChartWB.cpp \
-    ChartWidget.cpp \
-    CombineWidget.cpp \
+    ChartWidgetCombine.cpp \
+    ChartWidgetNB.cpp \
+    ChartWidgetWB.cpp \
     DataManager.cpp \
     DataProcess.cpp \
-    HeapMap.cpp \
+    MainWidget.cpp \
     Model.cpp \
-    PointTableWidget.cpp \
     SampleTableWidget.cpp \
     SideWidget.cpp \
     SqlData.cpp \
     SqlWidget.cpp \
     TcpSocket.cpp \
     TinyConfig.cpp \
-    ZCWidget.cpp \
     global.cpp \
     main.cpp \
     src/DisturbNoiseTableView.cpp \
@@ -45,20 +43,19 @@ SOURCES += \
 
 HEADERS += \
     CAudioMonitorThread.h \
-    ChartNB.h \
+    ChannelWidget.h \
     ChartViewCustom.h \
     ChartViewHeatmap.h \
     ChartViewSpectrum.h \
     ChartViewWaterfall.h \
     ChartViewWave.h \
-    ChartWB.h \
-    ChartWidget.h \
-    CombineWidget.h \
+    ChartWidgetCombine.h \
+    ChartWidgetNB.h \
+    ChartWidgetWB.h \
     DataManager.h \
     DataProcess.h \
-    HeapMap.h \
+    MainWidget.h \
     Model.h \
-    PointTableWidget.h \
     SampleTableWidget.h \
     SideWidget.h \
     SqlData.h \
@@ -68,7 +65,6 @@ HEADERS += \
     TcpSocket.h \
     ThreadSafeQueue.h \
     TinyConfig.h \
-    ZCWidget.h \
     global.h \
     inc/DisturbNoiseTableView.h \
     inc/ManMadeNoiseTableView.h \

@@ -1,23 +1,23 @@
-#ifndef COMBINEWIDGET_H
-#define COMBINEWIDGET_H
+#ifndef CHARTWIDGETCOMBINE_H
+#define CHARTWIDGETCOMBINE_H
 
 #include "ChartViewWave.h"
 #include "ChartViewWaterfall.h"
 #include "ChartViewSpectrum.h"
 #include "ChartViewHeatmap.h"
 
-class CombineWidget: public QWidget
+class ChartWidgetCombine: public QWidget
 {
     Q_OBJECT
 public:
-    CombineWidget(QString, QWidget* = nullptr);
+    ChartWidgetCombine(QString, QWidget* = nullptr);
     void replace(unsigned char* const);
     void ChangeMode(int);
 
 protected:
+    QComboBox* showBox;
     QDoubleSpinBox* freqEdit;
     QComboBox* boundBox;
-    QComboBox* showBox;
     enum SHOW_MODE
     {
         WAVE_MODE = 0,
@@ -34,4 +34,4 @@ protected:
     QHBoxLayout* hBoxLayout;
 };
 
-#endif // COMBINEWIDGET_H
+#endif // CHARTWIDGETCOMBINE_H

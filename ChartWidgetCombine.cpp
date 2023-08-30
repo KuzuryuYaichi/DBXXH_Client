@@ -1,6 +1,6 @@
-#include "CombineWidget.h"
+#include "ChartWidgetCombine.h"
 
-CombineWidget::CombineWidget(QString title, QWidget* parent): QWidget(parent)
+ChartWidgetCombine::ChartWidgetCombine(QString title, QWidget* parent): QWidget(parent)
 {
     mainLayout = new QVBoxLayout(this);
 
@@ -11,8 +11,8 @@ CombineWidget::CombineWidget(QString title, QWidget* parent): QWidget(parent)
     showBox->addItem(tr("Freq"), SPECTRUM_MODE);
     showBox->addItem(tr("Heapmap"), HEATMAP_MODE);
     showBox->addItem(tr("Afterflow"), AFTERFLOW_MODE);
-    connect(showBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int index) {
-        ChangeMode(index);
+    connect(showBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
+        ChangeMode(showBox->currentData().toInt());
     });
     hBoxLayout->addStretch(1);
 
@@ -35,29 +35,69 @@ CombineWidget::CombineWidget(QString title, QWidget* parent): QWidget(parent)
     connect(chartSpectrum->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
         chartWaterfall->xAxis->setRange(newRange);
         chartWaterfall->replot();
+        chartHeatmap->xAxis->setRange(newRange);
+        chartHeatmap->replot();
     });
     connect(chartWaterfall->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
         chartSpectrum->xAxis->setRange(newRange);
         chartSpectrum->replot();
+        chartHeatmap->xAxis->setRange(newRange);
+        chartHeatmap->replot();
+    });
+    connect(chartHeatmap->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
+        chartSpectrum->xAxis->setRange(newRange);
+        chartSpectrum->replot();
+        chartWaterfall->xAxis->setRange(newRange);
+        chartWaterfall->replot();
     });
 }
 
-void CombineWidget::replace(unsigned char* const buf)
+void ChartWidgetCombine::ChangeMode(int index)
 {
-    chartSpectrum->replace(buf);
-    chartWaterfall->replace(buf);
-}
-
-void CombineWidget::ChangeMode(int index)
-{
-    if (index == 0)
+    switch (index)
+    {
+    case WAVE_MODE:
     {
         chartSpectrum->hide();
+        chartHeatmap->hide();
         chartWave->show();
+        break;
     }
-    else
+    case SPECTRUM_MODE:
     {
         chartWave->hide();
+        chartHeatmap->hide();
         chartSpectrum->show();
+        break;
+    }
+    case HEATMAP_MODE:
+    {
+        chartWave->hide();
+        chartSpectrum->hide();
+        chartHeatmap->show();
+        break;
+    }
+    }
+}
+
+void ChartWidgetCombine::replace(unsigned char* const buf)
+{
+    switch (showBox->currentData().toInt())
+    {
+    case WAVE_MODE:
+    {
+        chartWave->replace(buf);
+        break;
+    }
+    case SPECTRUM_MODE:
+    {
+        chartSpectrum->replace(buf);
+        break;
+    }
+    case HEATMAP_MODE:
+    {
+        chartHeatmap->replace(buf);
+        break;
+    }
     }
 }

@@ -6,8 +6,7 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     ChartViewCustom(title, tr("Freq(MHz)"), tr("Ampl(dBm)"), parent)
 {
     plotLayout()->insertRow(1);
-    plotLayout()->addElement(1, 0, thresholdLbl = new QCPTextElement(this, tr("Gate: ") + "0dBm", QFont("sans", 9, QFont::Bold)));
-//    plotLayout()->addElement(1, 1, legend);
+    plotLayout()->addElement(1, 0, thresholdLbl = new QCPTextElement(this, tr("Gate:") + "0dBm", QFont("sans", 9, QFont::Bold)));
     xAxis->setRange(xRange = { AXISX_MIN, AXISX_MAX });
     yAxis->setRange(yRange = { AXISY_MIN, AXISY_MAX });
 
@@ -71,7 +70,7 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
         {
             isPress = false;
             auto threshold = GateSeries->data().data()->at(0)->value;
-            thresholdLbl->setText(tr("Gate: ") + QString::number(threshold) + "dBm");
+            thresholdLbl->setText(tr("Gate:") + QString::number(threshold) + "dBm");
             emit thresholdEnterPressedSignal(threshold);
         }
         replot();
@@ -94,12 +93,12 @@ void ChartViewSpectrum::analyzeFrame(unsigned char* amplData, size_t DataPoint)
     if (pointsMax.size() != DataPoint)
     {
         pointsMax.resize(DataPoint);
+        pointsMin.resize(DataPoint);
         for (auto i = 0; i < DataPoint; ++i)
+        {
             pointsMax[i] = MIN_AMPL;
-    }
-    for (auto i = 0ull; i < DataPoint; ++i)
-    {
-        pointsMax[i] = std::max((double)((short)amplData[i] + AMPL_OFFSET), pointsMax[i]);
+            pointsMin[i] = 0;
+        }
     }
 }
 
@@ -126,11 +125,16 @@ void ChartViewSpectrum::UpdateTracer(QMouseEvent *event)
     QToolTip::showText(mapToGlobal(tracer->position->pixelPosition().toPoint()), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
 }
 
-void ChartViewSpectrum::rescaleKeyAxis()
+void ChartViewSpectrum::SeriesSelectChanged(bool MaxKeepSelect, bool MinKeepSelect, bool SpectrumSelect)
 {
-    bool res;
-    auto range = SpectrumSeries->getKeyRange(res);
-    if (res && range != xRange)
+    MaxKeepSeries->setVisible(this->MaxKeepSelect = MaxKeepSelect);
+    MinKeepSeries->setVisible(this->MinKeepSelect = MinKeepSelect);
+    SpectrumSeries->setVisible(this->SpectrumSelect = SpectrumSelect);
+}
+
+void ChartViewSpectrum::rescaleKeyAxis(const QCPRange& range)
+{
+    if (range != xRange)
     {
         SpectrumSeries->rescaleKeyAxis();
     }
@@ -138,6 +142,9 @@ void ChartViewSpectrum::rescaleKeyAxis()
 
 void ChartViewSpectrum::replace(unsigned char* const buf)
 {
+    if (!ready)
+        return;
+    ready = false;
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
@@ -148,20 +155,27 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
         auto freq_step = ResolveResolution(param->Resolution, BAND_WIDTH);
         auto start_freq = param->StartFreq / 1e6;
         auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
-//        analyzeFrame(amplData, param->DataPoint);
+        analyzeFrame(amplData, param->DataPoint);
         QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
         auto x = start_freq;
         for (int i = 0; i < param->DataPoint; ++i)
         {
             amplx[i] = x;
-            amply[i] = (short)amplData[i] + AMPL_OFFSET;
+            double y = (short)amplData[i] + AMPL_OFFSET;
+            amply[i] = y;
+            pointsMax[i] = std::max(y, pointsMax[i]);
+            pointsMin[i] = std::min(y, pointsMin[i]);
             x += freq_step;
         }
-        if (!ready)
-            return;
-        ready = false;
-        SpectrumSeries->setData(amplx, amply, true);
-//        MaxKeepSeries->setData(amplx, pointsMax, true);
+        if (SpectrumSelect)
+            SpectrumSeries->setData(amplx, amply, true);
+        if (MaxKeepSelect)
+            MaxKeepSeries->setData(amplx, pointsMax, true);
+        if (MinKeepSelect)
+            MinKeepSeries->setData(amplx, pointsMin, true);
+        QCPRange range(param->StartFreq / 1e6, param->StopFreq / 1e6);
+        xRangeChanged(range);
+        rescaleKeyAxis(range);
         break;
     }
     case 0x602:
@@ -204,11 +218,10 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
             amplx[p] = freq;
             freq += step;
         }
-        if (!ready)
-            return;
-        ready = false;
         SpectrumSeries->setData(amplx, amply);
-        rescaleKeyAxis();
+        QCPRange range(param->Frequency / 1e6 - RealHalfBandWidth, param->Frequency / 1e6 + RealHalfBandWidth);
+        xRangeChanged(range);
+        rescaleKeyAxis(range);
         break;
     }
     default: return;

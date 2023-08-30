@@ -1,19 +1,19 @@
-﻿#ifndef ZCWIDGET_H
-#define ZCWIDGET_H
+#ifndef CHANNELWIDGET_H
+#define CHANNELWIDGET_H
 
 #include <QDoubleSpinBox>
 
 #include "TcpSocket.h"
-#include "ChartNB.h"
+#include "ChartWidgetNB.h"
 #include "global.h"
 
-class ZCWidget: public QWidget
+class ChannelWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit ZCWidget(TcpSocket*, QWidget* = nullptr);
+    explicit ChannelWidget(TcpSocket*, QWidget* = nullptr);
     void replace(unsigned char* const, int);
-    ChartNB *chartNB[ZC_NB_CHANNEL_NUMS];
+    ChartWidgetNB *chartNB[ZC_NB_CHANNEL_NUMS];
 
 private:
     TcpSocket *m_socket;
@@ -25,4 +25,4 @@ private:
     QPushButton* reListen;
 };
 
-#endif // ZCWIDGET_H
+#endif // CHANNELWIDGET_H

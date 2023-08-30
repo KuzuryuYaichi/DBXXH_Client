@@ -1,8 +1,8 @@
-#include "ChartNB.h"
+#include "ChartWidgetNB.h"
 
 #include <QStyle>
 
-ChartNB::ChartNB(QString title, QWidget* parent): CombineWidget(title, parent)
+ChartWidgetNB::ChartWidgetNB(QString title, QWidget* parent): ChartWidgetCombine(title, parent)
 {
     chartSpectrum->hide();
     chartHeatmap->hide();
@@ -61,38 +61,16 @@ ChartNB::ChartNB(QString title, QWidget* parent): CombineWidget(title, parent)
     hBoxLayout->addStretch(1);
 }
 
-void ChartNB::changedListening(bool state)
+void ChartWidgetNB::changedListening(bool state)
 {
     playing = state;
     auto style = QApplication::style();
     playBtn->setIcon(style->standardIcon(playing? QStyle::SP_MediaPlay: QStyle::SP_MediaPause));
 }
 
-void ChartNB::changedRecording()
+void ChartWidgetNB::changedRecording()
 {
     recording = !recording;
     auto style = QApplication::style();
     recordBtn->setIcon(style->standardIcon(recording? QStyle::SP_MediaStop: QStyle::SP_DialogNoButton));
-}
-
-void ChartNB::replace(unsigned char* const buf)
-{
-    switch (showBox->currentData().toInt())
-    {
-    case WAVE_MODE:
-    {
-        chartWave->replace(buf);
-        break;
-    }
-    case SPECTRUM_MODE:
-    {
-        chartSpectrum->replace(buf);
-        break;
-    }
-    case HEATMAP_MODE:
-    {
-        chartHeatmap->replace(buf);
-        break;
-    }
-    }
 }

@@ -38,7 +38,6 @@ void DataProcess::ProcessData()
 
                 auto BAND_WIDTH = (param->StopFreq - param->StartFreq);
                 auto CenterFreq = (param->StopFreq + param->StartFreq) / 2;
-//                auto freq_step = ResolveResolution(param->Resolution, BAND_WIDTH);
                 auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
                 m_wbWidget->sigTriggerSignalDetect(amplData, 32, param->DataPoint, CenterFreq, BAND_WIDTH);
                 break;

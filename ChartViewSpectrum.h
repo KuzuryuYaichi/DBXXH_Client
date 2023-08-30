@@ -25,14 +25,18 @@ public:
     ChartViewSpectrum(QString, double, double, double, double, QWidget* = nullptr);
     ~ChartViewSpectrum();
     void replace(unsigned char* const buf);
-    QCPTextElement* thresholdLbl;
+    void SeriesSelectChanged(bool MaxKeepSelect = true, bool MinKeepBox = true, bool SpectrumBox = true);
+
+protected:
+    void rescaleKeyAxis(const QCPRange& range) override;
 
 private:
     void UpdateRuler(QMouseEvent *);
     void UpdateTracer(QMouseEvent *);
-    void rescaleKeyAxis();
-    QCPItemTracer* tracer;
+    QCPItemTracer *tracer;
     bool isPress = false;
+    QCPTextElement *thresholdLbl;
+    bool MaxKeepSelect = true, MinKeepSelect = true, SpectrumSelect = true;
 
     void analyzeFrame(unsigned char*, size_t);
     QVector<double> pointsMax, pointsMin;

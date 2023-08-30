@@ -1,4 +1,4 @@
-﻿#include "ChartWidget.h"
+﻿#include "MainWidget.h"
 #include <QGroupBox>
 #include <QPainter>
 #include <QObject>
@@ -11,19 +11,19 @@
 
 extern PARAMETER_SET g_parameter_set;
 
-ChartWidget::ChartWidget(TcpSocket* socket, ChartNB* chartNB, QWidget* parent): QWidget(parent), chartNB(chartNB), m_socket(socket)
+MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* parent): QWidget(parent), chartNB(chartNB), m_socket(socket)
 {
     createSettings();
 }
 
-void ChartWidget::createSettings()
+void MainWidget::createSettings()
 {
     auto doaLayout = new QVBoxLayout(zcWidget = new QWidget);
     auto hBoxLayout = new QHBoxLayout;
     hBoxLayout->addWidget(chartNB, 1);
     hBoxLayout->addWidget(wBSignalDetectWidget = new WBSignalDetectWidget, 1);
     doaLayout->addLayout(hBoxLayout, 4);
-    doaLayout->addWidget(chartWB = new ChartWB(tr("宽带")), 5);
+    doaLayout->addWidget(chartWB = new ChartWidgetWB(tr("WB")), 5);
 
     statusEdit = new SideWidget;
 //    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
@@ -57,7 +57,7 @@ void ChartWidget::createSettings()
         m_socket->work_ctrl(GetParameter);
     });
 
-    connect(chartWB, &ChartWB::ParamsChanged, this, [this] {
+    connect(chartWB, &ChartWidgetWB::ParamsChanged, this, [this] {
         m_socket->parameter_set();
     });
 

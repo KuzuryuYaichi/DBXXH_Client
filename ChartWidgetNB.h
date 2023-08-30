@@ -1,18 +1,17 @@
-#ifndef CHARTNB_H
-#define CHARTNB_H
+#ifndef CHARTWIDGETNB_H
+#define CHARTWIDGETNB_H
 
-#include "CombineWidget.h"
+#include "ChartWidgetCombine.h"
 
 #include <QPushButton>
 #include <QDoubleSpinBox>
 #include <QComboBox>
 
-class ChartNB: public CombineWidget
+class ChartWidgetNB: public ChartWidgetCombine
 {
     Q_OBJECT
 public:
-    ChartNB(QString, QWidget* = nullptr);
-    void replace(unsigned char* const);
+    ChartWidgetNB(QString, QWidget* = nullptr);
 signals:
     void triggerListening(bool);
     void ParamsChanged(unsigned long long, unsigned int, unsigned int);
@@ -28,4 +27,4 @@ private:
     bool recording = false;
 };
 
-#endif // CHARTNB_H
+#endif // CHARTWIDGETNB_H

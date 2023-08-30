@@ -12,7 +12,7 @@ static constexpr int JUDGE_ARRAY_DEPTH = 320;
 static constexpr int DDC_LEN = 2048;
 static constexpr int MIN_FREQ = 0, MAX_FREQ = 30, MID_FREQ = (MIN_FREQ + MAX_FREQ) / 2;
 static constexpr int MID_FREQ_HZ = MID_FREQ * 1e6;
-static constexpr int MIN_AMPL = -160, MAX_AMPL = 0;
+static constexpr int MIN_AMPL = -160, MAX_AMPL = 0, AMPL_POINTS = MAX_AMPL - MIN_AMPL;
 static constexpr int MIN_PHASE = -180, MAX_PHASE = 180;
 static constexpr int MARKER_MIN_DIRECTION = 0, MARKER_MAX_DIRECTION = 360;
 static constexpr int CONFIDENCE_MINIMUM = 50, CONFIDENCE_MAXIMUM = 100;

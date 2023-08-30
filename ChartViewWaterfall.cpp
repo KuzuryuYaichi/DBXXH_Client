@@ -47,18 +47,6 @@ void ChartViewWaterfall::analyzeFrame(unsigned char* amplData, size_t DataPoint)
     }
 }
 
-void ChartViewWaterfall::analyzeFrame(StructSweepRangeDirectionData* dataRangeDirection, size_t DataPoint)
-{
-//    if (pointsAnalyze.size() != DataPoint)
-    {
-        pointsAnalyze.assign(DataPoint, MIN_AMPL_WATERFALL);
-    }
-    for (auto i = 0ull; i < DataPoint; ++i)
-    {
-        pointsAnalyze[i] = std::max((short)((short)dataRangeDirection[i].Range + AMPL_OFFSET), pointsAnalyze[i]);
-    }
-}
-
 void ChartViewWaterfall::UpdateAnalyzeDataByCell()
 {
     if (!ready)

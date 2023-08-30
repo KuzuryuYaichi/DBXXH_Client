@@ -20,25 +20,6 @@ ChartViewCustom::ChartViewCustom(QString title, QString X_title, QString Y_title
         replot();
     });
 
-    setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
-        auto menu = new QMenu(this);
-        menu->setAttribute(Qt::WA_DeleteOnClose);
-        auto x = xAxis->pixelToCoord(pos.x());
-        auto action = new QAction((QString::number(x, 'f', DECIMALS_PRECISION) + "MHz"), this);
-        action->setEnabled(false);
-        menu->addAction(action);
-        menu->popup(mapToGlobal(pos));
-        for (int i = 0; i < MARKER_NUM; ++i)
-        {
-            auto action = new QAction(tr("Add To Marker%1").arg(i + 1), this);
-            menu->addAction(action);
-//            connect(action, &QAction::triggered, this, [this, i, x] {
-//                this->markerView[i]->SetFreqEdit(x * 1e6);
-//            });
-        }
-    });
-
     m_updater = new QTimer;
     m_updater->setInterval(refreshInterval);
     m_updater->setSingleShot(true);
@@ -50,16 +31,27 @@ ChartViewCustom::ChartViewCustom(QString title, QString X_title, QString Y_title
     });
 }
 
-void ChartViewCustom::xCenterChanged(double min, double max)
+void ChartViewCustom::xRangeChanged(const QCPRange& range)
 {
-    xAxis->setRange(xRange = {min, max});
-    replot(QCustomPlot::rpQueuedReplot);
+    if (xRange != range)
+    {
+        xAxis->setRange(xRange = range);
+        replot(QCustomPlot::rpQueuedReplot);
+    }
 }
 
-void ChartViewCustom::yCenterChanged(double min, double max)
+void ChartViewCustom::yRangeChanged(const QCPRange& range)
 {
-    yAxis->setRange(yRange = {min, max});
-    replot(QCustomPlot::rpQueuedReplot);
+    if (yRange != range)
+    {
+        yAxis->setRange(yRange = range);
+        replot(QCustomPlot::rpQueuedReplot);
+    }
+}
+
+void ChartViewCustom::rescaleKeyAxis(const QCPRange&)
+{
+
 }
 
 double ChartViewCustom::ResolveResolution(int Resolution, double BAND_WIDTH)

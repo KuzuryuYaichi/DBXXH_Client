@@ -3,8 +3,8 @@
 
 #include <QMainWindow>
 #include <QDateTime>
-#include "ZCWidget.h"
-#include "ChartWidget.h"
+#include "ChannelWidget.h"
+#include "MainWidget.h"
 #include "TinyConfig.h"
 #include "SqlWidget.h"
 #include "DataProcess.h"
@@ -15,8 +15,8 @@ class Model: public QMainWindow
 public:
     Model(QWidget *parent = nullptr);
     ~Model();
-    void showDataCX(unsigned char* const);
-    void showDataZC(unsigned char* const, const QDateTime&);
+    void showDataWB(unsigned char* const);
+    void showDataNB(unsigned char* const, const QDateTime&);
     static QDateTime timeConvert(unsigned long long);
 signals:
     void updatetime(unsigned long long);
@@ -24,8 +24,8 @@ signals:
 
 private:
     TinyConfig* tinyConfig;
-    ZCWidget* m_zcWidget;
-    ChartWidget* m_cxWidget;
+    ChannelWidget* m_channelWidget;
+    MainWidget* m_mainWidget;
     SqlWidget* m_sqlWidget;
     QTabWidget* m_tabWidget;
     QString m_statusList;

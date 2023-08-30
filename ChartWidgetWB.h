@@ -1,13 +1,13 @@
-#ifndef CHARTWB_H
-#define CHARTWB_H
+#ifndef CHARTWIDGETWB_H
+#define CHARTWIDGETWB_H
 
-#include "CombineWidget.h"
+#include "ChartWidgetCombine.h"
 
-class ChartWB: public CombineWidget
+class ChartWidgetWB: public ChartWidgetCombine
 {
     Q_OBJECT
 public:
-    ChartWB(QString, QWidget* = nullptr);
+    ChartWidgetWB(QString, QWidget* = nullptr);
 signals:
     void ParamsChanged();
 
@@ -19,6 +19,7 @@ private:
     QButtonGroup *FeedbackGroup;
     QComboBox *freqResBox;
     QComboBox *smoothBox;
+    QCheckBox *MaxKeepSelect, *MinKeepSelect, *SpectrumSelect;
 
     static constexpr double RESOLUTIONS[] =
     {
@@ -33,6 +34,9 @@ private:
         23.438,
         46.875
     };
+
+private slots:
+    void SeriesSelectChanged();
 };
 
-#endif // CHARTWB_H
+#endif // CHARTWIDGETWB_H

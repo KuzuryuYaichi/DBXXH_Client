@@ -1,5 +1,5 @@
-﻿#ifndef ChartWidget_H
-#define ChartWidget_H
+﻿#ifndef MAIN_WIDGET_H
+#define MAIN_WIDGET_H
 
 #include <QWidget>
 #include <QGridLayout>
@@ -13,25 +13,24 @@
 #include <QTableWidget>
 
 #include "TcpSocket.h"
-#include "PointTableWidget.h"
 #include "SideWidget.h"
-#include "ChartNB.h"
-#include "ChartWB.h"
+#include "ChartWidgetNB.h"
+#include "ChartWidgetWB.h"
 #include "inc/WBSignalDetectWidget.h"
 
-class ChartWidget: public QWidget
+class MainWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit ChartWidget(TcpSocket*, ChartNB* chartNB, QWidget* = nullptr);
+    explicit MainWidget(TcpSocket*, ChartWidgetNB* chartNB, QWidget* = nullptr);
     void createSettings();
 
 signals:
     void connectToServer(QString, quint16);
 
 public:
-    ChartNB* chartNB;
-    ChartWB* chartWB;
+    ChartWidgetNB* chartNB;
+    ChartWidgetWB* chartWB;
     WBSignalDetectWidget* wBSignalDetectWidget;
     SideWidget* statusEdit;
 
