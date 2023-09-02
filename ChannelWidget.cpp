@@ -16,12 +16,12 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
     {
         chartNB[i] = new ChartWidgetNB(tr("NB") + (i > 0? QString::number(i): ""));
+        connect(chartNB[i], &ChartWidgetNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType) {
+            m_socket->nb_channel(1, i, freq, bandwidth, demodType);
+        });
         if (i > 0)
         {
             scrollLayout->addWidget(chartNB[i]);
-            connect(chartNB[i], &ChartWidgetNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType) {
-                m_socket->nb_channel(1, i, freq, bandwidth, demodType);
-            });
         }
     }
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)

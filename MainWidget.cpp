@@ -67,10 +67,10 @@ void MainWidget::createSettings()
 
     ipEdit = new QLineEdit(g_parameter_set.tinyConfig.Get_DataIP());
     ipEdit->setAlignment(Qt::AlignCenter);
-    connectLayout->addRow("Server IP:", ipEdit);
+    connectLayout->addRow(tr("Server IP:"), ipEdit);
     portEdit = new QLineEdit(QString::number(g_parameter_set.tinyConfig.Get_DataPort()));
     portEdit->setAlignment(Qt::AlignCenter);
-    connectLayout->addRow("Server Port:", portEdit);
+    connectLayout->addRow(tr("Server Port:"), portEdit);
     auto connectBtn = new QPushButton(tr("Connect"), this);
     connect(connectBtn, &QPushButton::clicked, this, [this]
     {

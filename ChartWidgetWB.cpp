@@ -26,7 +26,7 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
     boundBox->addItem("7.5", 4);
     boundBox->addItem("15", 5);
     boundBox->addItem("30", 6);
-    boundBox->setCurrentIndex(5);
+    boundBox->setCurrentIndex(boundBox->count() - 1);
     connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if (index < 0)
             return;
@@ -88,6 +88,7 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
         RfGainModeGroup->addButton(pButton);
         RfGainModeGroup->setId(pButton, i);
     }
+    RfGainModeGroup->button(0)->setChecked(true);
     connect(RfGainModeGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked), this, [this] (QAbstractButton*) {
         g_parameter_set.GainMode = RfGainModeGroup->checkedId();
         emit ParamsChanged();
@@ -137,6 +138,7 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
         FeedbackGroup->addButton(pButton);
         FeedbackGroup->setId(pButton, i);
     }
+    FeedbackGroup->button(0)->setChecked(true);
     connect(FeedbackGroup, QOverload<QAbstractButton*>::of(&QButtonGroup::buttonClicked), this, [this] (QAbstractButton*) {
         g_parameter_set.Feedback = FeedbackGroup->checkedId();
         emit ParamsChanged();

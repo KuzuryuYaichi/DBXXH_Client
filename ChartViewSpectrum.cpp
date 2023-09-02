@@ -5,8 +5,6 @@
 ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
     ChartViewCustom(title, tr("Freq(MHz)"), tr("Ampl(dBm)"), parent)
 {
-    plotLayout()->insertRow(1);
-    plotLayout()->addElement(1, 0, thresholdLbl = new QCPTextElement(this, tr("Gate:") + "0dBm", QFont("sans", 9, QFont::Bold)));
     xAxis->setRange(xRange = { AXISX_MIN, AXISX_MAX });
     yAxis->setRange(yRange = { AXISY_MIN, AXISY_MAX });
 
@@ -28,13 +26,14 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     MinKeepSeries->setLineStyle(QCPGraph::lsLine);
     MinKeepSeries->rescaleAxes(true);
 
-    GateSeries = addGraph();
-    GateSeries->setName(tr("Gate"));
-    GateSeries->setPen(QPen(Qt::red));
-    GateSeries->setLineStyle(QCPGraph::lsLine);
-    GateSeries->rescaleAxes(true);
-    QVector<double> x { MIN_FREQ, MAX_FREQ }, y {0, 0};
-    GateSeries->setData(x, y);
+    QColor BoundBrushColor(255, 50, 30, 50);
+    BoundSeries = addGraph();
+    BoundSeries->setName(tr("Bound"));
+    BoundSeries->setPen(QPen(BoundBrushColor));
+    BoundSeries->setLineStyle(QCPGraph::lsLine);
+    BoundSeries->rescaleAxes(true);
+    BoundSeries->setData({ MID_FREQ - 75e-3, MID_FREQ - 75e-3, MID_FREQ + 75e-3, MID_FREQ + 75e-3 }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
+    BoundSeries->setBrush(QBrush(BoundBrushColor));
 
 //    legend->setVisible(true);
     legend->setBorderPen(Qt::NoPen);
@@ -69,9 +68,7 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
         if (event->button() == Qt::LeftButton)
         {
             isPress = false;
-            auto threshold = GateSeries->data().data()->at(0)->value;
-            thresholdLbl->setText(tr("Gate:") + QString::number(threshold) + "dBm");
-            emit thresholdEnterPressedSignal(threshold);
+//            emit thresholdEnterPressedSignal(GateSeries->data().data()->at(0)->value);
         }
         replot();
     });
@@ -88,7 +85,7 @@ ChartViewSpectrum::~ChartViewSpectrum()
     fftw_free(outR);
 }
 
-void ChartViewSpectrum::analyzeFrame(unsigned char* amplData, size_t DataPoint)
+void ChartViewSpectrum::analyzeFrame(size_t DataPoint)
 {
     if (pointsMax.size() != DataPoint)
     {
@@ -106,11 +103,9 @@ void ChartViewSpectrum::UpdateRuler(QMouseEvent *event)
 {
     if (isPress)
     {
-        auto yValue = yAxis->pixelToCoord(event->pos().y());
-        QVector<double> x(2), y(2);
-        x[0] = MIN_FREQ; x[1] = MAX_FREQ;
-        y[0] = yValue; y[1] = yValue;
-        GateSeries->setData(x, y, true);
+        auto xValue = xAxis->pixelToCoord(event->pos().x());
+        QVector<double> x{ xValue - 75e-3, xValue - 75e-3, xValue + 75e-3, xValue + 75e-3 }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
+        BoundSeries->setData(x, y, true);
     }
 }
 
@@ -155,7 +150,7 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
         auto freq_step = ResolveResolution(param->Resolution, BAND_WIDTH);
         auto start_freq = param->StartFreq / 1e6;
         auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
-        analyzeFrame(amplData, param->DataPoint);
+        analyzeFrame(param->DataPoint);
         QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
         auto x = start_freq;
         for (int i = 0; i < param->DataPoint; ++i)

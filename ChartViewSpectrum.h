@@ -35,12 +35,11 @@ private:
     void UpdateTracer(QMouseEvent *);
     QCPItemTracer *tracer;
     bool isPress = false;
-    QCPTextElement *thresholdLbl;
     bool MaxKeepSelect = true, MinKeepSelect = true, SpectrumSelect = true;
 
-    void analyzeFrame(unsigned char*, size_t);
+    void analyzeFrame(size_t);
     QVector<double> pointsMax, pointsMin;
-    QCPGraph *SpectrumSeries, *GateSeries, *MaxKeepSeries, *MinKeepSeries;
+    QCPGraph *SpectrumSeries, *BoundSeries, *MaxKeepSeries, *MinKeepSeries;
     fftw_complex* inR, * outR;
     fftw_plan planR;
 signals:

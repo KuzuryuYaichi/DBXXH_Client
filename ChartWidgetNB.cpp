@@ -29,6 +29,7 @@ ChartWidgetNB::ChartWidgetNB(QString title, QWidget* parent): ChartWidgetCombine
     boundBox->addItem("50", 50000);
     boundBox->addItem("120", 120000);
     boundBox->addItem("150", 150000);
+    boundBox->setCurrentIndex(boundBox->count() - 1);
     connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
         emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt());
     });
