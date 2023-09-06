@@ -45,31 +45,33 @@
         <translation>幅度(dBm)</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="9"/>
-        <location filename="ChartViewSpectrum.cpp" line="73"/>
         <source>Gate:</source>
         <oldsource>Gate: </oldsource>
-        <translation>门限:</translation>
+        <translation type="vanished">门限:</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="14"/>
+        <location filename="ChartViewSpectrum.cpp" line="12"/>
         <source>Spectrum</source>
         <translation>合成谱</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="20"/>
+        <location filename="ChartViewSpectrum.cpp" line="18"/>
         <source>Max Keep</source>
         <translation>最大保持</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="26"/>
+        <location filename="ChartViewSpectrum.cpp" line="24"/>
         <source>Min Keep</source>
         <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="32"/>
+        <location filename="ChartViewSpectrum.cpp" line="31"/>
+        <source>Bound</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Gate</source>
-        <translation>门限</translation>
+        <translation type="vanished">门限</translation>
     </message>
 </context>
 <context>
@@ -139,17 +141,22 @@
         <translation>带宽(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="37"/>
+        <location filename="ChartWidgetNB.cpp" line="38"/>
         <source>Demod:</source>
         <translation>解调模式:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="47"/>
+        <location filename="ChartWidgetNB.cpp" line="48"/>
+        <source>CW(Hz):</source>
+        <translation>拍频(Hz):</translation>
+    </message>
+    <message>
+        <location filename="ChartWidgetNB.cpp" line="58"/>
         <source>Play:</source>
         <translation>播放:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="56"/>
+        <location filename="ChartWidgetNB.cpp" line="67"/>
         <source>Rec:</source>
         <translation>录音:</translation>
     </message>
@@ -187,47 +194,47 @@
         <translation>自动</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="97"/>
+        <location filename="ChartWidgetWB.cpp" line="98"/>
         <source>Rf Desc(0~31dB):</source>
         <translation>射频衰减(0~31dB):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="113"/>
+        <location filename="ChartWidgetWB.cpp" line="114"/>
         <source>Digit Desc(0~31dB):</source>
         <translation>数字衰减(0~31dB):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="129"/>
+        <location filename="ChartWidgetWB.cpp" line="130"/>
         <source>Feedback State:</source>
         <translation>馈电状态:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="134"/>
+        <location filename="ChartWidgetWB.cpp" line="135"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="134"/>
+        <location filename="ChartWidgetWB.cpp" line="135"/>
         <source>Open</source>
         <translation>打开</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="146"/>
+        <location filename="ChartWidgetWB.cpp" line="148"/>
         <source>Series State:</source>
         <translation>数据选择:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="147"/>
+        <location filename="ChartWidgetWB.cpp" line="149"/>
         <source>Max Keep</source>
         <translation>最大保持</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="150"/>
+        <location filename="ChartWidgetWB.cpp" line="152"/>
         <source>Min Keep</source>
         <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="153"/>
+        <location filename="ChartWidgetWB.cpp" line="155"/>
         <source>Spectrum</source>
         <translation>合成谱</translation>
     </message>
@@ -268,6 +275,16 @@
         <location filename="MainWidget.cpp" line="64"/>
         <source>Network</source>
         <translation>网络连接</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="70"/>
+        <source>Server IP:</source>
+        <translation>服务IP:</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="73"/>
+        <source>Server Port:</source>
+        <translation>服务端口:</translation>
     </message>
     <message>
         <location filename="MainWidget.cpp" line="74"/>

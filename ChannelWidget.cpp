@@ -16,8 +16,8 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
     {
         chartNB[i] = new ChartWidgetNB(tr("NB") + (i > 0? QString::number(i): ""));
-        connect(chartNB[i], &ChartWidgetNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType) {
-            m_socket->nb_channel(1, i, freq, bandwidth, demodType);
+        connect(chartNB[i], &ChartWidgetNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType, unsigned int cwOffset) {
+            m_socket->nb_parameter_set(1, i, freq, bandwidth, demodType, cwOffset);
         });
         if (i > 0)
         {

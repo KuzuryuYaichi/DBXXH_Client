@@ -6,12 +6,13 @@ ChartWidgetNB::ChartWidgetNB(QString title, QWidget* parent): ChartWidgetCombine
 {
     chartSpectrum->hide();
     chartHeatmap->hide();
+    chartAfterglow->hide();
     chartWave->show();
 
     connect(freqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
         if (freqEdit->hasFocus())
         {
-            emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt());
+            ParamsChange();
         }
     });
 
@@ -31,17 +32,27 @@ ChartWidgetNB::ChartWidgetNB(QString title, QWidget* parent): ChartWidgetCombine
     boundBox->addItem("150", 150000);
     boundBox->setCurrentIndex(boundBox->count() - 1);
     connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-        emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt());
+        ParamsChange();
     });
     hBoxLayout->addStretch(1);
 
     hBoxLayout->addWidget(new QLabel(tr("Demod:")), 1);
     hBoxLayout->addWidget(demodBox = new QComboBox, 2);
-    static constexpr const char* DEMOD_TYPE[] = { "IQ", "AM", "FM", "PM", "USB", "LSB", "ISB", "CW", "FSK" };
-    for (auto i = 0ull; i < 8; ++i)
+    static constexpr const char* DEMOD_TYPE[] = { "IQ", "AM", "FM", "PM", "USB", "LSB", "ISB", "CW", "FSK", "PSK" };
+    for (auto i = 0ull; i < 10; ++i)
         demodBox->addItem(DEMOD_TYPE[i], i);
     connect(demodBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-        emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt());
+        ParamsChange();
+    });
+    hBoxLayout->addStretch(1);
+
+    hBoxLayout->addWidget(new QLabel(tr("CW(kHz):")), 1);
+    hBoxLayout->addWidget(cwEdit = new QSpinBox, 2);
+    connect(cwEdit, &QSpinBox::editingFinished, this, [this] {
+        if (cwEdit->hasFocus())
+        {
+            ParamsChange();
+        }
     });
     hBoxLayout->addStretch(1);
 
@@ -60,6 +71,11 @@ ChartWidgetNB::ChartWidgetNB(QString title, QWidget* parent): ChartWidgetCombine
         changedRecording();
     });
     hBoxLayout->addStretch(1);
+}
+
+void ChartWidgetNB::ParamsChange()
+{
+    emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt(), cwEdit->value() * 1e3);
 }
 
 void ChartWidgetNB::changedListening(bool state)

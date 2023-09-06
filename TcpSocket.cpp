@@ -148,7 +148,7 @@ void TcpSocket::work_ctrl(const unsigned int mode)
     write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::parameter_set()
+void TcpSocket::wb_parameter_set()
 {
     char tmp[200];
     std::sprintf(tmp, "Task:%d;Sta:2;Type:0103;CenterFreq:%lld;SimBW:%d;FreqRes:%d;SmNum:%d;Feedback:%d;GainMode:%d;Rf_MGC:%d;Digit_MGC:%d\r\n",
@@ -157,11 +157,12 @@ void TcpSocket::parameter_set()
     write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 
-void TcpSocket::nb_channel(const unsigned int receiver, const unsigned int channel, const unsigned int freq_Hz, const unsigned int bandwidth, const unsigned demodType)
+void TcpSocket::nb_parameter_set(const unsigned int receiver, const unsigned int channel, const unsigned int freq_Hz,
+                           const unsigned int bandwidth, const unsigned int demodType, const unsigned int cwOffset)
 {
     char tmp[200];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0411;RcvNum:%d;BankNum:%d;GMode:0;MGC:30;KpTime:2;Sn:1;Freq:%d;DDCBW:%d;DemodType:%d;DemodRate:2000;\r\n",
-                 task_id, receiver, channel, freq_Hz, bandwidth, demodType);
+    std::sprintf(tmp, "Task:%d;Sta:2;Type:0411;RcvNum:%d;BankNum:%d;GMode:0;MGC:30;KpTime:2;Sn:1;Freq:%d;DDCBW:%d;DemodType:%d;CW:%d;\r\n",
+                 task_id, receiver, channel, freq_Hz, bandwidth, demodType, cwOffset);
     write(std::make_unique<NetCmdData>(std::string(tmp)));
 }
 

@@ -2,7 +2,6 @@
 #define CHARTVIEWWATERFALL_H
 
 #include "ChartViewCustom.h"
-#include <mutex>
 
 class ChartViewWaterfall: public ChartViewCustom
 {

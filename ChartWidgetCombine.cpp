@@ -31,6 +31,7 @@ ChartWidgetCombine::ChartWidgetCombine(QString title, QWidget* parent): QWidget(
     layoutSpectrum->addWidget(chartWave = new ChartViewWave(title, 0, DDC_LEN, SHRT_MIN, SHRT_MAX));
     layoutSpectrum->addWidget(chartSpectrum = new ChartViewSpectrum(title, MIN_FREQ, MAX_FREQ, MIN_AMPL, MAX_AMPL));
     layoutSpectrum->addWidget(chartHeatmap = new ChartViewHeatmap(title, MIN_FREQ, MAX_FREQ, MIN_AMPL, MAX_AMPL));
+    layoutSpectrum->addWidget(chartAfterglow = new ChartViewAfterglow(title, MIN_FREQ, MAX_FREQ, MIN_AMPL, MAX_AMPL));
 
     connect(chartSpectrum->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
         chartWaterfall->xAxis->setRange(newRange);
@@ -60,6 +61,7 @@ void ChartWidgetCombine::ChangeMode(int index)
     {
         chartSpectrum->hide();
         chartHeatmap->hide();
+        chartAfterglow->hide();
         chartWave->show();
         break;
     }
@@ -67,6 +69,7 @@ void ChartWidgetCombine::ChangeMode(int index)
     {
         chartWave->hide();
         chartHeatmap->hide();
+        chartAfterglow->hide();
         chartSpectrum->show();
         break;
     }
@@ -74,7 +77,16 @@ void ChartWidgetCombine::ChangeMode(int index)
     {
         chartWave->hide();
         chartSpectrum->hide();
+        chartAfterglow->hide();
         chartHeatmap->show();
+        break;
+    }
+    case AFTERFLOW_MODE:
+    {
+        chartWave->hide();
+        chartSpectrum->hide();
+        chartHeatmap->hide();
+        chartAfterglow->show();
         break;
     }
     }
@@ -97,6 +109,11 @@ void ChartWidgetCombine::replace(unsigned char* const buf)
     case HEATMAP_MODE:
     {
         chartHeatmap->replace(buf);
+        break;
+    }
+    case AFTERFLOW_MODE:
+    {
+        chartAfterglow->replace(buf);
         break;
     }
     }

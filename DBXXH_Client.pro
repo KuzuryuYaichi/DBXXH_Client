@@ -13,6 +13,7 @@ INCLUDEPATH += \
 SOURCES += \
     CAudioMonitorThread.cpp \
     ChannelWidget.cpp \
+    ChartViewAfterglow.cpp \
     ChartViewCustom.cpp \
     ChartViewHeatmap.cpp \
     ChartViewSpectrum.cpp \
@@ -44,6 +45,7 @@ SOURCES += \
 HEADERS += \
     CAudioMonitorThread.h \
     ChannelWidget.h \
+    ChartViewAfterglow.h \
     ChartViewCustom.h \
     ChartViewHeatmap.h \
     ChartViewSpectrum.h \

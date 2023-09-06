@@ -5,6 +5,7 @@
 #include "ChartViewWaterfall.h"
 #include "ChartViewSpectrum.h"
 #include "ChartViewHeatmap.h"
+#include "ChartViewAfterglow.h"
 
 class ChartWidgetCombine: public QWidget
 {
@@ -31,6 +32,7 @@ protected:
     ChartViewWaterfall* chartWaterfall;
     ChartViewSpectrum* chartSpectrum;
     ChartViewHeatmap* chartHeatmap;
+    ChartViewAfterglow* chartAfterglow;
     QHBoxLayout* hBoxLayout;
 };
 

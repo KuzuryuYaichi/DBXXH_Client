@@ -43,22 +43,22 @@ void MainWidget::createSettings()
 
     auto receiveCheckBox = new QGroupBox(tr("Receiver Settings"));
     settingLayout->addRow(receiveCheckBox);
-    auto receiveLayout = new QFormLayout(receiveCheckBox);
+//    auto receiveLayout = new QFormLayout(receiveCheckBox);
 
-    auto checkBox = new QPushButton(tr("All Check"));
-    receiveLayout->addRow(tr("Device SelfCheck:"), checkBox);
-    connect(checkBox, &QAbstractButton::clicked, this, [this](bool) {
-        m_socket->self_check(allCheck);
-    });
+//    auto checkBox = new QPushButton(tr("All Check"));
+//    receiveLayout->addRow(tr("Device SelfCheck:"), checkBox);
+//    connect(checkBox, &QAbstractButton::clicked, this, [this](bool) {
+//        m_socket->self_check(allCheck);
+//    });
 
-    auto workCtrlBtn = new QPushButton(tr("Work Param Query"));
-    receiveLayout->addRow(tr("Work Ctrl:"), workCtrlBtn);
-    connect(workCtrlBtn, &QPushButton::clicked, this, [this] {
-        m_socket->work_ctrl(GetParameter);
-    });
+//    auto workCtrlBtn = new QPushButton(tr("Work Param Query"));
+//    receiveLayout->addRow(tr("Work Ctrl:"), workCtrlBtn);
+//    connect(workCtrlBtn, &QPushButton::clicked, this, [this] {
+//        m_socket->work_ctrl(GetParameter);
+//    });
 
     connect(chartWB, &ChartWidgetWB::ParamsChanged, this, [this] {
-        m_socket->parameter_set();
+        m_socket->wb_parameter_set();
     });
 
     auto connectBox = new QGroupBox(tr("Network"));

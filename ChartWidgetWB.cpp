@@ -6,6 +6,7 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
 {
     chartWave->hide();
     chartHeatmap->hide();
+    chartAfterglow->hide();
     chartSpectrum->show();
 
     showBox->removeItem(0);
@@ -20,12 +21,12 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
 
     hBoxLayout->addWidget(new QLabel(tr("Sim Band(MHz):")));
     hBoxLayout->addWidget(boundBox = new QComboBox);
-    boundBox->addItem("0.9375", 1);
-    boundBox->addItem("1.875", 2);
-    boundBox->addItem("3.75", 3);
-    boundBox->addItem("7.5", 4);
-    boundBox->addItem("15", 5);
-    boundBox->addItem("30", 6);
+    boundBox->addItem("0.9375", 64);
+    boundBox->addItem("1.875", 32);
+    boundBox->addItem("3.75", 16);
+    boundBox->addItem("7.5", 8);
+    boundBox->addItem("15", 4);
+    boundBox->addItem("30", 2);
     boundBox->setCurrentIndex(boundBox->count() - 1);
     connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if (index < 0)
