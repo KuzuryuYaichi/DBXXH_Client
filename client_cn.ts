@@ -20,6 +20,19 @@
     </message>
 </context>
 <context>
+    <name>ChartViewAfterglow</name>
+    <message>
+        <location filename="ChartViewAfterglow.cpp" line="4"/>
+        <source>Freq(MHz)</source>
+        <translation>频点(MHz)</translation>
+    </message>
+    <message>
+        <location filename="ChartViewAfterglow.cpp" line="4"/>
+        <source>Ampl(dBm)</source>
+        <translation>幅度(dBm)</translation>
+    </message>
+</context>
+<context>
     <name>ChartViewHeatmap</name>
     <message>
         <location filename="ChartViewHeatmap.cpp" line="4"/>
@@ -65,9 +78,20 @@
         <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="31"/>
-        <source>Bound</source>
+        <location filename="ChartViewSpectrum.cpp" line="112"/>
+        <source>Add</source>
+        <translation>添加</translation>
+    </message>
+    <message>
+        <location filename="ChartViewSpectrum.cpp" line="118"/>
+        <location filename="ChartViewSpectrum.cpp" line="130"/>
+        <source>Marker %1</source>
         <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="ChartViewSpectrum.cpp" line="124"/>
+        <source>Delete</source>
+        <translation>移除</translation>
     </message>
     <message>
         <source>Gate</source>
@@ -136,27 +160,31 @@
 <context>
     <name>ChartWidgetNB</name>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="18"/>
+        <location filename="ChartWidgetNB.cpp" line="19"/>
         <source>BW(kHz):</source>
         <translation>带宽(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="38"/>
+        <location filename="ChartWidgetNB.cpp" line="39"/>
         <source>Demod:</source>
         <translation>解调模式:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="48"/>
-        <source>CW(Hz):</source>
-        <translation>拍频(Hz):</translation>
+        <location filename="ChartWidgetNB.cpp" line="49"/>
+        <source>CW(kHz):</source>
+        <translation>拍频(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="58"/>
+        <source>CW(Hz):</source>
+        <translation type="vanished">拍频(Hz):</translation>
+    </message>
+    <message>
+        <location filename="ChartWidgetNB.cpp" line="59"/>
         <source>Play:</source>
         <translation>播放:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="67"/>
+        <location filename="ChartWidgetNB.cpp" line="68"/>
         <source>Rec:</source>
         <translation>录音:</translation>
     </message>
@@ -164,77 +192,77 @@
 <context>
     <name>ChartWidgetWB</name>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="21"/>
+        <location filename="ChartWidgetWB.cpp" line="22"/>
         <source>Sim Band(MHz):</source>
         <translation>模拟带宽(MHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="49"/>
+        <location filename="ChartWidgetWB.cpp" line="50"/>
         <source>Resolution(kHz):</source>
         <translation>分辨率(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="65"/>
+        <location filename="ChartWidgetWB.cpp" line="66"/>
         <source>Smooth:</source>
         <translation>平滑次数:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="81"/>
+        <location filename="ChartWidgetWB.cpp" line="82"/>
         <source>Rf Gain Mode:</source>
         <translation>射频增益模式:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="85"/>
+        <location filename="ChartWidgetWB.cpp" line="86"/>
         <source>MGC</source>
         <translation>手动</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="85"/>
+        <location filename="ChartWidgetWB.cpp" line="86"/>
         <source>AGC</source>
         <translation>自动</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="98"/>
+        <location filename="ChartWidgetWB.cpp" line="99"/>
         <source>Rf Desc(0~31dB):</source>
         <translation>射频衰减(0~31dB):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="114"/>
-        <source>Digit Desc(0~31dB):</source>
-        <translation>数字衰减(0~31dB):</translation>
+        <location filename="ChartWidgetWB.cpp" line="115"/>
+        <source>Digit Desc(0~30dB):</source>
+        <translation>数字衰减(0~30dB):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="130"/>
+        <location filename="ChartWidgetWB.cpp" line="131"/>
         <source>Feedback State:</source>
         <translation>馈电状态:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="135"/>
+        <location filename="ChartWidgetWB.cpp" line="136"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="135"/>
+        <location filename="ChartWidgetWB.cpp" line="136"/>
         <source>Open</source>
         <translation>打开</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="148"/>
+        <location filename="ChartWidgetWB.cpp" line="149"/>
         <source>Series State:</source>
         <translation>数据选择:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="149"/>
+        <location filename="ChartWidgetWB.cpp" line="150"/>
         <source>Max Keep</source>
         <translation>最大保持</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="152"/>
+        <location filename="ChartWidgetWB.cpp" line="153"/>
         <source>Min Keep</source>
         <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="155"/>
+        <location filename="ChartWidgetWB.cpp" line="156"/>
         <source>Spectrum</source>
         <translation>合成谱</translation>
     </message>
@@ -252,24 +280,20 @@
         <translation>接收机设置</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="48"/>
         <source>All Check</source>
-        <translation>全检</translation>
+        <translation type="vanished">全检</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="49"/>
         <source>Device SelfCheck:</source>
-        <translation>设备自检:</translation>
+        <translation type="vanished">设备自检:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="54"/>
         <source>Work Param Query</source>
-        <translation>工作参数查询</translation>
+        <translation type="vanished">工作参数查询</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="55"/>
         <source>Work Ctrl:</source>
-        <translation>工作控制:</translation>
+        <translation type="vanished">工作控制:</translation>
     </message>
     <message>
         <location filename="MainWidget.cpp" line="64"/>

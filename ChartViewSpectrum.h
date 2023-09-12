@@ -31,17 +31,21 @@ protected:
     void rescaleKeyAxis(const QCPRange& range) override;
 
 private:
+    static constexpr int MARKER_NUM = 5;
+    static constexpr Qt::GlobalColor MARKER_COLOR[MARKER_NUM] = { Qt::red, Qt::magenta, Qt::green, Qt::yellow, Qt::black };
+    void UpdateRect(QMouseEvent *);
     void UpdateRuler(QMouseEvent *);
     void UpdateTracer(QMouseEvent *);
-    QCPItemTracer *tracer;
-    bool isPress = false;
+    QCPItemTracer *tracer, *TracerMarker[MARKER_NUM];
+    bool LeftButtonPress = false, RightButtonPress = false;
     bool MaxKeepSelect = true, MinKeepSelect = true, SpectrumSelect = true;
 
     void analyzeFrame(size_t);
     QVector<double> pointsMax, pointsMin;
-    QCPGraph *SpectrumSeries, *BoundSeries, *MaxKeepSeries, *MinKeepSeries;
+    QCPGraph *SpectrumSeries, *BoundSeries, *MaxKeepSeries, *MinKeepSeries, *RectSeries;
     fftw_complex* inR, * outR;
     fftw_plan planR;
+    double RectStartValue;
 signals:
     void thresholdEnterPressedSignal(double);
 private:

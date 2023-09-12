@@ -28,12 +28,20 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
 
     QColor BoundBrushColor(255, 50, 30, 50);
     BoundSeries = addGraph();
-    BoundSeries->setName(tr("Bound"));
+    BoundSeries->setName("Bound");
     BoundSeries->setPen(QPen(BoundBrushColor));
     BoundSeries->setLineStyle(QCPGraph::lsLine);
     BoundSeries->rescaleAxes(true);
     BoundSeries->setData({ MID_FREQ - 75e-3, MID_FREQ - 75e-3, MID_FREQ + 75e-3, MID_FREQ + 75e-3 }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
     BoundSeries->setBrush(QBrush(BoundBrushColor));
+
+    QColor RectBrushColor(0, 0, 255, 50);
+    RectSeries = addGraph();
+    RectSeries->setName("Rect");
+    RectSeries->setPen(QPen(RectBrushColor));
+    RectSeries->setLineStyle(QCPGraph::lsLine);
+    RectSeries->rescaleAxes(true);
+    RectSeries->setBrush(QBrush(RectBrushColor));
 
 //    legend->setVisible(true);
     legend->setBorderPen(Qt::NoPen);
@@ -42,35 +50,91 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     legend->setIconSize(5, 5);
 
     tracer = new QCPItemTracer(this);
-    tracer->setPen(QPen(Qt::red));
-    tracer->setBrush(QBrush(Qt::red));
+    tracer->setPen(QPen(Qt::gray));
+    tracer->setBrush(QBrush(Qt::gray));
     tracer->setStyle(QCPItemTracer::tsCircle);
     tracer->setSize(5);
 
+    for (auto i = 0; i < MARKER_NUM; ++i)
+    {
+        TracerMarker[i] = new QCPItemTracer(this);
+        TracerMarker[i]->setPen(QPen(MARKER_COLOR[i]));
+        TracerMarker[i]->setBrush(QBrush(MARKER_COLOR[i]));
+        TracerMarker[i]->setStyle(QCPItemTracer::tsCircle);
+        TracerMarker[i]->setSize(5);
+        TracerMarker[i]->setInterpolating(true);
+        TracerMarker[i]->setGraph(SpectrumSeries);
+    }
+
     connect(this, &QCustomPlot::mouseMove, this, [this](QMouseEvent *event) {
+        UpdateRect(event);
         UpdateRuler(event);
         UpdateTracer(event);
         replot();
     });
 
     connect(this, &QCustomPlot::mousePress, this, [this](QMouseEvent *event) {
-        if (event->button() == Qt::LeftButton)
+        auto x = xAxis->pixelToCoord(event->pos().x());
+        auto y = yAxis->pixelToCoord(event->pos().y());
+        if (event->button() & Qt::RightButton)
         {
-            auto x = xAxis->pixelToCoord(event->pos().x());
-            auto y = yAxis->pixelToCoord(event->pos().y());
             if (xAxis->range().contains(x) && yAxis->range().contains(y))
-                isPress = true;
+                RightButtonPress = true;
+        }
+        if (event->button() & Qt::LeftButton)
+        {
+            if (xAxis->range().contains(x) && yAxis->range().contains(y))
+            {
+                LeftButtonPress = true;
+                RectStartValue = x;
+            }
         }
         replot();
     });
 
     connect(this, &QCustomPlot::mouseRelease, this, [this](QMouseEvent *event) {
-        if (event->button() == Qt::LeftButton)
+        if (event->button() & Qt::RightButton)
         {
-            isPress = false;
+            RightButtonPress = false;
 //            emit thresholdEnterPressedSignal(GateSeries->data().data()->at(0)->value);
         }
+        if (event->button() & Qt::LeftButton)
+        {
+            LeftButtonPress = false;
+        }
         replot();
+    });
+
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
+        auto menu = new QMenu(this);
+        menu->setAttribute(Qt::WA_DeleteOnClose);
+        auto addMenu = new QMenu(tr("Add"), menu);
+        menu->addMenu(addMenu);
+        for (int i = 0; i < MARKER_NUM; ++i)
+        {
+            QPixmap pixmap(100, 100);
+            pixmap.fill(MARKER_COLOR[i]);
+            auto action = new QAction(QIcon(pixmap), tr("Marker %1").arg(i + 1), addMenu);
+            addMenu->addAction(action);
+            connect(action, &QAction::triggered, this, [this, i] {
+
+            });
+        }
+        auto removeMenu = new QMenu(tr("Delete"), menu);
+        menu->addMenu(removeMenu);
+        for (int i = 0; i < MARKER_NUM; ++i)
+        {
+            QPixmap pixmap(100, 100);
+            pixmap.fill(MARKER_COLOR[i]);
+            auto action = new QAction(QIcon(pixmap), tr("Marker %1").arg(i + 1), removeMenu);
+            removeMenu->addAction(action);
+            connect(action, &QAction::triggered, this, [this, i] {
+
+            });
+        }
+
+        menu->popup(mapToGlobal(pos));
     });
 
     inR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
@@ -99,9 +163,19 @@ void ChartViewSpectrum::analyzeFrame(size_t DataPoint)
     }
 }
 
+void ChartViewSpectrum::UpdateRect(QMouseEvent *event)
+{
+    if (LeftButtonPress)
+    {
+        auto xValue = xAxis->pixelToCoord(event->pos().x());
+        QVector<double> x{ RectStartValue, RectStartValue, xValue, xValue }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
+        RectSeries->setData(x, y, true);
+    }
+}
+
 void ChartViewSpectrum::UpdateRuler(QMouseEvent *event)
 {
-    if (isPress)
+    if (RightButtonPress)
     {
         auto xValue = xAxis->pixelToCoord(event->pos().x());
         QVector<double> x{ xValue - 75e-3, xValue - 75e-3, xValue + 75e-3, xValue + 75e-3 }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };

@@ -21,12 +21,12 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
 
     hBoxLayout->addWidget(new QLabel(tr("Sim Band(MHz):")));
     hBoxLayout->addWidget(boundBox = new QComboBox);
-    boundBox->addItem("0.9375", 64);
-    boundBox->addItem("1.875", 32);
-    boundBox->addItem("3.75", 16);
-    boundBox->addItem("7.5", 8);
-    boundBox->addItem("15", 4);
-    boundBox->addItem("30", 2);
+    boundBox->addItem("0.9375", 6);
+    boundBox->addItem("1.875", 5);
+    boundBox->addItem("3.75", 4);
+    boundBox->addItem("7.5", 3);
+    boundBox->addItem("15", 2);
+    boundBox->addItem("30", 1);
     boundBox->setCurrentIndex(boundBox->count() - 1);
     connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if (index < 0)
@@ -99,7 +99,7 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
     hBoxLayout->addWidget(new QLabel(tr("Rf Desc(0~31dB):")));
     hBoxLayout->addWidget(RfGainEdit = new QDoubleSpinBox);
     RfGainEdit->setMinimum(0);
-    RfGainEdit->setMaximum(60);
+    RfGainEdit->setMaximum(31);
     RfGainEdit->setSingleStep(1);
     RfGainEdit->setDecimals(0);
     RfGainEdit->setValue(0);
@@ -112,10 +112,10 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
     });
     hBoxLayout->addStretch(1);
 
-    hBoxLayout->addWidget(new QLabel(tr("Digit Desc(0~31dB):")));
+    hBoxLayout->addWidget(new QLabel(tr("Digit Desc(0~30dB):")));
     hBoxLayout->addWidget(DigitGainEdit = new QDoubleSpinBox);
     DigitGainEdit->setMinimum(0);
-    DigitGainEdit->setMaximum(60);
+    DigitGainEdit->setMaximum(30);
     DigitGainEdit->setSingleStep(1);
     DigitGainEdit->setDecimals(0);
     DigitGainEdit->setValue(0);

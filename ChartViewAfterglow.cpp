@@ -5,6 +5,13 @@ ChartViewAfterglow::ChartViewAfterglow(QString title, double AXISX_MIN, double A
 {
     xAxis->setRange(xRange = { AXISX_MIN, AXISX_MAX });
     yAxis->setRange(yRange = { AXISY_MIN, AXISY_MAX });
+
+    for (auto i = 0; i < SERIES_SIZE; ++i)
+    {
+        SpectrumSeries[i] = addGraph();
+        SpectrumSeries[i]->setLineStyle(QCPGraph::lsLine);
+        SpectrumSeries[i]->rescaleAxes(true);
+    }
 }
 
 void ChartViewAfterglow::rescaleKeyAxis(const QCPRange& range)
@@ -17,5 +24,46 @@ void ChartViewAfterglow::rescaleKeyAxis(const QCPRange& range)
 
 void ChartViewAfterglow::replace(unsigned char* const buf)
 {
+    if (!ready)
+        return;
+    ready = false;
 
+    auto head = (DataHead*)buf;
+    switch (head->PackType)
+    {
+    case 0x515:
+    {
+        auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
+        auto BAND_WIDTH = (param->StopFreq - param->StartFreq) / 1e6;
+        auto freq_step = ResolveResolution(param->Resolution, BAND_WIDTH);
+        auto start_freq = param->StartFreq / 1e6;
+        auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
+        QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
+        auto x = start_freq;
+        for (int i = 0; i < param->DataPoint; ++i)
+        {
+            amplx[i] = x;
+            double y = (short)amplData[i] + AMPL_OFFSET;
+            amply[i] = y;
+            x += freq_step;
+        }
+        SpectrumSeries[SeriesIndex]->setData(amplx, amply);
+        for (int i = 0; i < SERIES_SIZE; ++i)
+        {
+            SpectrumSeries[(SeriesIndex + SERIES_SIZE) % SERIES_SIZE]->setPen(QPen(QColor(0, 0, 255, 255 * (SERIES_SIZE - i) / SERIES_SIZE)));
+        }
+        QCPRange range(param->StartFreq / 1e6, param->StopFreq / 1e6);
+        xRangeChanged(range);
+        rescaleKeyAxis(range);
+        break;
+    }
+    case 0x602:
+    {
+        break;
+    }
+    default: return;
+    }
+    if (--SeriesIndex < 0)
+        SeriesIndex = SERIES_SIZE - 1;
+    replot(QCustomPlot::rpQueuedReplot);
 }

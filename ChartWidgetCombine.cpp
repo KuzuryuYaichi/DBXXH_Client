@@ -104,16 +104,19 @@ void ChartWidgetCombine::replace(unsigned char* const buf)
     case SPECTRUM_MODE:
     {
         chartSpectrum->replace(buf);
+        chartWaterfall->replace(buf);
         break;
     }
     case HEATMAP_MODE:
     {
         chartHeatmap->replace(buf);
+        chartWaterfall->replace(buf);
         break;
     }
     case AFTERFLOW_MODE:
     {
         chartAfterglow->replace(buf);
+        chartWaterfall->replace(buf);
         break;
     }
     }
