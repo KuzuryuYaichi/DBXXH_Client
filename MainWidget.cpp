@@ -8,6 +8,7 @@
 #include <QHeaderView>
 #include <QStyle>
 #include <QFormLayout>
+#include <QPalette>
 
 extern PARAMETER_SET g_parameter_set;
 
@@ -41,21 +42,18 @@ void MainWidget::createSettings()
     auto tmpLayout = new QHBoxLayout;
     tmpLayout->addLayout(leftLayout, 3);
 
-    auto receiveCheckBox = new QGroupBox(tr("Receiver Settings"));
-    settingLayout->addRow(receiveCheckBox);
-//    auto receiveLayout = new QFormLayout(receiveCheckBox);
-
-//    auto checkBox = new QPushButton(tr("All Check"));
-//    receiveLayout->addRow(tr("Device SelfCheck:"), checkBox);
-//    connect(checkBox, &QAbstractButton::clicked, this, [this](bool) {
-//        m_socket->self_check(allCheck);
-//    });
-
-//    auto workCtrlBtn = new QPushButton(tr("Work Param Query"));
-//    receiveLayout->addRow(tr("Work Ctrl:"), workCtrlBtn);
-//    connect(workCtrlBtn, &QPushButton::clicked, this, [this] {
-//        m_socket->work_ctrl(GetParameter);
-//    });
+    auto markerCheckBox = new QGroupBox(tr("Freq Marker"));
+    settingLayout->addRow(markerCheckBox);
+    auto markerLayout = new QFormLayout(markerCheckBox);
+    for (auto i = 0; i < 5; ++i)
+    {
+        auto nameLbl = new QLabel(tr("Marker %1").arg(i + 1));
+        QPalette palette;
+        palette.setColor(QPalette::WindowText, MARKER_COLOR[i]);
+//        nameLbl->setAutoFillBackground(true);
+        nameLbl->setPalette(palette);
+        markerLayout->addRow(nameLbl, Marker[i] = new QLabel("-"));
+    }
 
     connect(chartWB, &ChartWidgetWB::ParamsChanged, this, [this] {
         m_socket->wb_parameter_set();

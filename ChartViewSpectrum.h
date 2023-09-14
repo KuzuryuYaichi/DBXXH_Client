@@ -31,14 +31,15 @@ protected:
     void rescaleKeyAxis(const QCPRange& range) override;
 
 private:
-    static constexpr int MARKER_NUM = 5;
-    static constexpr Qt::GlobalColor MARKER_COLOR[MARKER_NUM] = { Qt::red, Qt::magenta, Qt::green, Qt::yellow, Qt::black };
     void UpdateRect(QMouseEvent *);
     void UpdateRuler(QMouseEvent *);
     void UpdateTracer(QMouseEvent *);
-    QCPItemTracer *tracer, *TracerMarker[MARKER_NUM];
-    bool LeftButtonPress = false, RightButtonPress = false;
+    void InitMenu();
+    QCPItemTracer *TracerNormal, *TracerMarker[MARKER_NUM], *tracer;
+    bool LeftButtonPress = false;
     bool MaxKeepSelect = true, MinKeepSelect = true, SpectrumSelect = true;
+    QMenu* menu;
+    bool MenuAppear = true;
 
     void analyzeFrame(size_t);
     QVector<double> pointsMax, pointsMin;
@@ -52,6 +53,13 @@ private:
     static constexpr double NB_HALF_BANDWIDTH[] =
         {0.15 / 2 / 1e3, 0.3 / 2 / 1e3, 0.6 / 2 / 1e3, 1.5 / 2 / 1e3, 2.4 / 2 / 1e3, 6 / 2 / 1e3,
          9 / 2 / 1e3, 15 / 2 / 1e3, 30 / 2 / 1e3, 50 / 2 / 1e3, 120 / 2 / 1e3, 150 / 2 / 1e3};
+
+    enum DISPLAY {
+        NORMAL,
+        MARK,
+        MEASURE,
+        TRACK
+    } DisplayState = NORMAL;
 };
 
 #endif // CHARTVIEWSPECTRUM_H

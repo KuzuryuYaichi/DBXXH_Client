@@ -40,6 +40,7 @@ private:
 
     QLineEdit *ipEdit;
     QLineEdit *portEdit;
+    QLabel* Marker[MARKER_NUM];
 };
 
 #endif // ChartWidget_H

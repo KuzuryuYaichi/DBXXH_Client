@@ -2,9 +2,9 @@
 #define GLOBAL_H
 
 #include "TinyConfig.h"
+#include <QColor>
 
 static constexpr int CHANNEL_NUM = 4;
-static constexpr int MARKER_NUM = 3;
 static constexpr int ZC_NB_CHANNEL_NUMS = 8;
 static constexpr short AMPL_OFFSET = -160;
 static constexpr short PHASE_MISTAKE = 1 * 10;
@@ -20,6 +20,8 @@ static constexpr int WATERFALL_DEPTH = 100;
 static constexpr int POINTS_ANALYZE_MINIMUM = 10;
 static constexpr int DECIMALS_PRECISION = 6;
 static constexpr char DATETIME_FORMAT[] = "yyyy-MM-dd hh:mm:ss";
+static constexpr int MARKER_NUM = 5;
+static constexpr Qt::GlobalColor MARKER_COLOR[MARKER_NUM] = { Qt::red, Qt::magenta, Qt::green, Qt::darkYellow, Qt::gray };
 
 enum TABLE_UPDATE_STATE {
     TABLE_INDEX_OUT_OF_RANGE,

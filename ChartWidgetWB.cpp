@@ -21,29 +21,23 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
 
     hBoxLayout->addWidget(new QLabel(tr("Sim Band(MHz):")));
     hBoxLayout->addWidget(boundBox = new QComboBox);
-    boundBox->addItem("0.9375", 6);
-    boundBox->addItem("1.875", 5);
-    boundBox->addItem("3.75", 4);
-    boundBox->addItem("7.5", 3);
-    boundBox->addItem("15", 2);
-    boundBox->addItem("30", 1);
+    boundBox->addItem("0.9375", 64);
+    boundBox->addItem("1.875", 32);
+    boundBox->addItem("3.75", 16);
+    boundBox->addItem("7.5", 8);
+    boundBox->addItem("15", 4);
+    boundBox->addItem("30",2);
     boundBox->setCurrentIndex(boundBox->count() - 1);
     connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if (index < 0)
             return;
         for (int i = 0; i < 5; ++i)
         {
-            freqResBox->setItemText(i, QString::number(RESOLUTIONS[index + i]) + "KHz");
+            freqResBox->setItemText(i, QString::number(RESOLUTIONS[index + i]));
         }
         g_parameter_set.FreqRes = freqResBox->currentData().toInt();
         g_parameter_set.SimBW = boundBox->currentData().toInt();
         emit ParamsChanged();
-        //        auto bandWidth = simBWBox->itemData(index).toDouble();
-        //        auto center = centerEdit->value(),
-        //            min = center - bandWidth / 2,
-        //            max = center + bandWidth / 2;
-        //        dfChart->setAxisxMin(min);
-        //        dfChart->setAxisxMax(max);
     });
     hBoxLayout->addStretch(1);
 

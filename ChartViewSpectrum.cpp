@@ -49,22 +49,32 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     legend->setFont(QFont("YaHei", 9));
     legend->setIconSize(5, 5);
 
-    tracer = new QCPItemTracer(this);
-    tracer->setPen(QPen(Qt::gray));
-    tracer->setBrush(QBrush(Qt::gray));
-    tracer->setStyle(QCPItemTracer::tsCircle);
-    tracer->setSize(5);
+    TracerNormal = new QCPItemTracer(this);
+    TracerNormal->setPen(QPen(Qt::black));
+    TracerNormal->setBrush(QBrush(Qt::black));
+    TracerNormal->setStyle(QCPItemTracer::tsCircle);
+    TracerNormal->setSize(8);
+    tracer = TracerNormal;
 
     for (auto i = 0; i < MARKER_NUM; ++i)
     {
         TracerMarker[i] = new QCPItemTracer(this);
         TracerMarker[i]->setPen(QPen(MARKER_COLOR[i]));
         TracerMarker[i]->setBrush(QBrush(MARKER_COLOR[i]));
-        TracerMarker[i]->setStyle(QCPItemTracer::tsCircle);
-        TracerMarker[i]->setSize(5);
+        TracerMarker[i]->setStyle(QCPItemTracer::tsSquare);
+        TracerMarker[i]->setSize(8);
         TracerMarker[i]->setInterpolating(true);
         TracerMarker[i]->setGraph(SpectrumSeries);
+        TracerMarker[i]->setVisible(false);
     }
+
+    InitMenu();
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
+        if (MenuAppear)
+            menu->popup(mapToGlobal(pos));
+        MenuAppear = true;
+    });
 
     connect(this, &QCustomPlot::mouseMove, this, [this](QMouseEvent *event) {
         UpdateRect(event);
@@ -74,67 +84,73 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     });
 
     connect(this, &QCustomPlot::mousePress, this, [this](QMouseEvent *event) {
+        if (!(event->button() & Qt::LeftButton))
+            return;
         auto x = xAxis->pixelToCoord(event->pos().x());
         auto y = yAxis->pixelToCoord(event->pos().y());
-        if (event->button() & Qt::RightButton)
+        if (!(xAxis->range().contains(x) && yAxis->range().contains(y)))
+            return;
+        switch (DisplayState)
         {
-            if (xAxis->range().contains(x) && yAxis->range().contains(y))
-                RightButtonPress = true;
+        case NORMAL:
+        {
+            RectStartValue = x;
         }
-        if (event->button() & Qt::LeftButton)
+        case TRACK:
         {
-            if (xAxis->range().contains(x) && yAxis->range().contains(y))
-            {
-                LeftButtonPress = true;
-                RectStartValue = x;
-            }
+            LeftButtonPress = true;
+            break;
+        }
+        case MARK:
+        {
+            break;
+        }
+        default: return;
         }
         replot();
     });
 
     connect(this, &QCustomPlot::mouseRelease, this, [this](QMouseEvent *event) {
-        if (event->button() & Qt::RightButton)
+        if (event->button() & Qt::RightButton && DisplayState != NORMAL)
         {
-            RightButtonPress = false;
-//            emit thresholdEnterPressedSignal(GateSeries->data().data()->at(0)->value);
+            if (DisplayState == MARK)
+            {
+                tracer->setVisible(false);
+                tracer = TracerNormal;
+                tracer->setVisible(true);
+            }
+            DisplayState = NORMAL;
+            MenuAppear = false;
         }
-        if (event->button() & Qt::LeftButton)
+        else if (event->button() & Qt::LeftButton)
         {
-            LeftButtonPress = false;
+            switch (DisplayState)
+            {
+            case NORMAL:
+            {
+                LeftButtonPress = false;
+                //            emit thresholdEnterPressedSignal(GateSeries->data().data()->at(0)->value);
+                break;
+            }
+            case TRACK:
+            {
+                LeftButtonPress = false;
+                break;
+            }
+            case MARK:
+            {
+                if (event->button() & Qt::RightButton)
+                {
+                    tracer->setVisible(false);
+                }
+                tracer = TracerNormal;
+                DisplayState = NORMAL;
+                break;
+            }
+            default: return;
+            }
         }
         replot();
-    });
-
-    setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
-        auto menu = new QMenu(this);
-        menu->setAttribute(Qt::WA_DeleteOnClose);
-        auto addMenu = new QMenu(tr("Add"), menu);
-        menu->addMenu(addMenu);
-        for (int i = 0; i < MARKER_NUM; ++i)
-        {
-            QPixmap pixmap(100, 100);
-            pixmap.fill(MARKER_COLOR[i]);
-            auto action = new QAction(QIcon(pixmap), tr("Marker %1").arg(i + 1), addMenu);
-            addMenu->addAction(action);
-            connect(action, &QAction::triggered, this, [this, i] {
-
-            });
-        }
-        auto removeMenu = new QMenu(tr("Delete"), menu);
-        menu->addMenu(removeMenu);
-        for (int i = 0; i < MARKER_NUM; ++i)
-        {
-            QPixmap pixmap(100, 100);
-            pixmap.fill(MARKER_COLOR[i]);
-            auto action = new QAction(QIcon(pixmap), tr("Marker %1").arg(i + 1), removeMenu);
-            removeMenu->addAction(action);
-            connect(action, &QAction::triggered, this, [this, i] {
-
-            });
-        }
-
-        menu->popup(mapToGlobal(pos));
     });
 
     inR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
@@ -147,6 +163,54 @@ ChartViewSpectrum::~ChartViewSpectrum()
     fftw_destroy_plan(planR);
     fftw_free(inR);
     fftw_free(outR);
+}
+
+void ChartViewSpectrum::InitMenu()
+{
+    menu = new QMenu(this);
+    auto markerMenu = new QMenu(tr("Mark"));
+    menu->addMenu(markerMenu);
+
+    auto addMenu = new QMenu(tr("Add"));
+    markerMenu->addMenu(addMenu);
+    for (int i = 0; i < MARKER_NUM; ++i)
+    {
+        QPixmap pixmap(100, 100);
+        pixmap.fill(MARKER_COLOR[i]);
+        auto action = new QAction(QIcon(pixmap), tr("Marker %1").arg(i + 1));
+        addMenu->addAction(action);
+        connect(action, &QAction::triggered, this, [this, i] {
+            DisplayState = MARK;
+            tracer = TracerMarker[i];
+            tracer->setVisible(true);
+        });
+    }
+    auto removeMenu = new QMenu(tr("Delete"));
+    markerMenu->addMenu(removeMenu);
+    for (int i = 0; i < MARKER_NUM; ++i)
+    {
+        QPixmap pixmap(100, 100);
+        pixmap.fill(MARKER_COLOR[i]);
+        auto action = new QAction(QIcon(pixmap), tr("Marker %1").arg(i + 1));
+        removeMenu->addAction(action);
+        connect(action, &QAction::triggered, this, [this, i] {
+            DisplayState = NORMAL;
+            TracerMarker[i]->setVisible(false);
+            tracer = TracerNormal;
+        });
+    }
+
+    auto measureAction = new QAction(tr("Measure"));
+    menu->addAction(measureAction);
+    connect(measureAction, &QAction::triggered, this, [this] {
+        DisplayState = MEASURE;
+    });
+
+    auto trackAction = new QAction(tr("Track"));
+    menu->addAction(trackAction);
+    connect(trackAction, &QAction::triggered, this, [this] {
+        DisplayState = TRACK;
+    });
 }
 
 void ChartViewSpectrum::analyzeFrame(size_t DataPoint)
@@ -165,7 +229,7 @@ void ChartViewSpectrum::analyzeFrame(size_t DataPoint)
 
 void ChartViewSpectrum::UpdateRect(QMouseEvent *event)
 {
-    if (LeftButtonPress)
+    if (DisplayState == TRACK && LeftButtonPress)
     {
         auto xValue = xAxis->pixelToCoord(event->pos().x());
         QVector<double> x{ RectStartValue, RectStartValue, xValue, xValue }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
@@ -175,7 +239,7 @@ void ChartViewSpectrum::UpdateRect(QMouseEvent *event)
 
 void ChartViewSpectrum::UpdateRuler(QMouseEvent *event)
 {
-    if (RightButtonPress)
+    if (DisplayState == NORMAL && LeftButtonPress)
     {
         auto xValue = xAxis->pixelToCoord(event->pos().x());
         QVector<double> x{ xValue - 75e-3, xValue - 75e-3, xValue + 75e-3, xValue + 75e-3 }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
