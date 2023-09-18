@@ -15,7 +15,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
 
     statusTimer = new QTimer;
     statusTimer->setSingleShot(true);
-    connect(this, &Model::sendDeviceStatus, m_mainWidget->statusEdit, &SideWidget::updateStatus);
+//    connect(this, &Model::sendDeviceStatus, m_mainWidget->statusEdit, &SideWidget::updateStatus);
     setStatusBar(statusBar = new QStatusBar(this));
     connect(this, &Model::updatetime, this, [this](unsigned long long timeData) {
         if (!readyTime)

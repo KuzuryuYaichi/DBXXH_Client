@@ -3,7 +3,7 @@
 
 extern PARAMETER_SET g_parameter_set;
 
-DataManager::DataManager(QObject *parent) : QObject(parent)
+DataManager::DataManager(QObject *parent): QObject(parent)
 {
     g_parameter_set.tinyConfig = TinyConfig("config.ini");
 }

@@ -11,10 +11,10 @@ CAudioMonitorThread::CAudioMonitorThread(QObject *parent): QThread(parent)
     m_pByte = std::make_shared<QByteArray>();
     m_audioBuffer = std::make_shared<QBuffer>(m_pByte.get());
 
-    QAudioFormat fmt; //通过fmt设定音频数据格式。只有明确知道音频数据的声道数、采样率、采样位数，才可以正常地播放
-    fmt.setSampleRate(44100); //设定播放采样频率为44100Hz的音频文件
-    fmt.setChannelCount(1); //设定播放声道数目为2通道（立体声）的音频文件。mono(平声道)的声道数目是1，stero(立体声)的声道数目是2
-    fmt.setSampleFormat(QAudioFormat::Int16); //设定采样类型。根据采样位数来设定。采样位数为8或16位则设置为QAudioFormat::UnSignedInt
+    QAudioFormat fmt;
+    fmt.setSampleRate(44100);
+    fmt.setChannelCount(1);
+    fmt.setSampleFormat(QAudioFormat::Int16);
 
     QAudioDevice info;
     if (!info.isFormatSupported(fmt))
@@ -45,10 +45,6 @@ CAudioMonitorThread::CAudioMonitorThread(QObject *parent): QThread(parent)
     });
 }
 
-CAudioMonitorThread::~CAudioMonitorThread()
-{
-}
-
 void CAudioMonitorThread::Stop()
 {
     m_bStop = true;
@@ -70,7 +66,7 @@ void CAudioMonitorThread::run()
         while (!m_audioBuffer->atEnd())
         {
             std::memset(buffer.get(), 0, size);
-            if (out->bytesFree() == 0)//声卡缓冲区无空闲时不写数据，跳过
+            if (out->bytesFree() == 0) //声卡缓冲区无空闲时不写数据，跳过
             {
                 continue;
             }
@@ -83,9 +79,4 @@ void CAudioMonitorThread::run()
         m_audioBuffer->close();
     }
     io->close();
-}
-
-void CAudioMonitorThread::OnstateChanged(QAudio::State)
-{
-
 }

@@ -36,12 +36,12 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     BoundSeries->setBrush(QBrush(BoundBrushColor));
 
     QColor RectBrushColor(0, 0, 255, 50);
-    RectSeries = addGraph();
-    RectSeries->setName("Rect");
-    RectSeries->setPen(QPen(RectBrushColor));
-    RectSeries->setLineStyle(QCPGraph::lsLine);
-    RectSeries->rescaleAxes(true);
-    RectSeries->setBrush(QBrush(RectBrushColor));
+    TrackSeries = addGraph();
+    TrackSeries->setName("Track");
+    TrackSeries->setPen(QPen(RectBrushColor));
+    TrackSeries->setLineStyle(QCPGraph::lsLine);
+    TrackSeries->rescaleAxes(true);
+    TrackSeries->setBrush(QBrush(RectBrushColor));
 
 //    legend->setVisible(true);
     legend->setBorderPen(Qt::NoPen);
@@ -77,7 +77,7 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     });
 
     connect(this, &QCustomPlot::mouseMove, this, [this](QMouseEvent *event) {
-        UpdateRect(event);
+        UpdateTrack(event);
         UpdateRuler(event);
         UpdateTracer(event);
         replot();
@@ -94,10 +94,16 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
         {
         case NORMAL:
         {
-            RectStartValue = x;
+
         }
         case TRACK:
+//        {
+//            LeftButtonPress = true;
+//            break;
+//        }
+        case MEASURE:
         {
+            TrackStartFreq = x;
             LeftButtonPress = true;
             break;
         }
@@ -133,7 +139,14 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
                 break;
             }
             case TRACK:
+//            {
+//                LeftButtonPress = false;
+//                break;
+//            }
+            case MEASURE:
             {
+                auto x = xAxis->pixelToCoord(event->pos().x());
+                TrackEndFreq = x;
                 LeftButtonPress = false;
                 break;
             }
@@ -213,13 +226,13 @@ void ChartViewSpectrum::InitMenu()
     });
 }
 
-void ChartViewSpectrum::analyzeFrame(size_t DataPoint)
+void ChartViewSpectrum::AnalyzeFrame(size_t DataPoint)
 {
     if (pointsMax.size() != DataPoint)
     {
         pointsMax.resize(DataPoint);
         pointsMin.resize(DataPoint);
-        for (auto i = 0; i < DataPoint; ++i)
+        for (auto i = 0ull; i < DataPoint; ++i)
         {
             pointsMax[i] = MIN_AMPL;
             pointsMin[i] = 0;
@@ -227,13 +240,13 @@ void ChartViewSpectrum::analyzeFrame(size_t DataPoint)
     }
 }
 
-void ChartViewSpectrum::UpdateRect(QMouseEvent *event)
+void ChartViewSpectrum::UpdateTrack(QMouseEvent *event)
 {
     if (DisplayState == TRACK && LeftButtonPress)
     {
         auto xValue = xAxis->pixelToCoord(event->pos().x());
-        QVector<double> x{ RectStartValue, RectStartValue, xValue, xValue }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
-        RectSeries->setData(x, y, true);
+        QVector<double> x{ TrackStartFreq, TrackEndFreq, xValue, xValue }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
+        TrackSeries->setData(x, y, true);
     }
 }
 
@@ -286,11 +299,16 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
         auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
         auto BAND_WIDTH = (param->StopFreq - param->StartFreq) / 1e6;
         auto freq_step = ResolveResolution(param->Resolution, BAND_WIDTH);
-        auto start_freq = param->StartFreq / 1e6;
+        auto StartFreq = param->StartFreq / 1e6;
         auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
-        analyzeFrame(param->DataPoint);
+        auto DataPoint = param->DataPoint;
+        AnalyzeFrame(DataPoint);
+        AnalyzeMark(StartFreq, freq_step, amplData, DataPoint);
+        AnalyzeMeasure(StartFreq, freq_step, DataPoint);
+        AnalyzeTrack(StartFreq, freq_step, amplData, DataPoint);
+
         QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
-        auto x = start_freq;
+        auto x = StartFreq;
         for (int i = 0; i < param->DataPoint; ++i)
         {
             amplx[i] = x;
@@ -360,4 +378,55 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
     default: return;
     }
     replot(QCustomPlot::rpQueuedReplot);
+}
+
+void ChartViewSpectrum::AnalyzeMark(double StartFreq, double freq_step, unsigned char* amplData, unsigned int DataPoint)
+{
+    std::vector<std::pair<bool, double>> MarkAmpl(MARKER_NUM);
+    for (auto i = 0; i < MARKER_NUM; ++i)
+    {
+        auto index = (TracerMarker[i]->graphKey() - StartFreq) / freq_step;
+        if (index < 0 || index >= DataPoint)
+        {
+            MarkAmpl[i] = { false, 0 };
+            continue;
+        }
+        MarkAmpl[i] = { true, (short)amplData[i] + AMPL_OFFSET };
+    }
+    emit triggerMark(MarkAmpl);
+}
+
+void ChartViewSpectrum::AnalyzeMeasure(double StartFreq, double freq_step, unsigned int DataPoint)
+{
+    auto LargerFreq = std::max(TrackStartFreq, TrackEndFreq), SmallerFreq = std::min(TrackStartFreq, TrackEndFreq);
+    auto indexStart = (LargerFreq - StartFreq) / freq_step;
+    if (indexStart <= 0 || indexStart >= DataPoint)
+        return;
+    auto indexEnd = (SmallerFreq - StartFreq) / freq_step;
+    if (indexEnd <= 0 || indexEnd >= DataPoint)
+        return;
+    emit triggerMeasure(LargerFreq - SmallerFreq);
+}
+
+void ChartViewSpectrum::AnalyzeTrack(double StartFreq, double freq_step, unsigned char* amplData, unsigned int DataPoint)
+{
+    auto LargerFreq = std::max(TrackStartFreq, TrackEndFreq), SmallerFreq = std::min(TrackStartFreq, TrackEndFreq);
+    auto indexStart = (LargerFreq - StartFreq) / freq_step;
+    if (indexStart <= 0 || indexStart >= DataPoint)
+        return;
+    auto indexEnd = (SmallerFreq - StartFreq) / freq_step;
+    if (indexEnd <= 0 || indexEnd >= DataPoint)
+        return;
+    unsigned long long MaxFreq = 0;
+    double MaxAmpl = MIN_AMPL;
+    auto x = StartFreq;
+    for (int i = 0ull; i < DataPoint; ++i)
+    {
+        if ((short)amplData[i] + AMPL_OFFSET > MaxAmpl)
+        {
+            MaxFreq = x;
+        }
+        x += freq_step;
+    }
+    emit triggerTrack(QStringLiteral("%1dBm @ %2MHz").arg(MaxAmpl, MaxFreq));
 }

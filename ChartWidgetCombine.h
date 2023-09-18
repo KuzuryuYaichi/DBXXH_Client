@@ -14,6 +14,11 @@ public:
     ChartWidgetCombine(QString, QWidget* = nullptr);
     void replace(unsigned char* const);
     void ChangeMode(int);
+    ChartViewWave* chartWave;
+    ChartViewWaterfall* chartWaterfall;
+    ChartViewSpectrum* chartSpectrum;
+    ChartViewHeatmap* chartHeatmap;
+    ChartViewAfterglow* chartAfterglow;
 
 protected:
     QComboBox* showBox;
@@ -28,11 +33,6 @@ protected:
     };
     QVBoxLayout* mainLayout;
     QHBoxLayout* layoutSpectrum;
-    ChartViewWave* chartWave;
-    ChartViewWaterfall* chartWaterfall;
-    ChartViewSpectrum* chartSpectrum;
-    ChartViewHeatmap* chartHeatmap;
-    ChartViewAfterglow* chartAfterglow;
     QHBoxLayout* hBoxLayout;
 };
 

@@ -2,18 +2,10 @@
 #define MAIN_WIDGET_H
 
 #include <QWidget>
-#include <QGridLayout>
 #include <QLineEdit>
-#include <QPushButton>
-#include <QComboBox>
-#include <QButtonGroup>
-#include <QRadioButton>
-#include <QTextEdit>
-#include <QLayout>
-#include <QTableWidget>
+#include <QTimer>
 
 #include "TcpSocket.h"
-#include "SideWidget.h"
 #include "ChartWidgetNB.h"
 #include "ChartWidgetWB.h"
 #include "inc/WBSignalDetectWidget.h"
@@ -32,7 +24,6 @@ public:
     ChartWidgetNB* chartNB;
     ChartWidgetWB* chartWB;
     WBSignalDetectWidget* wBSignalDetectWidget;
-    SideWidget* statusEdit;
 
 private:
     TcpSocket *m_socket;
@@ -40,7 +31,12 @@ private:
 
     QLineEdit *ipEdit;
     QLineEdit *portEdit;
-    QLabel* Marker[MARKER_NUM];
+    QLabel* MarkerLbl[MARKER_NUM], *MeasureLbl, *TrackLbl;
+    QTimer* m_updater;
+
+    std::vector<std::pair<bool, double>> MarkAmpl;
+    double Distance;
+    QString MaxPoint;
 };
 
 #endif // ChartWidget_H

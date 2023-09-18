@@ -78,20 +78,35 @@
         <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="112"/>
+        <location filename="ChartViewSpectrum.cpp" line="171"/>
+        <source>Mark</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="ChartViewSpectrum.cpp" line="174"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="118"/>
-        <location filename="ChartViewSpectrum.cpp" line="130"/>
+        <location filename="ChartViewSpectrum.cpp" line="180"/>
+        <location filename="ChartViewSpectrum.cpp" line="194"/>
         <source>Marker %1</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="124"/>
+        <location filename="ChartViewSpectrum.cpp" line="188"/>
         <source>Delete</source>
         <translation>移除</translation>
+    </message>
+    <message>
+        <location filename="ChartViewSpectrum.cpp" line="203"/>
+        <source>Measure</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="ChartViewSpectrum.cpp" line="209"/>
+        <source>Track</source>
+        <translation type="unfinished"></translation>
     </message>
     <message>
         <source>Gate</source>
@@ -197,72 +212,72 @@
         <translation>模拟带宽(MHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="50"/>
+        <location filename="ChartWidgetWB.cpp" line="44"/>
         <source>Resolution(kHz):</source>
         <translation>分辨率(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="66"/>
+        <location filename="ChartWidgetWB.cpp" line="60"/>
         <source>Smooth:</source>
         <translation>平滑次数:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="82"/>
+        <location filename="ChartWidgetWB.cpp" line="76"/>
         <source>Rf Gain Mode:</source>
         <translation>射频增益模式:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="86"/>
+        <location filename="ChartWidgetWB.cpp" line="80"/>
         <source>MGC</source>
         <translation>手动</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="86"/>
+        <location filename="ChartWidgetWB.cpp" line="80"/>
         <source>AGC</source>
         <translation>自动</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="99"/>
+        <location filename="ChartWidgetWB.cpp" line="93"/>
         <source>Rf Desc(0~31dB):</source>
         <translation>射频衰减(0~31dB):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="115"/>
+        <location filename="ChartWidgetWB.cpp" line="109"/>
         <source>Digit Desc(0~30dB):</source>
         <translation>数字衰减(0~30dB):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="131"/>
+        <location filename="ChartWidgetWB.cpp" line="125"/>
         <source>Feedback State:</source>
         <translation>馈电状态:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="136"/>
+        <location filename="ChartWidgetWB.cpp" line="130"/>
         <source>Close</source>
         <translation>关闭</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="136"/>
+        <location filename="ChartWidgetWB.cpp" line="130"/>
         <source>Open</source>
         <translation>打开</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="149"/>
+        <location filename="ChartWidgetWB.cpp" line="143"/>
         <source>Series State:</source>
         <translation>数据选择:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="150"/>
+        <location filename="ChartWidgetWB.cpp" line="144"/>
         <source>Max Keep</source>
         <translation>最大保持</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="153"/>
+        <location filename="ChartWidgetWB.cpp" line="147"/>
         <source>Min Keep</source>
         <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartWidgetWB.cpp" line="156"/>
+        <location filename="ChartWidgetWB.cpp" line="150"/>
         <source>Spectrum</source>
         <translation>合成谱</translation>
     </message>
@@ -270,14 +285,13 @@
 <context>
     <name>MainWidget</name>
     <message>
-        <location filename="MainWidget.cpp" line="26"/>
+        <location filename="MainWidget.cpp" line="27"/>
         <source>WB</source>
         <translation>宽带</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="44"/>
         <source>Receiver Settings</source>
-        <translation>接收机设置</translation>
+        <translation type="vanished">接收机设置</translation>
     </message>
     <message>
         <source>All Check</source>
@@ -296,32 +310,42 @@
         <translation type="vanished">工作控制:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="64"/>
+        <location filename="MainWidget.cpp" line="45"/>
+        <source>Freq Marker</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="50"/>
+        <source>Marker %1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="62"/>
         <source>Network</source>
         <translation>网络连接</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="70"/>
+        <location filename="MainWidget.cpp" line="68"/>
         <source>Server IP:</source>
         <translation>服务IP:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="73"/>
+        <location filename="MainWidget.cpp" line="71"/>
         <source>Server Port:</source>
         <translation>服务端口:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="74"/>
+        <location filename="MainWidget.cpp" line="72"/>
         <source>Connect</source>
         <translation>连接</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="80"/>
+        <location filename="MainWidget.cpp" line="78"/>
         <source>Failed to Connect To Server: </source>
         <translation>连接服务器失败: </translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="84"/>
+        <location filename="MainWidget.cpp" line="82"/>
         <source>Connected To Server</source>
         <translation>连接服务器成功</translation>
     </message>

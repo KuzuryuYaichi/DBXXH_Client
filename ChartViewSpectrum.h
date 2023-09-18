@@ -24,14 +24,19 @@ class ChartViewSpectrum: public ChartViewCustom
 public:
     ChartViewSpectrum(QString, double, double, double, double, QWidget* = nullptr);
     ~ChartViewSpectrum();
-    void replace(unsigned char* const buf);
-    void SeriesSelectChanged(bool MaxKeepSelect = true, bool MinKeepBox = true, bool SpectrumBox = true);
+    void replace(unsigned char* const);
+    void SeriesSelectChanged(bool = true, bool = true, bool = true);
+
+signals:
+    void triggerMark(std::vector<std::pair<bool, double>>);
+    void triggerTrack(QString);
+    void triggerMeasure(double);
 
 protected:
     void rescaleKeyAxis(const QCPRange& range) override;
 
 private:
-    void UpdateRect(QMouseEvent *);
+    void UpdateTrack(QMouseEvent *);
     void UpdateRuler(QMouseEvent *);
     void UpdateTracer(QMouseEvent *);
     void InitMenu();
@@ -41,18 +46,21 @@ private:
     QMenu* menu;
     bool MenuAppear = true;
 
-    void analyzeFrame(size_t);
+    void AnalyzeFrame(size_t);
+    void AnalyzeMark(double, double, unsigned char*, unsigned int);
+    void AnalyzeMeasure(double, double, unsigned int);
+    void AnalyzeTrack(double, double, unsigned char*, unsigned int);
     QVector<double> pointsMax, pointsMin;
-    QCPGraph *SpectrumSeries, *BoundSeries, *MaxKeepSeries, *MinKeepSeries, *RectSeries;
+    QCPGraph *SpectrumSeries, *BoundSeries, *MaxKeepSeries, *MinKeepSeries, *TrackSeries;
     fftw_complex* inR, * outR;
     fftw_plan planR;
-    double RectStartValue;
+    double TrackStartFreq, TrackEndFreq;
 signals:
     void thresholdEnterPressedSignal(double);
 private:
     static constexpr double NB_HALF_BANDWIDTH[] =
-        {0.15 / 2 / 1e3, 0.3 / 2 / 1e3, 0.6 / 2 / 1e3, 1.5 / 2 / 1e3, 2.4 / 2 / 1e3, 6 / 2 / 1e3,
-         9 / 2 / 1e3, 15 / 2 / 1e3, 30 / 2 / 1e3, 50 / 2 / 1e3, 120 / 2 / 1e3, 150 / 2 / 1e3};
+    { 0.15 / 2 / 1e3, 0.3 / 2 / 1e3, 0.6 / 2 / 1e3, 1.5 / 2 / 1e3, 2.4 / 2 / 1e3, 6 / 2 / 1e3,
+      9 / 2 / 1e3, 15 / 2 / 1e3, 30 / 2 / 1e3, 50 / 2 / 1e3, 120 / 2 / 1e3, 150 / 2 / 1e3 };
 
     enum DISPLAY {
         NORMAL,

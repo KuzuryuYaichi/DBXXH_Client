@@ -27,7 +27,6 @@ SOURCES += \
     MainWidget.cpp \
     Model.cpp \
     SampleTableWidget.cpp \
-    SideWidget.cpp \
     SqlData.cpp \
     SqlWidget.cpp \
     TcpSocket.cpp \
@@ -59,7 +58,6 @@ HEADERS += \
     MainWidget.h \
     Model.h \
     SampleTableWidget.h \
-    SideWidget.h \
     SqlData.h \
     SqlWidget.h \
     StructNetData.h \

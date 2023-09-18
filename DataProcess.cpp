@@ -1,6 +1,5 @@
 #include "DataProcess.h"
 
-#include "global.h"
 #include "StructNetData.h"
 
 DataProcess::DataProcess(WBSignalDetectWidget* m_wbWidget): m_wbWidget(m_wbWidget) {}
@@ -35,7 +34,6 @@ void DataProcess::ProcessData()
             case 0x515:
             {
                 auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
-
                 auto BAND_WIDTH = (param->StopFreq - param->StartFreq);
                 auto CenterFreq = (param->StopFreq + param->StartFreq) / 2;
                 auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
@@ -44,7 +42,6 @@ void DataProcess::ProcessData()
             }
             default: return;
             }
-
         }
         qDebug() << "DataProcess Exited";
     });
