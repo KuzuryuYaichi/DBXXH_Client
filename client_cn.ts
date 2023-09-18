@@ -78,35 +78,35 @@
         <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="171"/>
+        <location filename="ChartViewSpectrum.cpp" line="191"/>
         <source>Mark</source>
-        <translation type="unfinished"></translation>
+        <translation>标记</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="174"/>
+        <location filename="ChartViewSpectrum.cpp" line="194"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="180"/>
-        <location filename="ChartViewSpectrum.cpp" line="194"/>
+        <location filename="ChartViewSpectrum.cpp" line="200"/>
+        <location filename="ChartViewSpectrum.cpp" line="214"/>
         <source>Marker %1</source>
-        <translation type="unfinished"></translation>
+        <translation>标记 %1</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="188"/>
+        <location filename="ChartViewSpectrum.cpp" line="208"/>
         <source>Delete</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="203"/>
+        <location filename="ChartViewSpectrum.cpp" line="223"/>
         <source>Measure</source>
-        <translation type="unfinished"></translation>
+        <translation>测距</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrum.cpp" line="209"/>
+        <location filename="ChartViewSpectrum.cpp" line="229"/>
         <source>Track</source>
-        <translation type="unfinished"></translation>
+        <translation>追踪</translation>
     </message>
     <message>
         <source>Gate</source>
@@ -276,11 +276,6 @@
         <source>Min Keep</source>
         <translation>最小保持</translation>
     </message>
-    <message>
-        <location filename="ChartWidgetWB.cpp" line="150"/>
-        <source>Spectrum</source>
-        <translation>合成谱</translation>
-    </message>
 </context>
 <context>
     <name>MainWidget</name>
@@ -310,44 +305,71 @@
         <translation type="vanished">工作控制:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="45"/>
+        <location filename="MainWidget.cpp" line="44"/>
         <source>Freq Marker</source>
-        <translation type="unfinished"></translation>
+        <translation>频点标记</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="50"/>
+        <location filename="MainWidget.cpp" line="51"/>
         <source>Marker %1</source>
-        <translation type="unfinished"></translation>
+        <translation>标记%1</translation>
     </message>
     <message>
         <location filename="MainWidget.cpp" line="62"/>
+        <source>Freq Measure</source>
+        <translation>频距测量</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="65"/>
+        <source>Measure</source>
+        <translation>频点间距</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="70"/>
+        <source>Freq Track</source>
+        <translation>频点追踪</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="55"/>
+        <location filename="MainWidget.cpp" line="73"/>
+        <source>MaxFreq</source>
+        <oldsource>Freq</oldsource>
+        <translation>频点</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="56"/>
+        <location filename="MainWidget.cpp" line="74"/>
+        <source>MaxAmpl</source>
+        <oldsource>Ampl</oldsource>
+        <translation>功率</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="105"/>
         <source>Network</source>
         <translation>网络连接</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="68"/>
+        <location filename="MainWidget.cpp" line="111"/>
         <source>Server IP:</source>
         <translation>服务IP:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="71"/>
+        <location filename="MainWidget.cpp" line="114"/>
         <source>Server Port:</source>
         <translation>服务端口:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="72"/>
+        <location filename="MainWidget.cpp" line="115"/>
         <source>Connect</source>
         <translation>连接</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="78"/>
         <source>Failed to Connect To Server: </source>
-        <translation>连接服务器失败: </translation>
+        <translation type="vanished">连接服务器失败: </translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="82"/>
         <source>Connected To Server</source>
-        <translation>连接服务器成功</translation>
+        <translation type="vanished">连接服务器成功</translation>
     </message>
 </context>
 <context>

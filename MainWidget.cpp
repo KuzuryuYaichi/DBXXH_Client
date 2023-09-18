@@ -22,11 +22,14 @@ void MainWidget::createSettings()
     auto doaLayout = new QVBoxLayout(zcWidget = new QWidget);
     auto hBoxLayout = new QHBoxLayout;
     hBoxLayout->addWidget(chartNB, 1);
-    hBoxLayout->addWidget(wBSignalDetectWidget = new WBSignalDetectWidget, 1);
+    hBoxLayout->addWidget(wbSignalDetectWidget = new WBSignalDetectWidget, 1);
     doaLayout->addLayout(hBoxLayout, 4);
     doaLayout->addWidget(chartWB = new ChartWidgetWB(tr("WB")), 5);
     connect(chartWB, &ChartWidgetWB::ParamsChanged, this, [this] {
         m_socket->wb_parameter_set();
+    });
+    connect(chartWB->chartSpectrum, &ChartViewSpectrum::triggerMark, this, [this](std::vector<std::tuple<bool, double, double>> MarkData) {
+        this->MarkData = std::move(MarkData);
     });
 //    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
 
@@ -41,19 +44,23 @@ void MainWidget::createSettings()
     auto tmpLayout = new QHBoxLayout;
     tmpLayout->addLayout(leftLayout, 3);
 
-    auto markerGroupBox = new QGroupBox(tr("Freq Marker"));
-    settingLayout->addRow(markerGroupBox);
-    auto markerLayout = new QFormLayout(markerGroupBox);
-    for (auto i = 0; i < 5; ++i)
+    auto markersGroupBox = new QGroupBox(tr("Freq Marker"));
+    settingLayout->addRow(markersGroupBox);
+    auto markersLayout = new QFormLayout(markersGroupBox);
+    for (auto i = 0; i < MARKER_NUM; ++i)
     {
-        auto nameLbl = new QLabel(tr("Marker %1").arg(i + 1));
         QPalette palette;
         palette.setColor(QPalette::WindowText, MARKER_COLOR[i]);
-        nameLbl->setPalette(palette);
-        markerLayout->addRow(nameLbl, MarkerLbl[i] = new QLabel("-"));
+        auto markerGroupBox = new QGroupBox(tr("Marker %1").arg(i + 1));
+        markerGroupBox->setPalette(palette);
+        markersLayout->addRow(markerGroupBox);
+        auto markerLayout = new QFormLayout(markerGroupBox);
+        markerLayout->addRow(tr("MaxFreq"), MarkerFreqLbl[i] = new QLabel("-"));
+        markerLayout->addRow(tr("MaxAmpl"), MarkerAmplLbl[i] = new QLabel("-"));
     }
-    connect(chartWB->chartSpectrum, &ChartViewSpectrum::triggerMark, this, [this](std::vector<std::pair<bool, double>> MarkAmpl) {
-        this->MarkAmpl = std::move(MarkAmpl);
+    markersLayout->addRow(tr("Spectrum"), saveBtn = new QPushButton(tr("Save")));
+    connect(saveBtn, &QPushButton::clicked, this, [this] {
+        chartWB->chartSpectrum->SaveSpectrum("111.png");
     });
 
     auto measureGroupBox = new QGroupBox(tr("Freq Measure"));
@@ -67,23 +74,35 @@ void MainWidget::createSettings()
     auto trackGroupBox = new QGroupBox(tr("Freq Track"));
     settingLayout->addRow(trackGroupBox);
     auto trackLayout = new QFormLayout(trackGroupBox);
-    trackLayout->addRow(tr("Track"), TrackLbl = new QLabel("-"));
-    connect(chartWB->chartSpectrum, &ChartViewSpectrum::triggerTrack, this, [this](QString MaxPoint) {
-        this->MaxPoint = MaxPoint;
+    trackLayout->addRow(tr("MaxFreq"), MaxFreqLbl = new QLabel("-"));
+    trackLayout->addRow(tr("MaxAmpl"), MaxAmplLbl = new QLabel("-"));
+    connect(chartWB->chartSpectrum, &ChartViewSpectrum::triggerTrack, this, [this](double MaxFreq, double MaxAmpl) {
+        this->MaxFreq = MaxFreq;
+        this->MaxAmpl = MaxAmpl;
     });
 
     m_updater = new QTimer;
     m_updater->setInterval(100);
-    m_updater->setSingleShot(true);
     connect(m_updater, &QTimer::timeout, this, [this] {
-        if (MarkAmpl.size() < MARKER_NUM)
+        if (MarkData.size() < MARKER_NUM)
             return;
         for (auto i = 0; i < MARKER_NUM; ++i)
         {
-            MeasureLbl[i].setText(MarkAmpl[i].first? QStringLiteral("%1dBm").arg(MarkAmpl[i].second): "-");
+            if (std::get<0>(MarkData[i]))
+            {
+                MarkerFreqLbl[i]->setText(QStringLiteral("%1MHz").arg(std::get<1>(MarkData[i])));
+                MarkerAmplLbl[i]->setText(QStringLiteral("%1dBm").arg(std::get<2>(MarkData[i])));
+            }
+            else
+            {
+                MarkerFreqLbl[i]->setText("-");
+                MarkerAmplLbl[i]->setText("-");
+            }
         }
         MeasureLbl->setText(QStringLiteral("%1MHz").arg(Distance));
-        TrackLbl->setText(MaxPoint);
+        MaxFreqLbl->setText(QStringLiteral("%1MHz").arg(MaxFreq));
+        MaxAmplLbl->setText(QStringLiteral("%1dBm").arg(MaxAmpl));
+        m_updater->start();
     });
     m_updater->start();
 

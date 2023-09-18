@@ -25,11 +25,12 @@ public:
     ChartViewSpectrum(QString, double, double, double, double, QWidget* = nullptr);
     ~ChartViewSpectrum();
     void replace(unsigned char* const);
-    void SeriesSelectChanged(bool = true, bool = true, bool = true);
+    void SeriesSelectChanged(bool = false, bool = false);
+    void SaveSpectrum(const QString&);
 
 signals:
-    void triggerMark(std::vector<std::pair<bool, double>>);
-    void triggerTrack(QString);
+    void triggerMark(std::vector<std::tuple<bool, double, double>>);
+    void triggerTrack(double, double);
     void triggerMeasure(double);
 
 protected:
@@ -41,8 +42,9 @@ private:
     void UpdateTracer(QMouseEvent *);
     void InitMenu();
     QCPItemTracer *TracerNormal, *TracerMarker[MARKER_NUM], *tracer;
+    QCPItemText* TracerText[MARKER_NUM];
     bool LeftButtonPress = false;
-    bool MaxKeepSelect = true, MinKeepSelect = true, SpectrumSelect = true;
+    bool MaxKeepSelect = false, MinKeepSelect = false;
     QMenu* menu;
     bool MenuAppear = true;
 
@@ -54,7 +56,7 @@ private:
     QCPGraph *SpectrumSeries, *BoundSeries, *MaxKeepSeries, *MinKeepSeries, *TrackSeries;
     fftw_complex* inR, * outR;
     fftw_plan planR;
-    double TrackStartFreq, TrackEndFreq;
+    double TrackStartFreq = 0, TrackEndFreq = 0;
 signals:
     void thresholdEnterPressedSignal(double);
 private:
@@ -68,6 +70,8 @@ private:
         MEASURE,
         TRACK
     } DisplayState = NORMAL;
+
+    QCPLayoutGrid* MarkElement;
 };
 
 #endif // CHARTVIEWSPECTRUM_H

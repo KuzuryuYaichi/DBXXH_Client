@@ -23,7 +23,7 @@ signals:
 public:
     ChartWidgetNB* chartNB;
     ChartWidgetWB* chartWB;
-    WBSignalDetectWidget* wBSignalDetectWidget;
+    WBSignalDetectWidget* wbSignalDetectWidget;
 
 private:
     TcpSocket *m_socket;
@@ -31,12 +31,13 @@ private:
 
     QLineEdit *ipEdit;
     QLineEdit *portEdit;
-    QLabel* MarkerLbl[MARKER_NUM], *MeasureLbl, *TrackLbl;
+    QLabel* MarkerFreqLbl[MARKER_NUM], * MarkerAmplLbl[MARKER_NUM], *MeasureLbl, *MaxFreqLbl, *MaxAmplLbl;
     QTimer* m_updater;
+    QPushButton* saveBtn;
 
-    std::vector<std::pair<bool, double>> MarkAmpl;
+    std::vector<std::tuple<bool, double, double>> MarkData;
     double Distance;
-    QString MaxPoint;
+    double MaxFreq, MaxAmpl;
 };
 
 #endif // ChartWidget_H

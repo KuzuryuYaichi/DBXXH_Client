@@ -19,7 +19,7 @@ private:
     QButtonGroup *FeedbackGroup;
     QComboBox *freqResBox;
     QComboBox *smoothBox;
-    QCheckBox *MaxKeepSelect, *MinKeepSelect, *SpectrumSelect;
+    QCheckBox *MaxKeepSelect, *MinKeepSelect;
 
     static constexpr double RESOLUTIONS[] =
     {

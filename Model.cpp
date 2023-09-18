@@ -28,7 +28,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
         readyTime = true;
     });
 
-    dataProcess = std::make_unique<DataProcess>(m_mainWidget->wBSignalDetectWidget);
+    dataProcess = std::make_unique<DataProcess>(m_mainWidget->wbSignalDetectWidget);
     dataProcess->ProcessData();
 
     processThread = std::thread([this]

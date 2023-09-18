@@ -43,11 +43,15 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     TrackSeries->rescaleAxes(true);
     TrackSeries->setBrush(QBrush(RectBrushColor));
 
-//    legend->setVisible(true);
-    legend->setBorderPen(Qt::NoPen);
-    legend->item(3)->setVisible(false);
-    legend->setFont(QFont("YaHei", 9));
-    legend->setIconSize(5, 5);
+    plotLayout()->insertRow(1);
+    plotLayout()->addElement(1, 0, MarkElement = new QCPLayoutGrid);
+    for (auto i = 0; i < MARKER_NUM; ++i)
+    {
+        auto textElement = new QCPTextElement(this, tr("Marker %1").arg(i + 1), QFont("sans", 8, QFont::Bold));
+        textElement->setTextColor(MARKER_COLOR[i]);
+        MarkElement->addElement(0, i, textElement);
+    }
+    MarkElement->setVisible(false);
 
     TracerNormal = new QCPItemTracer(this);
     TracerNormal->setPen(QPen(Qt::black));
@@ -66,6 +70,15 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
         TracerMarker[i]->setInterpolating(true);
         TracerMarker[i]->setGraph(SpectrumSeries);
         TracerMarker[i]->setVisible(false);
+
+        TracerText[i] = new QCPItemText(this);
+        TracerText[i]->setLayer("legend");
+        TracerText[i]->setText(QString("M%1").arg(i + 1));
+        TracerText[i]->setTextAlignment(Qt::AlignCenter);
+        TracerText[i]->setColor(MARKER_COLOR[i]);
+        TracerText[i]->setPositionAlignment(Qt::AlignTop);
+        TracerText[i]->position->setParentAnchor(TracerMarker[i]->position);
+        TracerText[i]->setVisible(false);
     }
 
     InitMenu();
@@ -94,7 +107,7 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
         {
         case NORMAL:
         {
-
+            break;
         }
         case TRACK:
 //        {
@@ -145,8 +158,7 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
 //            }
             case MEASURE:
             {
-                auto x = xAxis->pixelToCoord(event->pos().x());
-                TrackEndFreq = x;
+                TrackEndFreq = xAxis->pixelToCoord(event->pos().x());
                 LeftButtonPress = false;
                 break;
             }
@@ -178,6 +190,14 @@ ChartViewSpectrum::~ChartViewSpectrum()
     fftw_free(outR);
 }
 
+void ChartViewSpectrum::SaveSpectrum(const QString& path)
+{
+    MarkElement->setVisible(true);
+    replot(QCustomPlot::rpQueuedReplot);
+    savePng(path);
+    MarkElement->setVisible(false);
+}
+
 void ChartViewSpectrum::InitMenu()
 {
     menu = new QMenu(this);
@@ -194,8 +214,8 @@ void ChartViewSpectrum::InitMenu()
         addMenu->addAction(action);
         connect(action, &QAction::triggered, this, [this, i] {
             DisplayState = MARK;
+            TracerMarker[i]->setVisible(true);
             tracer = TracerMarker[i];
-            tracer->setVisible(true);
         });
     }
     auto removeMenu = new QMenu(tr("Delete"));
@@ -245,7 +265,7 @@ void ChartViewSpectrum::UpdateTrack(QMouseEvent *event)
     if (DisplayState == TRACK && LeftButtonPress)
     {
         auto xValue = xAxis->pixelToCoord(event->pos().x());
-        QVector<double> x{ TrackStartFreq, TrackEndFreq, xValue, xValue }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
+        QVector<double> x{ TrackStartFreq, TrackStartFreq, xValue, xValue }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
         TrackSeries->setData(x, y, true);
     }
 }
@@ -271,11 +291,10 @@ void ChartViewSpectrum::UpdateTracer(QMouseEvent *event)
     QToolTip::showText(mapToGlobal(tracer->position->pixelPosition().toPoint()), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
 }
 
-void ChartViewSpectrum::SeriesSelectChanged(bool MaxKeepSelect, bool MinKeepSelect, bool SpectrumSelect)
+void ChartViewSpectrum::SeriesSelectChanged(bool MaxKeepSelect, bool MinKeepSelect)
 {
     MaxKeepSeries->setVisible(this->MaxKeepSelect = MaxKeepSelect);
     MinKeepSeries->setVisible(this->MinKeepSelect = MinKeepSelect);
-    SpectrumSeries->setVisible(this->SpectrumSelect = SpectrumSelect);
 }
 
 void ChartViewSpectrum::rescaleKeyAxis(const QCPRange& range)
@@ -318,8 +337,7 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
             pointsMin[i] = std::min(y, pointsMin[i]);
             x += freq_step;
         }
-        if (SpectrumSelect)
-            SpectrumSeries->setData(amplx, amply, true);
+        SpectrumSeries->setData(amplx, amply, true);
         if (MaxKeepSelect)
             MaxKeepSeries->setData(amplx, pointsMax, true);
         if (MinKeepSelect)
@@ -382,18 +400,24 @@ void ChartViewSpectrum::replace(unsigned char* const buf)
 
 void ChartViewSpectrum::AnalyzeMark(double StartFreq, double freq_step, unsigned char* amplData, unsigned int DataPoint)
 {
-    std::vector<std::pair<bool, double>> MarkAmpl(MARKER_NUM);
+    std::vector<std::tuple<bool, double, double>> MarkData(MARKER_NUM);
     for (auto i = 0; i < MARKER_NUM; ++i)
     {
-        auto index = (TracerMarker[i]->graphKey() - StartFreq) / freq_step;
+        auto freq = TracerMarker[i]->graphKey();
+        int index = (freq - StartFreq) / freq_step;
         if (index < 0 || index >= DataPoint)
         {
-            MarkAmpl[i] = { false, 0 };
+            MarkData[i] = { false, 0, 0 };
             continue;
         }
-        MarkAmpl[i] = { true, (short)amplData[i] + AMPL_OFFSET };
+        auto ampl = (short)amplData[index] + AMPL_OFFSET;
+        MarkData[i] = { true, freq, ampl };
+        if (TracerMarker[i]->visible())
+            ((QCPTextElement*)MarkElement->elementAt(i))->setText(tr("Marker %1: %2dBm @ %3MHz").arg(i + 1).arg(ampl).arg(freq));
+        else
+            ((QCPTextElement*)MarkElement->elementAt(i))->setText("-");
     }
-    emit triggerMark(MarkAmpl);
+    emit triggerMark(MarkData);
 }
 
 void ChartViewSpectrum::AnalyzeMeasure(double StartFreq, double freq_step, unsigned int DataPoint)
@@ -411,22 +435,22 @@ void ChartViewSpectrum::AnalyzeMeasure(double StartFreq, double freq_step, unsig
 void ChartViewSpectrum::AnalyzeTrack(double StartFreq, double freq_step, unsigned char* amplData, unsigned int DataPoint)
 {
     auto LargerFreq = std::max(TrackStartFreq, TrackEndFreq), SmallerFreq = std::min(TrackStartFreq, TrackEndFreq);
-    auto indexStart = (LargerFreq - StartFreq) / freq_step;
-    if (indexStart <= 0 || indexStart >= DataPoint)
+    int indexStart = (SmallerFreq - StartFreq) / freq_step;
+    if (indexStart < 0 || indexStart >= DataPoint)
         return;
-    auto indexEnd = (SmallerFreq - StartFreq) / freq_step;
-    if (indexEnd <= 0 || indexEnd >= DataPoint)
+    int indexEnd = (LargerFreq - StartFreq) / freq_step;
+    if (indexEnd < 0 || indexEnd >= DataPoint)
         return;
-    unsigned long long MaxFreq = 0;
+    unsigned long long MaxFreqIndex = indexStart;
     double MaxAmpl = MIN_AMPL;
-    auto x = StartFreq;
-    for (int i = 0ull; i < DataPoint; ++i)
+    for (auto i = indexStart; i <= indexEnd; ++i)
     {
-        if ((short)amplData[i] + AMPL_OFFSET > MaxAmpl)
+        auto ampl = (short)amplData[i] + AMPL_OFFSET;
+        if (ampl > MaxAmpl)
         {
-            MaxFreq = x;
+            MaxAmpl = ampl;
+            MaxFreqIndex = i;
         }
-        x += freq_step;
     }
-    emit triggerTrack(QStringLiteral("%1dBm @ %2MHz").arg(MaxAmpl, MaxFreq));
+    emit triggerTrack(StartFreq + freq_step * MaxFreqIndex, MaxAmpl);
 }

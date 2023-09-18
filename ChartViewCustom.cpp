@@ -60,51 +60,51 @@ double ChartViewCustom::ResolveResolution(int Resolution, double BAND_WIDTH)
     {
     case 0x0E:
     {
-        if (BAND_WIDTH == 0.9375) return 0.092 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 0.183 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 0.366 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 0.732 / 1e3;
-        if (BAND_WIDTH == 15)     return 1.465 / 1e3;
-        if (BAND_WIDTH == 30)     return 2.93 / 1e3;
+        if (BAND_WIDTH == 0.9375) return 1.5 / 16384;
+        if (BAND_WIDTH == 1.875)  return 3.0 / 16384;
+        if (BAND_WIDTH == 3.75)   return 6.0 / 16384;
+        if (BAND_WIDTH == 7.5)    return 12.0 / 16384;
+        if (BAND_WIDTH == 15)     return 24.0 / 16384;
+        if (BAND_WIDTH == 30)     return 48.0 / 16384;
         break;
     }
     case 0x0D:
     {
-        if (BAND_WIDTH == 0.9375) return 0.183 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 0.366 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 0.732 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 1.465 / 1e3;
-        if (BAND_WIDTH == 15)     return 2.93 / 1e3;
-        if (BAND_WIDTH == 30)     return 5.859 / 1e3;
+        if (BAND_WIDTH == 0.9375) return 3.0 / 16384;
+        if (BAND_WIDTH == 1.875)  return 6.0 / 16384;
+        if (BAND_WIDTH == 3.75)   return 12.0 / 16384;
+        if (BAND_WIDTH == 7.5)    return 24.0 / 16384;
+        if (BAND_WIDTH == 15)     return 48.0 / 16384;
+        if (BAND_WIDTH == 30)     return 96.0 / 16384;
         break;
     }
     case 0x0C:
     {
-        if (BAND_WIDTH == 0.9375) return 0.366 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 0.732 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 1.465 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 2.93 / 1e3;
-        if (BAND_WIDTH == 15)     return 5.859 / 1e3;
-        if (BAND_WIDTH == 30)     return 11.719 / 1e3;
+        if (BAND_WIDTH == 0.9375) return 6.0 / 16384;
+        if (BAND_WIDTH == 1.875)  return 12.0 / 16384;
+        if (BAND_WIDTH == 3.75)   return 24.0 / 16384;
+        if (BAND_WIDTH == 7.5)    return 48.0 / 16384;
+        if (BAND_WIDTH == 15)     return 96.0 / 16384;
+        if (BAND_WIDTH == 30)     return 192.0 / 16384;
         break;
     }
     case 0x0B:
     {
-        if (BAND_WIDTH == 0.9375) return 0.732 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 1.465 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 2.93 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 5.859 / 1e3;
-        if (BAND_WIDTH == 15)     return 11.719 / 1e3;
-        if (BAND_WIDTH == 30)     return 23.438 / 1e3;
+        if (BAND_WIDTH == 0.9375) return 12.0 / 16384;
+        if (BAND_WIDTH == 1.875)  return 24.0 / 16384;
+        if (BAND_WIDTH == 3.75)   return 48.0 / 16384;
+        if (BAND_WIDTH == 7.5)    return 96.0 / 16384;
+        if (BAND_WIDTH == 15)     return 192.0 / 16384;
+        if (BAND_WIDTH == 30)     return 384.0 / 16384;
         break;
     }
     case 0x0A:
     {
-        if (BAND_WIDTH == 0.9375) return 1.465 / 1e3;
-        if (BAND_WIDTH == 1.875)  return 2.93 / 1e3;
-        if (BAND_WIDTH == 3.75)   return 5.859 / 1e3;
-        if (BAND_WIDTH == 7.5)    return 11.719 / 1e3;
-        if (BAND_WIDTH == 15)     return 23.438 / 1e3;
+        if (BAND_WIDTH == 0.9375) return 24.0 / 16384;
+        if (BAND_WIDTH == 1.875)  return 48.0 / 16384;
+        if (BAND_WIDTH == 3.75)   return 96.0 / 16384;
+        if (BAND_WIDTH == 7.5)    return 192.0 / 16384;
+        if (BAND_WIDTH == 15)     return 384.0 / 16384;
         if (BAND_WIDTH == 30)     return 46.875 / 1e3;
         break;
     }

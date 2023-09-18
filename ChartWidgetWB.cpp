@@ -142,17 +142,12 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
 
     hBoxLayout->addWidget(new QLabel(tr("Series State:")));
     hBoxLayout->addWidget(MaxKeepSelect = new QCheckBox(tr("Max Keep")));
-    MaxKeepSelect->setCheckState(Qt::Checked);
     connect(MaxKeepSelect, &QCheckBox::stateChanged, this, &ChartWidgetWB::SeriesSelectChanged);
     hBoxLayout->addWidget(MinKeepSelect = new QCheckBox(tr("Min Keep")));
-    MinKeepSelect->setCheckState(Qt::Checked);
     connect(MinKeepSelect, &QCheckBox::stateChanged, this, &ChartWidgetWB::SeriesSelectChanged);
-    hBoxLayout->addWidget(SpectrumSelect = new QCheckBox(tr("Spectrum")));
-    SpectrumSelect->setCheckState(Qt::Checked);
-    connect(SpectrumSelect, &QCheckBox::stateChanged, this, &ChartWidgetWB::SeriesSelectChanged);
 }
 
 void ChartWidgetWB::SeriesSelectChanged()
 {
-    chartSpectrum->SeriesSelectChanged(MaxKeepSelect->checkState(), MinKeepSelect->checkState(), SpectrumSelect->checkState());
+    chartSpectrum->SeriesSelectChanged(MaxKeepSelect->checkState(), MinKeepSelect->checkState());
 }
