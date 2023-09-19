@@ -6,13 +6,13 @@
 #include <QAudioDevice>
 #include <QDebug>
 
+#include "global.h"
+#include "StructNetData.h"
+
 CAudioMonitorThread::CAudioMonitorThread(QObject *parent): QThread(parent)
 {
-    m_pByte = std::make_shared<QByteArray>();
-    m_audioBuffer = std::make_shared<QBuffer>(m_pByte.get());
-
     QAudioFormat fmt;
-    fmt.setSampleRate(44100);
+    fmt.setSampleRate(375000);
     fmt.setChannelCount(1);
     fmt.setSampleFormat(QAudioFormat::Int16);
 
@@ -23,8 +23,8 @@ CAudioMonitorThread::CAudioMonitorThread(QObject *parent): QThread(parent)
         return;
     }
 
-    out = std::make_shared<QAudioSink>(fmt, this);
-    connect(out.get(), &QAudioSink::stateChanged, this, [](QAudio::State newState) {
+    out = new QAudioSink(fmt, this);
+    connect(out, &QAudioSink::stateChanged, this, [](QAudio::State newState) {
         switch (newState)
         {
         case QAudio::IdleState:
@@ -47,7 +47,12 @@ CAudioMonitorThread::CAudioMonitorThread(QObject *parent): QThread(parent)
 
 void CAudioMonitorThread::Stop()
 {
-    m_bStop = true;
+    queue.clean();
+}
+
+void CAudioMonitorThread::execute(const std::shared_ptr<unsigned char[]>& task)
+{
+    queue.push(task);
 }
 
 void CAudioMonitorThread::run()
@@ -57,26 +62,52 @@ void CAudioMonitorThread::run()
     auto size = out->bufferSize();
     auto tmp = new char[size];
     auto buffer = std::shared_ptr<char[]>(tmp);
-    while (!m_bStop)
+    while (true)
     {
-        m_audioBuffer->open(QIODevice::ReadWrite);
-//        m_audioBuffer->write(byt);
-        m_audioBuffer->seek(0);
+        auto [res, d] = queue.wait_and_pop();
+        if (!res)
+            return;
+        auto buf = d.get();
+        auto head = (DataHead*)buf;
+        if (head->PackType != 0x602)
+            return;
+        auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
+        auto data = (NarrowDDC*)(param + 1);
+        auto RealHalfBandWidth = 375000;
+        switch (param->BandWidth)
+        {
+        case 150: RealHalfBandWidth = 375; break;
+        case 300: RealHalfBandWidth = 750; break;
+        case 600: RealHalfBandWidth = 1500; break;
+        case 1500: RealHalfBandWidth = 3750; break;
+        case 2400: RealHalfBandWidth = 6000; break;
+        case 6000: RealHalfBandWidth = 15000; break;
+        case 9000: RealHalfBandWidth = 22500; break;
+        case 15000: RealHalfBandWidth = 37500; break;
+        case 30000: RealHalfBandWidth = 75000; break;
+        case 50000: RealHalfBandWidth = 125000; break;
+        case 120000: RealHalfBandWidth = 300000; break;
+        case 150000: RealHalfBandWidth = 375000; break;
+        }
 
-        while (!m_audioBuffer->atEnd())
+        m_audioBuffer.open(QIODevice::ReadWrite);
+        for (auto i = 0; i < DDC_LEN; ++i)
+            m_audioBuffer.write((char*)&data[i].I, sizeof(short));
+        m_audioBuffer.seek(0);
+        while (!m_audioBuffer.atEnd())
         {
             std::memset(buffer.get(), 0, size);
-            if (out->bytesFree() == 0) //声卡缓冲区无空闲时不写数据，跳过
+            if (out->bytesFree() == 0)
             {
                 continue;
             }
-            if (m_audioBuffer->read(buffer.get(), size) <= 0)  //从缓冲据读取数据，如果读取到文件末尾或者读取不成功则通过break函数跳出while循环
+            if (m_audioBuffer.read(buffer.get(), size) <= 0)
             {
                 break;
             }
-            io->write(buffer.get(), size); //调用write函数将内存buf中的PCM数据写入到扬声器,即把buf中的数据提交到声卡发声
+            io->write(buffer.get(), size);
         }
-        m_audioBuffer->close();
+        m_audioBuffer.close();
     }
     io->close();
 }

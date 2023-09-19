@@ -215,6 +215,7 @@ void ChartViewSpectrum::InitMenu()
         connect(action, &QAction::triggered, this, [this, i] {
             DisplayState = MARK;
             TracerMarker[i]->setVisible(true);
+            TracerText[i]->setVisible(true);
             tracer = TracerMarker[i];
         });
     }
@@ -229,6 +230,7 @@ void ChartViewSpectrum::InitMenu()
         connect(action, &QAction::triggered, this, [this, i] {
             DisplayState = NORMAL;
             TracerMarker[i]->setVisible(false);
+            TracerText[i]->setVisible(false);
             tracer = TracerNormal;
         });
     }

@@ -5,20 +5,21 @@
 #include <QAudio>
 #include <QAudioSink>
 #include <QBuffer>
+#include "ThreadSafeQueue.h"
 
 class CAudioMonitorThread: public QThread
 {
     Q_OBJECT
 public:
-    CAudioMonitorThread(QObject *parent = nullptr);
+    CAudioMonitorThread(QObject * = nullptr);
+    void execute(const std::shared_ptr<unsigned char[]>&);
     void Stop();
 protected:
     void run() override;
 private:
-    bool m_bStop = false;
-    std::shared_ptr<QBuffer> m_audioBuffer = nullptr;
-    std::shared_ptr<QByteArray> m_pByte = nullptr;
-    std::shared_ptr<QAudioSink> out = nullptr;
+    QBuffer m_audioBuffer;
+    QAudioSink* out = nullptr;
+    threadsafe_queue<std::shared_ptr<unsigned char[]>> queue;
 };
 
 #endif // CAUDIOMONITORTHREAD_H

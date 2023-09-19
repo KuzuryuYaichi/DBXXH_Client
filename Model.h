@@ -8,6 +8,7 @@
 #include "TinyConfig.h"
 #include "SqlWidget.h"
 #include "DataProcess.h"
+#include "CAudioMonitorThread.h"
 
 class Model: public QMainWindow
 {
@@ -23,6 +24,7 @@ signals:
     void sendDeviceStatus(QString);
 
 private:
+    CAudioMonitorThread* AudioThread;
     TinyConfig* tinyConfig;
     ChannelWidget* m_channelWidget;
     MainWidget* m_mainWidget;

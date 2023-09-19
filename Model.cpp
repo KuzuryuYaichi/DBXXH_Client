@@ -31,6 +31,9 @@ Model::Model(QWidget *parent): QMainWindow(parent)
     dataProcess = std::make_unique<DataProcess>(m_mainWidget->wbSignalDetectWidget);
     dataProcess->ProcessData();
 
+    AudioThread = new CAudioMonitorThread;
+    AudioThread->start();
+
     processThread = std::thread([this]
     {
         while (Running)
@@ -103,6 +106,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
             }
             case 0x602:
             {
+                AudioThread->execute(packet);
                 showDataNB(buf, QDateTime());
                 break;
             }
