@@ -61,10 +61,7 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
     hBoxLayout->addWidget(smoothBox = new QComboBox);
     for (auto i = 1; i <= 32; i *= 2)
     {
-        if (i == 1)
-            smoothBox->addItem(QString::number(i), 2);
-        else if (i != 2)
-            smoothBox->addItem(QString::number(i), i);
+        smoothBox->addItem(QString::number(i), i);
     }
     connect(smoothBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if (index < 0)

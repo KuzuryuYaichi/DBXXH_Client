@@ -32,7 +32,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
     dataProcess->ProcessData();
 
     AudioThread = new CAudioMonitorThread;
-    AudioThread->start();
+//    AudioThread->start();
 
     processThread = std::thread([this]
     {

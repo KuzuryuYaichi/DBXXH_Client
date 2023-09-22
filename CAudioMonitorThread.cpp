@@ -12,7 +12,7 @@
 CAudioMonitorThread::CAudioMonitorThread(QObject *parent): QThread(parent)
 {
     QAudioFormat fmt;
-    fmt.setSampleRate(375000);
+    fmt.setSampleRate(37500);
     fmt.setChannelCount(1);
     fmt.setSampleFormat(QAudioFormat::Int16);
 
