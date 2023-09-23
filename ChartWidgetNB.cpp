@@ -2,12 +2,15 @@
 
 #include <QStyle>
 
-ChartWidgetNB::ChartWidgetNB(QString title, QWidget* parent): ChartWidgetCombine(title, parent)
+ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWidgetCombine(title, parent), index(index)
 {
     chartSpectrum->hide();
     chartHeatmap->hide();
     chartAfterglow->hide();
     chartWave->show();
+
+    showBox->removeItem(AFTERFLOW_MODE);
+    showBox->removeItem(HEATMAP_MODE);
 
     connect(freqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
         if (freqEdit->hasFocus())
@@ -60,8 +63,7 @@ ChartWidgetNB::ChartWidgetNB(QString title, QWidget* parent): ChartWidgetCombine
     auto style = QApplication::style();
     hBoxLayout->addWidget(playBtn = new QPushButton(style->standardIcon(QStyle::SP_MediaPlay), ""), 2);
     connect(playBtn, &QPushButton::clicked, this, [this] {
-        changedListening(playing);
-        emit triggerListening(playing = !playing);
+        emit triggerListening(this->index, playing = !playing);
     });
     hBoxLayout->addStretch(1);
 
@@ -78,16 +80,16 @@ void ChartWidgetNB::ParamsChange()
     emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt(), cwEdit->value() * 1e3);
 }
 
-void ChartWidgetNB::changedListening(bool state)
+void ChartWidgetNB::changedListening(int index, bool state)
 {
-    playing = state;
-    auto style = QApplication::style();
-    playBtn->setIcon(style->standardIcon(playing? QStyle::SP_MediaPlay: QStyle::SP_MediaPause));
+    if (this->index != index && state)
+    {
+        playing = false;
+    }
+    playBtn->setIcon(QApplication::style()->standardIcon(playing? QStyle::SP_MediaPause: QStyle::SP_MediaPlay));
 }
 
 void ChartWidgetNB::changedRecording()
 {
-    recording = !recording;
-    auto style = QApplication::style();
-    recordBtn->setIcon(style->standardIcon(recording? QStyle::SP_MediaStop: QStyle::SP_DialogNoButton));
+    recordBtn->setIcon(QApplication::style()->standardIcon((recording = !recording)? QStyle::SP_MediaStop: QStyle::SP_DialogNoButton));
 }

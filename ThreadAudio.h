@@ -1,5 +1,5 @@
-#ifndef CAUDIOMONITORTHREAD_H
-#define CAUDIOMONITORTHREAD_H
+#ifndef THREADAUDIO_H
+#define THREADAUDIO_H
 
 #include <QThread>
 #include <QAudio>
@@ -7,11 +7,11 @@
 #include <QBuffer>
 #include "ThreadSafeQueue.h"
 
-class CAudioMonitorThread: public QThread
+class ThreadAudio: public QThread
 {
     Q_OBJECT
 public:
-    CAudioMonitorThread(QObject * = nullptr);
+    ThreadAudio(QObject * = nullptr);
     void execute(const std::shared_ptr<unsigned char[]>&);
     void Stop();
 protected:
@@ -22,4 +22,4 @@ private:
     threadsafe_queue<std::shared_ptr<unsigned char[]>> queue;
 };
 
-#endif // CAUDIOMONITORTHREAD_H
+#endif // THREADAUDIO_H

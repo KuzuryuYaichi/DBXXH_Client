@@ -11,12 +11,12 @@ class ChartWidgetNB: public ChartWidgetCombine
 {
     Q_OBJECT
 public:
-    ChartWidgetNB(QString, QWidget* = nullptr);
+    ChartWidgetNB(QString, int, QWidget* = nullptr);
 signals:
-    void triggerListening(bool);
+    void triggerListening(int, bool);
     void ParamsChanged(unsigned long long, unsigned int, unsigned int, unsigned int);
 public slots:
-    void changedListening(bool);
+    void changedListening(int, bool);
     void changedRecording();
 
 private:
@@ -27,6 +27,7 @@ private:
     QSpinBox* cwEdit;
     bool playing = false;
     bool recording = false;
+    int index;
 };
 
 #endif // CHARTWIDGETNB_H

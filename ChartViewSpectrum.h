@@ -61,8 +61,8 @@ signals:
     void thresholdEnterPressedSignal(double);
 private:
     static constexpr double NB_HALF_BANDWIDTH[] =
-    { 0.15 / 2 / 1e3, 0.3 / 2 / 1e3, 0.6 / 2 / 1e3, 1.5 / 2 / 1e3, 2.4 / 2 / 1e3, 6 / 2 / 1e3,
-      9 / 2 / 1e3, 15 / 2 / 1e3, 30 / 2 / 1e3, 50 / 2 / 1e3, 120 / 2 / 1e3, 150 / 2 / 1e3 };
+    { 0.375 / 2 / 1e3, 0.75 / 2 / 1e3, 1.5 / 2 / 1e3, 3.75 / 2 / 1e3, 6 / 2 / 1e3, 15 / 2 / 1e3,
+      22.5 / 2 / 1e3, 37.5 / 2 / 1e3, 75 / 2 / 1e3, 125 / 2 / 1e3, 300 / 2 / 1e3, 375 / 2 / 1e3 };
 
     enum DISPLAY {
         NORMAL,

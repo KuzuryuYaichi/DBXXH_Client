@@ -31,8 +31,8 @@ Model::Model(QWidget *parent): QMainWindow(parent)
     dataProcess = std::make_unique<DataProcess>(m_mainWidget->wbSignalDetectWidget);
     dataProcess->ProcessData();
 
-    AudioThread = new CAudioMonitorThread;
-//    AudioThread->start();
+    AudioThread = new ThreadAudio;
+    AudioThread->start();
 
     processThread = std::thread([this]
     {

@@ -15,7 +15,7 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     auto scrollLayout = new QHBoxLayout(scrollWidget);
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
     {
-        chartNB[i] = new ChartWidgetNB(tr("NB") + (i > 0? QString::number(i): ""));
+        chartNB[i] = new ChartWidgetNB(tr("NB") + (i > 0? QString::number(i): ""), i);
         connect(chartNB[i], &ChartWidgetNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType, unsigned int cwOffset) {
             m_socket->nb_parameter_set(1, i, freq, bandwidth, demodType, cwOffset);
         });
@@ -28,8 +28,7 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     {
         for (int j = 0; j < ZC_NB_CHANNEL_NUMS; ++j)
         {
-            if (i != j)
-                connect(chartNB[i], &ChartWidgetNB::triggerListening, chartNB[j], &ChartWidgetNB::changedListening);
+            connect(chartNB[i], &ChartWidgetNB::triggerListening, chartNB[j], &ChartWidgetNB::changedListening);
         }
     }
     scrollArea->setWidget(scrollWidget);

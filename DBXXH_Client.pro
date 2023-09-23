@@ -11,7 +11,6 @@ INCLUDEPATH += \
     'C:/Program Files (x86)/Intel/oneAPI/ipp/2021.9.0/include'
 
 SOURCES += \
-    CAudioMonitorThread.cpp \
     ChannelWidget.cpp \
     ChartViewAfterglow.cpp \
     ChartViewCustom.cpp \
@@ -24,12 +23,14 @@ SOURCES += \
     ChartWidgetWB.cpp \
     DataManager.cpp \
     DataProcess.cpp \
+    DemodulationDetect.cpp \
     MainWidget.cpp \
     Model.cpp \
     SampleTableWidget.cpp \
     SqlData.cpp \
     SqlWidget.cpp \
     TcpSocket.cpp \
+    ThreadAudio.cpp \
     TinyConfig.cpp \
     global.cpp \
     main.cpp \
@@ -42,7 +43,6 @@ SOURCES += \
     src/WBSignalDetectWidget.cpp
 
 HEADERS += \
-    CAudioMonitorThread.h \
     ChannelWidget.h \
     ChartViewAfterglow.h \
     ChartViewCustom.h \
@@ -55,6 +55,7 @@ HEADERS += \
     ChartWidgetWB.h \
     DataManager.h \
     DataProcess.h \
+    DemodulationDetect.h \
     MainWidget.h \
     Model.h \
     SampleTableWidget.h \
@@ -63,6 +64,7 @@ HEADERS += \
     StructNetData.h \
     StructSample.h \
     TcpSocket.h \
+    ThreadAudio.h \
     ThreadSafeQueue.h \
     TinyConfig.h \
     global.h \

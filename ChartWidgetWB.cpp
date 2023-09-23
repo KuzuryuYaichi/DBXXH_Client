@@ -9,7 +9,7 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
     chartAfterglow->hide();
     chartSpectrum->show();
 
-    showBox->removeItem(0);
+    showBox->removeItem(WAVE_MODE);
 
     connect(freqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
         if (freqEdit->hasFocus())

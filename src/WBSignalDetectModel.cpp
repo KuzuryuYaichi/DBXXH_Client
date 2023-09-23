@@ -13,6 +13,7 @@ WBSignalDetectModel::WBSignalDetectModel(QObject *parent): QAbstractTableModel(p
     connect(this, &WBSignalDetectModel::sigTriggerRefreshData, this, &WBSignalDetectModel::UpdateData);
     m_pSignalActiveChecker = new QTimer(this);
     m_pSignalActiveChecker->setInterval(1000);
+    m_pSignalActiveChecker->setSingleShot(true);
     connect(m_pSignalActiveChecker, &QTimer::timeout, this, [this] {
         slotCheckSignalActive();
         m_pSignalActiveChecker->start();

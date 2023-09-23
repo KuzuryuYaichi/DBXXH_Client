@@ -83,25 +83,27 @@ void MainWidget::createSettings()
 
     m_updater = new QTimer;
     m_updater->setInterval(100);
+    m_updater->setSingleShot(true);
     connect(m_updater, &QTimer::timeout, this, [this] {
-        if (MarkData.size() < MARKER_NUM)
-            return;
-        for (auto i = 0; i < MARKER_NUM; ++i)
+        if (MarkData.size() == MARKER_NUM)
         {
-            if (std::get<0>(MarkData[i]))
+            for (auto i = 0; i < MARKER_NUM; ++i)
             {
-                MarkerFreqLbl[i]->setText(QStringLiteral("%1MHz").arg(std::get<1>(MarkData[i])));
-                MarkerAmplLbl[i]->setText(QStringLiteral("%1dBm").arg(std::get<2>(MarkData[i])));
+                if (std::get<0>(MarkData[i]))
+                {
+                    MarkerFreqLbl[i]->setText(QStringLiteral("%1MHz").arg(std::get<1>(MarkData[i])));
+                    MarkerAmplLbl[i]->setText(QStringLiteral("%1dBm").arg(std::get<2>(MarkData[i])));
+                }
+                else
+                {
+                    MarkerFreqLbl[i]->setText("-");
+                    MarkerAmplLbl[i]->setText("-");
+                }
             }
-            else
-            {
-                MarkerFreqLbl[i]->setText("-");
-                MarkerAmplLbl[i]->setText("-");
-            }
+            MeasureLbl->setText(QStringLiteral("%1MHz").arg(Distance));
+            MaxFreqLbl->setText(QStringLiteral("%1MHz").arg(MaxFreq));
+            MaxAmplLbl->setText(QStringLiteral("%1dBm").arg(MaxAmpl));
         }
-        MeasureLbl->setText(QStringLiteral("%1MHz").arg(Distance));
-        MaxFreqLbl->setText(QStringLiteral("%1MHz").arg(MaxFreq));
-        MaxAmplLbl->setText(QStringLiteral("%1dBm").arg(MaxAmpl));
         m_updater->start();
     });
     m_updater->start();
