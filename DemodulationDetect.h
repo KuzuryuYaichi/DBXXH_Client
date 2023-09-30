@@ -1,12 +1,10 @@
 #ifndef DEMODULATIONDETECT_H
 #define DEMODULATIONDETECT_H
 
-
 class DemodulationDetect
 {
 public:
     DemodulationDetect();
-
     static void Demod();
 
 private:

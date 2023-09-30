@@ -5,6 +5,7 @@
 
 #include "TcpSocket.h"
 #include "ChartWidgetNB.h"
+#include "ThreadAudio.h"
 #include "global.h"
 
 class ChannelWidget: public QWidget
@@ -12,10 +13,11 @@ class ChannelWidget: public QWidget
     Q_OBJECT
 public:
     explicit ChannelWidget(TcpSocket*, QWidget* = nullptr);
-    void replace(unsigned char* const, int);
+    void replace(std::shared_ptr<unsigned char[]>, int);
     ChartWidgetNB *chartNB[ZC_NB_CHANNEL_NUMS];
 
 private:
+    ThreadAudio* AudioThread;
     TcpSocket *m_socket;
     QGridLayout *mainGridLayout;
     QDoubleSpinBox* rfCenterFreq;

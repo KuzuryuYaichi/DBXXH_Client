@@ -8,7 +8,8 @@ class ChartViewWaterfall: public ChartViewCustom
     Q_OBJECT
 public:
     ChartViewWaterfall(QString, double, double, double, double, QWidget* = nullptr);
-    void replace(unsigned char* const);
+    template<typename T>
+    void replace(T*, long long, long long, int);
 
 private:
     void UpdateAnalyzeDataByCell();

@@ -28,7 +28,7 @@ void MainWidget::createSettings()
     connect(chartWB, &ChartWidgetWB::ParamsChanged, this, [this] {
         m_socket->wb_parameter_set();
     });
-    connect(chartWB->chartSpectrum, &ChartViewSpectrum::triggerMark, this, [this](std::vector<std::tuple<bool, double, double>> MarkData) {
+    connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerMark, this, [this](std::vector<std::tuple<bool, double, double>> MarkData) {
         this->MarkData = std::move(MarkData);
     });
 //    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
@@ -67,7 +67,7 @@ void MainWidget::createSettings()
     settingLayout->addRow(measureGroupBox);
     auto measureLayout = new QFormLayout(measureGroupBox);
     measureLayout->addRow(tr("Measure"), MeasureLbl = new QLabel("-"));
-    connect(chartWB->chartSpectrum, &ChartViewSpectrum::triggerMeasure, this, [this](double Distance) {
+    connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerMeasure, this, [this](double Distance) {
         this->Distance = Distance;
     });
 
@@ -76,7 +76,7 @@ void MainWidget::createSettings()
     auto trackLayout = new QFormLayout(trackGroupBox);
     trackLayout->addRow(tr("MaxFreq"), MaxFreqLbl = new QLabel("-"));
     trackLayout->addRow(tr("MaxAmpl"), MaxAmplLbl = new QLabel("-"));
-    connect(chartWB->chartSpectrum, &ChartViewSpectrum::triggerTrack, this, [this](double MaxFreq, double MaxAmpl) {
+    connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerTrack, this, [this](double MaxFreq, double MaxAmpl) {
         this->MaxFreq = MaxFreq;
         this->MaxAmpl = MaxAmpl;
     });

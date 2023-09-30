@@ -7,12 +7,12 @@ ChartViewWave::ChartViewWave(QString title, double AXISX_MIN, double AXISX_MAX, 
     yAxis->setRange(yRange = { AXISY_MIN, AXISY_MAX });
 
     ISeries = addGraph();
-    ISeries->setPen(QPen(Qt::green));
+    ISeries->setPen(QPen(Qt::red));
     ISeries->setLineStyle(QCPGraph::lsLine);
     ISeries->rescaleAxes(true);
 
     QSeries = addGraph();
-    QSeries->setPen(QPen(Qt::red));
+    QSeries->setPen(QPen(Qt::green));
     QSeries->setLineStyle(QCPGraph::lsLine);
     QSeries->rescaleAxes(true);
 
@@ -44,26 +44,17 @@ void ChartViewWave::replace(unsigned char* const buf)
     if (!ready)
         return;
     ready = false;
-    auto head = (DataHead*)buf;
-    switch (head->PackType)
+    auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
+    auto DataPoint = param->DataPoint;
+    auto amplData = (NarrowDDC*)(param + 1);
+    QVector<double> amplx(DataPoint), amplyI(DataPoint), amplyQ(DataPoint);
+    for (int i = 0; i < DataPoint; ++i)
     {
-    case 0x602:
-    {
-        auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
-        auto DataPoint = param->DataPoint;
-        auto amplData = (NarrowDDC*)(param + 1);
-        QVector<double> amplx(DataPoint), amplyI(DataPoint), amplyQ(DataPoint);
-        for (int i = 0; i < DataPoint; ++i)
-        {
-            amplx[i] = i;
-            amplyI[i] = amplData[i].I;
-            amplyQ[i] = amplData[i].Q;
-        }
-        ISeries->setData(amplx, amplyI, true);
-        QSeries->setData(amplx, amplyQ, true);
-        break;
+        amplx[i] = i;
+        amplyI[i] = amplData[i].I;
+        amplyQ[i] = amplData[i].Q;
     }
-    default: return;
-    }
+    ISeries->setData(amplx, amplyI, true);
+    QSeries->setData(amplx, amplyQ, true);
     replot(QCustomPlot::rpQueuedReplot);
 }

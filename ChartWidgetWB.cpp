@@ -4,12 +4,67 @@ extern PARAMETER_SET g_parameter_set;
 
 ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine(title, parent)
 {
-    chartWave->hide();
+    hBoxLayout = new QHBoxLayout;
+    hBoxLayout->addWidget(new QLabel(tr("Domain:")), 1);
+    hBoxLayout->addWidget(showBox = new QComboBox, 2);
+    showBox->addItem(tr("Freq"), SPECTRUM_MODE);
+    showBox->addItem(tr("Heapmap"), HEATMAP_MODE);
+    showBox->addItem(tr("Afterflow"), AFTERFLOW_MODE);
+    connect(showBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
+        ChangeMode(showBox->currentData().toInt());
+    });
+    hBoxLayout->addStretch(1);
+
+    hBoxLayout->addWidget(new QLabel(tr("Freq(MHz):")));
+    hBoxLayout->addWidget(freqEdit = new QDoubleSpinBox);
+    freqEdit->setMinimum(MIN_FREQ);
+    freqEdit->setMaximum(MAX_FREQ);
+    freqEdit->setSingleStep(1);
+    freqEdit->setDecimals(6);
+    freqEdit->setValue(MID_FREQ);
+    hBoxLayout->addStretch(1);
+
+    mainLayout->addLayout(hBoxLayout, 1);
+    mainLayout->addWidget(chartWaterfall = new ChartViewWaterfall(title, MIN_FREQ, MAX_FREQ, -WATERFALL_DEPTH, 0), 10);
+    mainLayout->addLayout(layoutSpectrum = new QHBoxLayout, 10);
+
+    layoutSpectrum->addWidget(chartSpectrum = new ChartViewSpectrumWB(title, MIN_FREQ, MAX_FREQ, MIN_AMPL, MAX_AMPL));
+    layoutSpectrum->addWidget(chartHeatmap = new ChartViewHeatmap(title, MIN_FREQ, MAX_FREQ, MIN_AMPL, MAX_AMPL));
+    layoutSpectrum->addWidget(chartAfterglow = new ChartViewAfterglow(title, MIN_FREQ, MAX_FREQ, MIN_AMPL, MAX_AMPL));
+
+    connect(chartSpectrum->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
+        chartWaterfall->xAxis->setRange(newRange);
+        chartHeatmap->xAxis->setRange(newRange);
+        chartAfterglow->xAxis->setRange(newRange);
+        chartWaterfall->replot();
+    });
+    connect(chartHeatmap->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
+        chartSpectrum->xAxis->setRange(newRange);
+        chartWaterfall->xAxis->setRange(newRange);
+        chartAfterglow->xAxis->setRange(newRange);
+        chartWaterfall->replot();
+    });
+    connect(chartAfterglow->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
+        chartSpectrum->xAxis->setRange(newRange);
+        chartHeatmap->xAxis->setRange(newRange);
+        chartWaterfall->xAxis->setRange(newRange);
+        chartWaterfall->replot();
+    });
+    connect(chartWaterfall->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
+        chartSpectrum->xAxis->setRange(newRange);
+        chartHeatmap->xAxis->setRange(newRange);
+        chartAfterglow->xAxis->setRange(newRange);
+        if (chartSpectrum->isVisible())
+            chartSpectrum->replot();
+        if (chartHeatmap->isVisible())
+            chartHeatmap->replot();
+        if (chartAfterglow->isVisible())
+            chartAfterglow->replot();
+    });
+
     chartHeatmap->hide();
     chartAfterglow->hide();
     chartSpectrum->show();
-
-    showBox->removeItem(WAVE_MODE);
 
     connect(freqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
         if (freqEdit->hasFocus())
@@ -150,4 +205,57 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
 void ChartWidgetWB::SeriesSelectChanged()
 {
     chartSpectrum->SeriesSelectChanged(MaxKeepSelect->checkState(), MinKeepSelect->checkState());
+}
+
+void ChartWidgetWB::ChangeMode(int index)
+{
+    switch (index)
+    {
+    case SPECTRUM_MODE:
+    {
+        chartHeatmap->hide();
+        chartAfterglow->hide();
+        chartSpectrum->show();
+        break;
+    }
+    case HEATMAP_MODE:
+    {
+        chartSpectrum->hide();
+        chartAfterglow->hide();
+        chartHeatmap->show();
+        break;
+    }
+    case AFTERFLOW_MODE:
+    {
+        chartSpectrum->hide();
+        chartHeatmap->hide();
+        chartAfterglow->show();
+        break;
+    }
+    }
+}
+
+void ChartWidgetWB::replace(unsigned char* const buf)
+{
+    auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
+    switch (showBox->currentData().toInt())
+    {
+    case SPECTRUM_MODE:
+    {
+        chartSpectrum->replace(buf);
+
+        break;
+    }
+    case HEATMAP_MODE:
+    {
+        chartHeatmap->replace(buf);
+        break;
+    }
+    case AFTERFLOW_MODE:
+    {
+        chartAfterglow->replace(buf);
+        break;
+    }
+    }
+//    chartWaterfall->replace(buf, param->StartFreq, param->StopFreq, param->DataPoint);
 }

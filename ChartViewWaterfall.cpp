@@ -71,16 +71,15 @@ void ChartViewWaterfall::UpdateAnalyzeDataByCell()
     replot(QCustomPlot::rpQueuedReplot);
 }
 
-void ChartViewWaterfall::replace(unsigned char* const buf)
+template<typename T>
+void ChartViewWaterfall::replace(T* buf, long long StartFreq, long long StopFreq, int DataPoint)
 {
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
     case 0x515:
     {
-        auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
-        auto DataPoint = param->DataPoint;
-        RegenerateParams(param->StartFreq, param->StopFreq, DataPoint);
+        RegenerateParams(StartFreq, StopFreq, DataPoint);
         const auto GROUP_LENGTH = sizeof(long long) + (sizeof(char) + sizeof(short)) * DataPoint;
         auto data = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
 //        for (int g = 0; g < param->CXGroupNum; ++g)

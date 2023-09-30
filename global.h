@@ -6,7 +6,7 @@
 
 static constexpr int CHANNEL_NUM = 4;
 static constexpr int ZC_NB_CHANNEL_NUMS = 8;
-static constexpr short AMPL_OFFSET = -160;
+static constexpr short AMPL_OFFSET = -160, AMPL_NB_OFFSET = AMPL_OFFSET + 22;
 static constexpr short PHASE_MISTAKE = 1 * 10;
 static constexpr int JUDGE_ARRAY_DEPTH = 320;
 static constexpr int DDC_LEN = 2048;

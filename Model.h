@@ -8,7 +8,6 @@
 #include "TinyConfig.h"
 #include "SqlWidget.h"
 #include "DataProcess.h"
-#include "ThreadAudio.h"
 
 class Model: public QMainWindow
 {
@@ -16,15 +15,14 @@ class Model: public QMainWindow
 public:
     Model(QWidget *parent = nullptr);
     ~Model();
-    void showDataWB(unsigned char* const);
-    void showDataNB(unsigned char* const, const QDateTime&);
+    void showDataWB(std::shared_ptr<unsigned char[]>);
+    void showDataNB(std::shared_ptr<unsigned char[]>);
     static QDateTime timeConvert(unsigned long long);
 signals:
     void updatetime(unsigned long long);
     void sendDeviceStatus(QString);
 
 private:
-    ThreadAudio* AudioThread;
     TinyConfig* tinyConfig;
     ChannelWidget* m_channelWidget;
     MainWidget* m_mainWidget;

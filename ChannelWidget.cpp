@@ -34,12 +34,17 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     scrollArea->setWidget(scrollWidget);
     scrollArea->setWidgetResizable(true);
     mainLayout->addWidget(scrollArea, 25);
+
+    AudioThread = new ThreadAudio;
+    AudioThread->start();
 }
 
-void ChannelWidget::replace(unsigned char* const buf, int channel)
+void ChannelWidget::replace(std::shared_ptr<unsigned char[]> data, int channel)
 {
     if (channel < 0 || channel >= ZC_NB_CHANNEL_NUMS)
         return;
-    chartNB[channel]->replace(buf);
+    chartNB[channel]->replace(data.get());
+    if (chartNB[channel]->playing)
+        AudioThread->execute(data);
 }
 

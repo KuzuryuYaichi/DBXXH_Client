@@ -149,7 +149,7 @@ struct StructNBWaveZCResult
     long long StartTime;
     int NanoSeconds;
     long long Frequency;
-    int BandWidth;
+    int Bound;
     int Sps;
     char Accuracy;
     char ChannelNum;

@@ -31,17 +31,14 @@ Model::Model(QWidget *parent): QMainWindow(parent)
     dataProcess = std::make_unique<DataProcess>(m_mainWidget->wbSignalDetectWidget);
     dataProcess->ProcessData();
 
-    AudioThread = new ThreadAudio;
-    AudioThread->start();
-
     processThread = std::thread([this]
     {
         while (Running)
         {
-            auto [res, packet] = socket->spsc_queue.wait_and_pop();
+            auto [res, data] = socket->spsc_queue.wait_and_pop();
             if (!res)
                 continue;
-            auto buf = packet.get();
+            auto buf = data.get();
             auto head = (DataHead*)buf;
             switch (head->PackType)
             {
@@ -100,14 +97,13 @@ Model::Model(QWidget *parent): QMainWindow(parent)
             }
             case 0x515:
             {
-                dataProcess->execute(packet);
-                showDataWB(buf);
+                dataProcess->execute(data);
+                showDataWB(data);
                 break;
             }
             case 0x602:
             {
-                AudioThread->execute(packet);
-                showDataNB(buf, QDateTime());
+                showDataNB(data);
                 break;
             }
             }
@@ -133,8 +129,9 @@ QDateTime Model::timeConvert(unsigned long long time)
     return QDateTime::fromMSecsSinceEpoch(FileTimeToMillSeconds(time));
 }
 
-void Model::showDataWB(unsigned char* const buf)
+void Model::showDataWB(std::shared_ptr<unsigned char[]> data)
 {
+    auto buf = data.get();
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
@@ -148,14 +145,15 @@ void Model::showDataWB(unsigned char* const buf)
     }
 }
 
-void Model::showDataNB(unsigned char* const buf, const QDateTime&)
+void Model::showDataNB(std::shared_ptr<unsigned char[]> data)
 {
+    auto buf = data.get();
     auto head = (DataHead*)buf;
     switch (head->PackType)
     {
     case 0x602:
     {
-        m_channelWidget->replace(buf, head->UnUsed);
+        m_channelWidget->replace(data, head->UnUsed);
         break;
     }
     }

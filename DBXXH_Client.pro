@@ -15,7 +15,10 @@ SOURCES += \
     ChartViewAfterglow.cpp \
     ChartViewCustom.cpp \
     ChartViewHeatmap.cpp \
+    ChartViewScatter.cpp \
     ChartViewSpectrum.cpp \
+    ChartViewSpectrumNB.cpp \
+    ChartViewSpectrumWB.cpp \
     ChartViewWaterfall.cpp \
     ChartViewWave.cpp \
     ChartWidgetCombine.cpp \
@@ -47,7 +50,10 @@ HEADERS += \
     ChartViewAfterglow.h \
     ChartViewCustom.h \
     ChartViewHeatmap.h \
+    ChartViewScatter.h \
     ChartViewSpectrum.h \
+    ChartViewSpectrumNB.h \
+    ChartViewSpectrumWB.h \
     ChartViewWaterfall.h \
     ChartViewWave.h \
     ChartWidgetCombine.h \

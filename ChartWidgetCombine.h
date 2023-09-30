@@ -1,36 +1,21 @@
 #ifndef CHARTWIDGETCOMBINE_H
 #define CHARTWIDGETCOMBINE_H
 
-#include "ChartViewWave.h"
 #include "ChartViewWaterfall.h"
-#include "ChartViewSpectrum.h"
-#include "ChartViewHeatmap.h"
-#include "ChartViewAfterglow.h"
 
 class ChartWidgetCombine: public QWidget
 {
     Q_OBJECT
 public:
     ChartWidgetCombine(QString, QWidget* = nullptr);
-    void replace(unsigned char* const);
-    void ChangeMode(int);
-    ChartViewWave* chartWave;
+    virtual void replace(unsigned char* const) = 0;
+    virtual void ChangeMode(int) = 0;
     ChartViewWaterfall* chartWaterfall;
-    ChartViewSpectrum* chartSpectrum;
-    ChartViewHeatmap* chartHeatmap;
-    ChartViewAfterglow* chartAfterglow;
 
 protected:
     QComboBox* showBox;
     QDoubleSpinBox* freqEdit;
     QComboBox* boundBox;
-    enum SHOW_MODE
-    {
-        WAVE_MODE = 0,
-        SPECTRUM_MODE,
-        HEATMAP_MODE,
-        AFTERFLOW_MODE
-    };
     QVBoxLayout* mainLayout;
     QHBoxLayout* layoutSpectrum;
     QHBoxLayout* hBoxLayout;

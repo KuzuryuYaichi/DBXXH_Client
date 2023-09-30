@@ -2,14 +2,31 @@
 #define CHARTWIDGETWB_H
 
 #include "ChartWidgetCombine.h"
+#include "ChartViewSpectrumWB.h"
+#include "ChartViewHeatmap.h"
+#include "ChartViewAfterglow.h"
 
 class ChartWidgetWB: public ChartWidgetCombine
 {
     Q_OBJECT
 public:
     ChartWidgetWB(QString, QWidget* = nullptr);
+    virtual void ChangeMode(int) override;
+    virtual void replace(unsigned char* const) override;
+    ChartViewSpectrumWB* chartSpectrum;
+    ChartViewHeatmap* chartHeatmap;
+    ChartViewAfterglow* chartAfterglow;
+
 signals:
     void ParamsChanged();
+
+protected:
+    enum SHOW_MODE
+    {
+        SPECTRUM_MODE = 0,
+        HEATMAP_MODE,
+        AFTERFLOW_MODE
+    };
 
 private:
     QButtonGroup* RfGainModeGroup;
