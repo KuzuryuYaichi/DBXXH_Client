@@ -23,10 +23,10 @@ protected:
     QCPItemText* TracerText[MARKER_NUM];
     QCPLayoutGrid* MarkElement;
     double TrackStartFreq = 0, TrackEndFreq = 0;
-    void AnalyzeFrame(size_t);
-    void AnalyzeMark(double, double, unsigned char*, unsigned int);
-    void AnalyzeMeasure(double, double, unsigned int);
-    void AnalyzeTrack(double, double, unsigned char*, unsigned int);
+    void AnalyzeFrame(long long);
+    void AnalyzeMark(double, double, unsigned char*, int);
+    void AnalyzeMeasure(double, double, int);
+    void AnalyzeTrack(double, double, unsigned char*, int);
     QVector<double> pointsMax, pointsMin;
     bool MaxKeepSelect = false, MinKeepSelect = false;
     QMenu* menu;

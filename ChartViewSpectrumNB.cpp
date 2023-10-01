@@ -1,15 +1,12 @@
 #include "ChartViewSpectrumNB.h"
 
+#include "StructNetData.h"
+
 ChartViewSpectrumNB::ChartViewSpectrumNB(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
     ChartViewSpectrum(title, AXISX_MIN, AXISX_MAX, AXISY_MIN, AXISY_MAX, parent)
 {
-    QColor BoundBrushColor(0, 255, 0, 50);
-    BoundSeries = addGraph();
-    BoundSeries->setName("Bound");
-    BoundSeries->setPen(QPen(BoundBrushColor));
-    BoundSeries->setLineStyle(QCPGraph::lsLine);
-    BoundSeries->rescaleAxes(true);
-    BoundSeries->setBrush(QBrush(BoundBrushColor));
+    plotLayout()->insertRow(1);
+    plotLayout()->addElement(1, 0, ThresholdLbl = new QCPTextElement(this, tr("Record Gate: ") + "0dBm", QFont("sans", 9, QFont::Bold)));
 
     GateSeries = addGraph();
     GateSeries->setName("Gate");
@@ -20,6 +17,7 @@ ChartViewSpectrumNB::ChartViewSpectrumNB(QString title, double AXISX_MIN, double
 
     connect(this, &QCustomPlot::mouseMove, this, [this](QMouseEvent *event) {
         UpdateRuler(event);
+        UpdateThreshold();
         replot();
     });
 
@@ -29,7 +27,9 @@ ChartViewSpectrumNB::ChartViewSpectrumNB(QString title, double AXISX_MIN, double
             auto x = xAxis->pixelToCoord(event->pos().x());
             auto y = yAxis->pixelToCoord(event->pos().y());
             if (xAxis->range().contains(x) && yAxis->range().contains(y))
+            {
                 LeftButtonPress = true;
+            }
         }
         replot();
     });
@@ -38,12 +38,19 @@ ChartViewSpectrumNB::ChartViewSpectrumNB(QString title, double AXISX_MIN, double
         if (event->button() == Qt::LeftButton)
         {
             LeftButtonPress = false;
-//            auto threshold = GateSeries->data().data()->at(0)->value;
-//            thresholdLbl->setText(tr("Gate: ") + QString::number(threshold) + "dBm");
-//            emit thresholdEnterPressedSignal(threshold);
+            emit RecordThresholdSignal(GateSeries->data().data()->at(0)->value);
         }
         replot();
     });
+}
+
+void ChartViewSpectrumNB::UpdateThreshold()
+{
+    if (LeftButtonPress)
+    {
+        auto threshold = GateSeries->data().data()->at(0)->value;
+        ThresholdLbl->setText(tr("Record Gate: ") + QString::number(threshold) + "dBm");
+    }
 }
 
 void ChartViewSpectrumNB::UpdateRuler(QMouseEvent *event)
@@ -58,34 +65,34 @@ void ChartViewSpectrumNB::UpdateRuler(QMouseEvent *event)
     }
 }
 
-void ChartViewSpectrumNB::replace(unsigned char* const buf, fftw_complex* fft_data)
+void ChartViewSpectrumNB::replace(unsigned char* const buf, unsigned char* fft_data)
 {
     if (!ready)
         return;
     ready = false;
     auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
-    double HalfSpsBound = NB_HALF_BANDWIDTH[11], HalfBound = param->Bound / 1e6 / 2;
+    double HalfSpsBound = NB_HALF_BOUND_MHz[11], HalfBound = param->Bound / 1e6 / 2;
     switch (param->Bound)
     {
-    case 150: HalfSpsBound = NB_HALF_BANDWIDTH[0]; break;
-    case 300: HalfSpsBound = NB_HALF_BANDWIDTH[1]; break;
-    case 600: HalfSpsBound = NB_HALF_BANDWIDTH[2]; break;
-    case 1500: HalfSpsBound = NB_HALF_BANDWIDTH[3]; break;
-    case 2400: HalfSpsBound = NB_HALF_BANDWIDTH[4]; break;
-    case 6000: HalfSpsBound = NB_HALF_BANDWIDTH[5]; break;
-    case 9000: HalfSpsBound = NB_HALF_BANDWIDTH[6]; break;
-    case 15000: HalfSpsBound = NB_HALF_BANDWIDTH[7]; break;
-    case 30000: HalfSpsBound = NB_HALF_BANDWIDTH[8]; break;
-    case 50000: HalfSpsBound = NB_HALF_BANDWIDTH[9]; break;
-    case 120000: HalfSpsBound = NB_HALF_BANDWIDTH[10]; break;
-    case 150000: HalfSpsBound = NB_HALF_BANDWIDTH[11]; break;
+    case 150: HalfSpsBound = NB_HALF_BOUND_MHz[0]; break;
+    case 300: HalfSpsBound = NB_HALF_BOUND_MHz[1]; break;
+    case 600: HalfSpsBound = NB_HALF_BOUND_MHz[2]; break;
+    case 1500: HalfSpsBound = NB_HALF_BOUND_MHz[3]; break;
+    case 2400: HalfSpsBound = NB_HALF_BOUND_MHz[4]; break;
+    case 6000: HalfSpsBound = NB_HALF_BOUND_MHz[5]; break;
+    case 9000: HalfSpsBound = NB_HALF_BOUND_MHz[6]; break;
+    case 15000: HalfSpsBound = NB_HALF_BOUND_MHz[7]; break;
+    case 30000: HalfSpsBound = NB_HALF_BOUND_MHz[8]; break;
+    case 50000: HalfSpsBound = NB_HALF_BOUND_MHz[9]; break;
+    case 120000: HalfSpsBound = NB_HALF_BOUND_MHz[10]; break;
+    case 150000: HalfSpsBound = NB_HALF_BOUND_MHz[11]; break;
     }
     double mid_freq = param->Frequency / 1e6;
     double freq = param->Frequency / 1e6 - HalfSpsBound, step = HalfSpsBound * 2 / param->DataPoint;
     QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
     for (int p = 0; p < param->DataPoint; ++p)
     {
-        amply[p] = 20 * std::log10(std::sqrt(std::pow(fft_data[p][0], 2.0) + std::pow(fft_data[p][1], 2.0))) + AMPL_NB_OFFSET;
+        amply[p] = (short)fft_data[p] + AMPL_OFFSET;
         amplx[p] = freq;
         freq += step;
     }

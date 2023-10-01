@@ -3,7 +3,6 @@
 
 #include "QCustomPlot/qcustomplot.h"
 #include "global.h"
-#include "StructNetData.h"
 #include <QTimer>
 
 class ChartViewCustom: public QCustomPlot

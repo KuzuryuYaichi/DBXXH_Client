@@ -15,7 +15,6 @@ class MainWidget: public QWidget
     Q_OBJECT
 public:
     explicit MainWidget(TcpSocket*, ChartWidgetNB* chartNB, QWidget* = nullptr);
-    void createSettings();
 
 signals:
     void connectToServer(QString, quint16);

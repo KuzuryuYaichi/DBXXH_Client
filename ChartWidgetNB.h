@@ -10,6 +10,7 @@
 
 #include "ChartViewWave.h"
 #include "ChartViewSpectrumNB.h"
+#include "ChartViewScatter.h"
 #include "fftw-3.3.5-dll64/fftw3.h"
 
 template<int N>
@@ -33,6 +34,7 @@ public:
     virtual void replace(unsigned char* const) override;
     ChartViewWave* chartWave;
     ChartViewSpectrumNB* chartSpectrum;
+    ChartViewScatter* chartScatter;
     bool playing = false;
 
 signals:
@@ -43,19 +45,15 @@ public slots:
     void changedRecording();
 
 protected:
-    enum SHOW_MODE
-    {
-        WAVE_MODE = 0,
-        SPECTRUM_MODE,
-        SCATTER_MODE
-    };
-
-    fftw_complex* inR, * outR;
-    fftw_plan planR;
-    void fft(unsigned char* buf);
+    void FFT(unsigned char* buf);
+    bool TestRecordThreshold();
     void WriteFile(char*, int);
     void Record(unsigned char* const);
     void ParamsChange();
+
+    fftw_complex* inR, * outR;
+    fftw_plan planR;
+    std::unique_ptr<unsigned char[]> AmplData;
     QLabel* LblFSK;
     QDoubleSpinBox* RateEditFSK;
     QComboBox* demodBox;
@@ -66,6 +64,15 @@ protected:
     QFile file;
     std::mutex fileLock;
     int index;
+    double RecordThreshold = MAX_AMPL;
+
+    enum SHOW_MODE
+    {
+        WAVE_MODE = 0,
+        SPECTRUM_MODE,
+        WATERFALL_MODE,
+        SCATTER_MODE
+    };
 
     enum DEMOD_TYPE
     {

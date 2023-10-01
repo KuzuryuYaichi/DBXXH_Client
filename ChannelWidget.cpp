@@ -35,8 +35,7 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     scrollArea->setWidgetResizable(true);
     mainLayout->addWidget(scrollArea, 25);
 
-    AudioThread = new ThreadAudio;
-    AudioThread->start();
+    AudioThread = new ThreadAudio(this);
 }
 
 void ChannelWidget::replace(std::shared_ptr<unsigned char[]> data, int channel)

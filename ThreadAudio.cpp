@@ -1,23 +1,52 @@
 #include "ThreadAudio.h"
 
-#include <QUrl>
-#include <QBuffer>
 #include <QAudioFormat>
 #include <QAudioDevice>
-#include <QDebug>
 #include <QMediaDevices>
 
 #include "global.h"
 #include "StructNetData.h"
 
-ThreadAudio::ThreadAudio(QObject *parent): QThread(parent)
+ThreadAudio::ThreadAudio(QObject *parent): QObject(parent)
 {
-    ParamChanged(275000);
+    m_player = std::thread([this]
+    {
+        ParamChanged(275000);
+        while (isRunning)
+        {
+            auto bytesFree = AudioSink->bytesFree();
+            if (bytesFree >= sizeof(short) * DDC_LEN)
+            {
+                auto [res, pack] = queue.wait_and_pop();
+                if (!res)
+                    return;
+                auto param = (StructNBWaveZCResult*)(pack.get() + sizeof(DataHead));
+                auto data = (NarrowDDC*)(param + 1);
+                for (auto& [bound, sampleRate]: SAMPLE_RATE)
+                {
+                    if (param->Bound == bound && AudioSink->format().sampleRate() != sampleRate)
+                    {
+                        ParamChanged(sampleRate);
+                        break;
+                    }
+                }
+                auto buffer = std::make_unique<short[]>(param->DataPoint);
+                for (auto i = 0; i < param->DataPoint; ++i)
+                    buffer[i] = data[i].I;
+                io->write((char*)buffer.get(), param->DataPoint * sizeof(short));
+            }
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
+        }
+        io->close();
+    });
 }
 
 ThreadAudio::~ThreadAudio()
 {
+    isRunning = false;
     queue.clean();
+    if (m_player.joinable())
+        m_player.join();
 }
 
 void ThreadAudio::execute(const std::shared_ptr<unsigned char[]>& task)
@@ -59,40 +88,4 @@ void ThreadAudio::stateChanged(QAudio::State newState)
     default:
         break;
     }
-}
-
-void ThreadAudio::run()
-{
-    while (true)
-    {
-        auto [res, pack] = queue.wait_and_pop();
-        if (!res)
-            return;
-        auto param = (StructNBWaveZCResult*)(pack.get() + sizeof(DataHead));
-        auto data = (NarrowDDC*)(param + 1);
-        for (auto& [bound, sampleRate]: SAMPLE_RATE)
-        {
-            if (param->Bound == bound && AudioSink->format().sampleRate() != sampleRate)
-            {
-                ParamChanged(sampleRate);
-                break;
-            }
-        }
-        auto buffer = std::make_unique<short[]>(param->DataPoint);
-        for (auto i = 0; i < param->DataPoint; ++i)
-            buffer[i] = data[i].I;
-        int offset = 0, length = param->DataPoint;
-        while (offset < param->DataPoint)
-        {
-            if (AudioSink->bytesFree() == 0)
-                continue;
-            auto len = io->write((char*)buffer.get() + offset, length);
-            if (len > 0)
-            {
-                offset += len;
-                length -= len;
-            }
-        }
-    }
-    io->close();
 }

@@ -1,5 +1,7 @@
 #include "ChartViewSpectrumWB.h"
 
+#include "StructNetData.h"
+
 ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
     ChartViewSpectrum(title, AXISX_MIN, AXISX_MAX, AXISY_MIN, AXISY_MAX, parent)
 {
@@ -15,14 +17,7 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
     MinKeepSeries->setLineStyle(QCPGraph::lsLine);
     MinKeepSeries->rescaleAxes(true);
 
-    QColor BoundBrushColor(255, 50, 30, 50);
-    BoundSeries = addGraph();
-    BoundSeries->setName("Bound");
-    BoundSeries->setPen(QPen(BoundBrushColor));
-    BoundSeries->setLineStyle(QCPGraph::lsLine);
-    BoundSeries->rescaleAxes(true);
     BoundSeries->setData({ MID_FREQ - 75e-3, MID_FREQ - 75e-3, MID_FREQ + 75e-3, MID_FREQ + 75e-3 }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
-    BoundSeries->setBrush(QBrush(BoundBrushColor));
 
     QColor RectBrushColor(0, 0, 255, 50);
     TrackSeries = addGraph();
@@ -125,7 +120,7 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
             case NORMAL:
             {
                 LeftButtonPress = false;
-                //            emit thresholdEnterPressedSignal(GateSeries->data().data()->at(0)->value);
+                //            emit RecordThresholdSignal(GateSeries->data().data()->at(0)->value);
                 break;
             }
             case TRACK:
@@ -252,13 +247,13 @@ void ChartViewSpectrumWB::InitMenu()
     });
 }
 
-void ChartViewSpectrumWB::AnalyzeFrame(size_t DataPoint)
+void ChartViewSpectrumWB::AnalyzeFrame(long long DataPoint)
 {
     if (pointsMax.size() != DataPoint)
     {
         pointsMax.resize(DataPoint);
         pointsMin.resize(DataPoint);
-        for (auto i = 0ull; i < DataPoint; ++i)
+        for (auto i = 0ll; i < DataPoint; ++i)
         {
             pointsMax[i] = MIN_AMPL;
             pointsMin[i] = 0;
@@ -292,7 +287,7 @@ void ChartViewSpectrumWB::SeriesSelectChanged(bool MaxKeepSelect, bool MinKeepSe
     MinKeepSeries->setVisible(this->MinKeepSelect = MinKeepSelect);
 }
 
-void ChartViewSpectrumWB::AnalyzeMark(double StartFreq, double freq_step, unsigned char* amplData, unsigned int DataPoint)
+void ChartViewSpectrumWB::AnalyzeMark(double StartFreq, double freq_step, unsigned char* amplData, int DataPoint)
 {
     std::vector<std::tuple<bool, double, double>> MarkData(MARKER_NUM);
     for (auto i = 0; i < MARKER_NUM; ++i)
@@ -314,7 +309,7 @@ void ChartViewSpectrumWB::AnalyzeMark(double StartFreq, double freq_step, unsign
     emit triggerMark(MarkData);
 }
 
-void ChartViewSpectrumWB::AnalyzeMeasure(double StartFreq, double freq_step, unsigned int DataPoint)
+void ChartViewSpectrumWB::AnalyzeMeasure(double StartFreq, double freq_step, int DataPoint)
 {
     auto LargerFreq = std::max(TrackStartFreq, TrackEndFreq), SmallerFreq = std::min(TrackStartFreq, TrackEndFreq);
     auto indexStart = (LargerFreq - StartFreq) / freq_step;
@@ -326,7 +321,7 @@ void ChartViewSpectrumWB::AnalyzeMeasure(double StartFreq, double freq_step, uns
     emit triggerMeasure(LargerFreq - SmallerFreq);
 }
 
-void ChartViewSpectrumWB::AnalyzeTrack(double StartFreq, double freq_step, unsigned char* amplData, unsigned int DataPoint)
+void ChartViewSpectrumWB::AnalyzeTrack(double StartFreq, double freq_step, unsigned char* amplData, int DataPoint)
 {
     auto LargerFreq = std::max(TrackStartFreq, TrackEndFreq), SmallerFreq = std::min(TrackStartFreq, TrackEndFreq);
     int indexStart = (SmallerFreq - StartFreq) / freq_step;

@@ -20,7 +20,7 @@ protected:
     bool LeftButtonPress = false;
 
 signals:
-    void thresholdEnterPressedSignal(double);
+    void RecordThresholdSignal(double);
 };
 
 #endif // CHARTVIEWSPECTRUM_H

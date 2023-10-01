@@ -237,13 +237,11 @@ void ChartWidgetWB::ChangeMode(int index)
 
 void ChartWidgetWB::replace(unsigned char* const buf)
 {
-    auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
     switch (showBox->currentData().toInt())
     {
     case SPECTRUM_MODE:
     {
         chartSpectrum->replace(buf);
-
         break;
     }
     case HEATMAP_MODE:
@@ -257,5 +255,5 @@ void ChartWidgetWB::replace(unsigned char* const buf)
         break;
     }
     }
-//    chartWaterfall->replace(buf, param->StartFreq, param->StopFreq, param->DataPoint);
+    chartWaterfall->replace(buf);
 }

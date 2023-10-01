@@ -1,5 +1,7 @@
 #include "ChartViewWaterfall.h"
 
+#include "StructNetData.h"
+
 ChartViewWaterfall::ChartViewWaterfall(QString title, double AXISX_MIN, double AXISX_MAX, double AXISY_MIN, double AXISY_MAX, QWidget* parent):
     ChartViewCustom(title, tr("Freq(MHz)"), tr("Time(Tick)"), parent, REFRESH_INTERVAL), points(WATERFALL_DEPTH)
 {
@@ -31,12 +33,12 @@ void ChartViewWaterfall::RegenerateParams(long long StartFreq, long long StopFre
     {
         for (auto iter = points.begin(); iter != points.end(); ++iter)
         {
-            *iter = std::vector<short>(DataPoint, MIN_AMPL_WATERFALL);
+            *iter = std::vector<short>(DataPoint, MIN_AMPL);
         }
     }
     if (pointsAnalyze.size() != DataPoint)
     {
-        pointsAnalyze.assign(DataPoint, MIN_AMPL_WATERFALL);
+        pointsAnalyze.assign(DataPoint, MIN_AMPL);
     }
 }
 
@@ -44,7 +46,7 @@ void ChartViewWaterfall::analyzeFrame(unsigned char* amplData, size_t DataPoint)
 {
 //    if (pointsAnalyze.size() != DataPoint)
     {
-        pointsAnalyze.assign(DataPoint, MIN_AMPL_WATERFALL);
+        pointsAnalyze.assign(DataPoint, MIN_AMPL);
     }
     for (auto i = 0ull; i < DataPoint; ++i)
     {
@@ -71,27 +73,46 @@ void ChartViewWaterfall::UpdateAnalyzeDataByCell()
     replot(QCustomPlot::rpQueuedReplot);
 }
 
-template<typename T>
-void ChartViewWaterfall::replace(T* buf, long long StartFreq, long long StopFreq, int DataPoint)
+void ChartViewWaterfall::replace(unsigned char* buf)
 {
-    auto head = (DataHead*)buf;
-    switch (head->PackType)
+    auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
+    RegenerateParams(param->StartFreq, param->StopFreq, param->DataPoint);
+    auto amplData = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
+    analyzeFrame(amplData, param->DataPoint);
+    if (readyData)
     {
-    case 0x515:
+        readyData = false;
+        points.pop_front();
+        points.emplace_back(std::move(pointsAnalyze));
+        std::thread([this] {
+            std::this_thread::sleep_for(std::chrono::milliseconds(REFRESH_INTERVAL));
+            readyData = true;
+        }).detach();
+    }
+    UpdateAnalyzeDataByCell();
+}
+
+void ChartViewWaterfall::replace(unsigned char* buf, unsigned char* fft_data)
+{
+    auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
+    double HalfSpsBound = NB_HALF_BOUND_Hz[11];
+    switch (param->Bound)
     {
-        RegenerateParams(StartFreq, StopFreq, DataPoint);
-        const auto GROUP_LENGTH = sizeof(long long) + (sizeof(char) + sizeof(short)) * DataPoint;
-        auto data = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
-//        for (int g = 0; g < param->CXGroupNum; ++g)
-        {
-            auto amplData = buf + sizeof(DataHead) + sizeof(ParamPowerWB);
-            analyzeFrame(amplData, DataPoint);
-            data += GROUP_LENGTH;
-        }
-        break;
+    case 150: HalfSpsBound = NB_HALF_BOUND_Hz[0]; break;
+    case 300: HalfSpsBound = NB_HALF_BOUND_Hz[1]; break;
+    case 600: HalfSpsBound = NB_HALF_BOUND_Hz[2]; break;
+    case 1500: HalfSpsBound = NB_HALF_BOUND_Hz[3]; break;
+    case 2400: HalfSpsBound = NB_HALF_BOUND_Hz[4]; break;
+    case 6000: HalfSpsBound = NB_HALF_BOUND_Hz[5]; break;
+    case 9000: HalfSpsBound = NB_HALF_BOUND_Hz[6]; break;
+    case 15000: HalfSpsBound = NB_HALF_BOUND_Hz[7]; break;
+    case 30000: HalfSpsBound = NB_HALF_BOUND_Hz[8]; break;
+    case 50000: HalfSpsBound = NB_HALF_BOUND_Hz[9]; break;
+    case 120000: HalfSpsBound = NB_HALF_BOUND_Hz[10]; break;
+    case 150000: HalfSpsBound = NB_HALF_BOUND_Hz[11]; break;
     }
-    default: return;
-    }
+    RegenerateParams(param->Frequency - HalfSpsBound, param->Frequency + HalfSpsBound, param->DataPoint);
+    analyzeFrame(fft_data, param->DataPoint);
     if (readyData)
     {
         readyData = false;

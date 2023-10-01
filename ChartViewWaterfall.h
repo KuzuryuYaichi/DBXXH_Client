@@ -8,8 +8,8 @@ class ChartViewWaterfall: public ChartViewCustom
     Q_OBJECT
 public:
     ChartViewWaterfall(QString, double, double, double, double, QWidget* = nullptr);
-    template<typename T>
-    void replace(T*, long long, long long, int);
+    void replace(unsigned char*);
+    void replace(unsigned char*, unsigned char*);
 
 private:
     void UpdateAnalyzeDataByCell();
@@ -20,7 +20,6 @@ private:
     std::vector<short> pointsAnalyze;
 
     static constexpr int REFRESH_INTERVAL = 1000;
-    static constexpr int MIN_AMPL_WATERFALL = -120, MAX_AMPL_WATERFALL = 0;
 };
 
 #endif // CHARTVIEWWATERFALL_H

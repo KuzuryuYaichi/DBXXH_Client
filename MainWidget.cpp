@@ -14,24 +14,19 @@ extern PARAMETER_SET g_parameter_set;
 
 MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* parent): QWidget(parent), chartNB(chartNB), m_socket(socket)
 {
-    createSettings();
-}
-
-void MainWidget::createSettings()
-{
     auto doaLayout = new QVBoxLayout(zcWidget = new QWidget);
     auto hBoxLayout = new QHBoxLayout;
     hBoxLayout->addWidget(chartNB, 1);
     hBoxLayout->addWidget(wbSignalDetectWidget = new WBSignalDetectWidget, 1);
     doaLayout->addLayout(hBoxLayout, 4);
-    doaLayout->addWidget(chartWB = new ChartWidgetWB(tr("WB")), 5);
+    doaLayout->addWidget(chartWB = new ChartWidgetWB(tr("WB")), 7);
     connect(chartWB, &ChartWidgetWB::ParamsChanged, this, [this] {
         m_socket->wb_parameter_set();
     });
     connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerMark, this, [this](std::vector<std::tuple<bool, double, double>> MarkData) {
         this->MarkData = std::move(MarkData);
     });
-//    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
+    //    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
 
     auto leftLayout = new QGridLayout;
     auto chartLayout = new QHBoxLayout;
@@ -60,7 +55,7 @@ void MainWidget::createSettings()
     }
     markersLayout->addRow(tr("Spectrum"), saveBtn = new QPushButton(tr("Save")));
     connect(saveBtn, &QPushButton::clicked, this, [this] {
-        chartWB->chartSpectrum->SaveSpectrum("111.png");
+        chartWB->chartSpectrum->SaveSpectrum(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") + ".png");
     });
 
     auto measureGroupBox = new QGroupBox(tr("Freq Measure"));
@@ -120,17 +115,17 @@ void MainWidget::createSettings()
     connectLayout->addRow(tr("Server Port:"), portEdit);
     auto connectBtn = new QPushButton(tr("Connect"), this);
     connect(connectBtn, &QPushButton::clicked, this, [this]
-    {
-        auto ec = m_socket->connectToServer(ipEdit->text().toStdString(), portEdit->text().toUInt());
-        if (ec.failed())
-        {
-//            statusEdit->updateStatus(tr("Failed to Connect To Server: ") + QString::fromLocal8Bit(ec.what()));
-        }
-        else
-        {
-//            statusEdit->updateStatus(tr("Connected To Server"));
-        }
-    });
+            {
+                auto ec = m_socket->connectToServer(ipEdit->text().toStdString(), portEdit->text().toUInt());
+                if (ec.failed())
+                {
+                    //            statusEdit->updateStatus(tr("Failed to Connect To Server: ") + QString::fromLocal8Bit(ec.what()));
+                }
+                else
+                {
+                    //            statusEdit->updateStatus(tr("Connected To Server"));
+                }
+            });
     connectLayout->addRow(connectBtn);
 
     auto mainGridLayout = new QGridLayout(this);

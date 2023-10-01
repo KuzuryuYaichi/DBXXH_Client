@@ -13,6 +13,14 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     SpectrumSeries->setLineStyle(QCPGraph::lsLine);
     SpectrumSeries->rescaleAxes(true);
 
+    QColor BoundBrushColor(0, 255, 0, 50);
+    BoundSeries = addGraph();
+    BoundSeries->setName("Bound");
+    BoundSeries->setPen(QPen(BoundBrushColor));
+    BoundSeries->setLineStyle(QCPGraph::lsLine);
+    BoundSeries->rescaleAxes(true);
+    BoundSeries->setBrush(QBrush(BoundBrushColor));
+
     TracerNormal = new QCPItemTracer(this);
     TracerNormal->setPen(QPen(Qt::black));
     TracerNormal->setBrush(QBrush(Qt::black));

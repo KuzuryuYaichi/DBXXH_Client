@@ -57,6 +57,11 @@
         <source>Ampl(dBm)</source>
         <translation>幅度(dBm)</translation>
     </message>
+    <message>
+        <location filename="ChartViewScatter.cpp" line="10"/>
+        <source>Scatter</source>
+        <translation>星座图</translation>
+    </message>
 </context>
 <context>
     <name>ChartViewSpectrum</name>
@@ -118,6 +123,16 @@
     </message>
 </context>
 <context>
+    <name>ChartViewSpectrumNB</name>
+    <message>
+        <location filename="ChartViewSpectrumNB.cpp" line="7"/>
+        <location filename="ChartViewSpectrumNB.cpp" line="50"/>
+        <source>Record Gate: </source>
+        <oldsource>Gate: </oldsource>
+        <translation>录音门限: </translation>
+    </message>
+</context>
+<context>
     <name>ChartViewSpectrumWB</name>
     <message>
         <location filename="ChartViewSpectrumWB.cpp" line="7"/>
@@ -130,39 +145,39 @@
         <translation>最小保持</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="39"/>
-        <location filename="ChartViewSpectrumWB.cpp" line="217"/>
-        <location filename="ChartViewSpectrumWB.cpp" line="232"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="32"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="210"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="225"/>
         <source>Marker %1</source>
         <translation>标记 %1</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="208"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="201"/>
         <source>Mark</source>
         <translation>标记</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="211"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="204"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="226"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="219"/>
         <source>Delete</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="242"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="235"/>
         <source>Measure</source>
         <translation>测量</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="248"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="241"/>
         <source>Track</source>
         <translation>追踪</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="310"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="303"/>
         <source>Marker %1: %2dBm @ %3MHz</source>
         <translation>标记: %1: %2dBm @ %3MHz</translation>
     </message>
@@ -183,14 +198,18 @@
 <context>
     <name>ChartViewWave</name>
     <message>
-        <location filename="ChartViewWave.cpp" line="4"/>
         <source>Freq(MHz)</source>
-        <translation>频点(MHz)</translation>
+        <translation type="vanished">频点(MHz)</translation>
     </message>
     <message>
         <location filename="ChartViewWave.cpp" line="4"/>
         <source>Power</source>
         <translation>功率</translation>
+    </message>
+    <message>
+        <location filename="ChartViewWave.cpp" line="4"/>
+        <source>Points</source>
+        <translation>样点</translation>
     </message>
 </context>
 <context>
@@ -238,32 +257,42 @@
         <translation>频谱图</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="17"/>
+        <location filename="ChartWidgetNB.cpp" line="12"/>
+        <source>Waterfall</source>
+        <translation>瀑布图</translation>
+    </message>
+    <message>
+        <location filename="ChartWidgetNB.cpp" line="13"/>
+        <source>Scatter</source>
+        <translation>星座图</translation>
+    </message>
+    <message>
+        <location filename="ChartWidgetNB.cpp" line="19"/>
         <source>Freq(MHz):</source>
         <translation>频率(MHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="53"/>
+        <location filename="ChartWidgetNB.cpp" line="61"/>
         <source>BW(kHz):</source>
         <translation>带宽(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="73"/>
+        <location filename="ChartWidgetNB.cpp" line="106"/>
         <source>Demod:</source>
         <translation>解调模式:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="86"/>
+        <location filename="ChartWidgetNB.cpp" line="119"/>
         <source>FSK Rate(kHz):</source>
         <translation>FSK 速率(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="96"/>
+        <location filename="ChartWidgetNB.cpp" line="81"/>
         <source>CW(kHz):</source>
         <translation>拍频(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="237"/>
+        <location filename="ChartWidgetNB.cpp" line="257"/>
         <source>Failed to Open file</source>
         <translation>打开文件失败</translation>
     </message>
@@ -272,12 +301,12 @@
         <translation type="vanished">拍频(Hz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="106"/>
+        <location filename="ChartWidgetNB.cpp" line="91"/>
         <source>Play:</source>
         <translation>播放:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="114"/>
+        <location filename="ChartWidgetNB.cpp" line="99"/>
         <source>Rec:</source>
         <translation>录音:</translation>
     </message>
@@ -383,7 +412,7 @@
 <context>
     <name>MainWidget</name>
     <message>
-        <location filename="MainWidget.cpp" line="27"/>
+        <location filename="MainWidget.cpp" line="22"/>
         <source>WB</source>
         <translation>宽带</translation>
     </message>
@@ -408,71 +437,71 @@
         <translation type="vanished">工作控制:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="47"/>
+        <location filename="MainWidget.cpp" line="42"/>
         <source>Freq Marker</source>
         <translation>频点标记</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="54"/>
+        <location filename="MainWidget.cpp" line="49"/>
         <source>Marker %1</source>
         <translation>标记%1</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="66"/>
+        <location filename="MainWidget.cpp" line="61"/>
         <source>Freq Measure</source>
         <translation>频距测量</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="69"/>
+        <location filename="MainWidget.cpp" line="64"/>
         <source>Measure</source>
         <translation>频点间距</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="74"/>
+        <location filename="MainWidget.cpp" line="69"/>
         <source>Freq Track</source>
         <translation>频点追踪</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="58"/>
-        <location filename="MainWidget.cpp" line="77"/>
+        <location filename="MainWidget.cpp" line="53"/>
+        <location filename="MainWidget.cpp" line="72"/>
         <source>MaxFreq</source>
         <oldsource>Freq</oldsource>
         <translation>频点</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="59"/>
-        <location filename="MainWidget.cpp" line="78"/>
+        <location filename="MainWidget.cpp" line="54"/>
+        <location filename="MainWidget.cpp" line="73"/>
         <source>MaxAmpl</source>
         <oldsource>Ampl</oldsource>
         <translation>功率</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="61"/>
+        <location filename="MainWidget.cpp" line="56"/>
         <source>Spectrum</source>
         <translation>频谱</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="61"/>
+        <location filename="MainWidget.cpp" line="56"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="111"/>
+        <location filename="MainWidget.cpp" line="106"/>
         <source>Network</source>
         <translation>网络连接</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="117"/>
+        <location filename="MainWidget.cpp" line="112"/>
         <source>Server IP:</source>
         <translation>服务IP:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="120"/>
+        <location filename="MainWidget.cpp" line="115"/>
         <source>Server Port:</source>
         <translation>服务端口:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="121"/>
+        <location filename="MainWidget.cpp" line="116"/>
         <source>Connect</source>
         <translation>连接</translation>
     </message>

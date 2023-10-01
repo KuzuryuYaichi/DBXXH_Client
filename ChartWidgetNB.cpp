@@ -1,5 +1,7 @@
 #include "ChartWidgetNB.h"
 
+#include "StructNetData.h"
+
 #include <QStyle>
 
 ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWidgetCombine(title, parent), index(index)
@@ -9,6 +11,8 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     hBoxLayout->addWidget(showBox = new QComboBox, 2);
     showBox->addItem(tr("Time"), WAVE_MODE);
     showBox->addItem(tr("Freq"), SPECTRUM_MODE);
+    showBox->addItem(tr("Waterfall"), WATERFALL_MODE);
+    showBox->addItem(tr("Scatter"), SCATTER_MODE);
     connect(showBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
         ChangeMode(showBox->currentData().toInt());
     });
@@ -24,12 +28,16 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     hBoxLayout->addStretch(1);
 
     mainLayout->addLayout(hBoxLayout, 1);
-    mainLayout->addWidget(chartWaterfall = new ChartViewWaterfall(title, MIN_FREQ, MAX_FREQ, -WATERFALL_DEPTH, 0), 10);
     mainLayout->addLayout(layoutSpectrum = new QHBoxLayout, 10);
 
     layoutSpectrum->addWidget(chartWave = new ChartViewWave(title, 0, DDC_LEN, SHRT_MIN, SHRT_MAX));
     layoutSpectrum->addWidget(chartSpectrum = new ChartViewSpectrumNB(title, MIN_FREQ, MAX_FREQ, MIN_AMPL, MAX_AMPL));
+    layoutSpectrum->addWidget(chartWaterfall = new ChartViewWaterfall(title, MIN_FREQ, MAX_FREQ, -WATERFALL_DEPTH, 0));
+    layoutSpectrum->addWidget(chartScatter = new ChartViewScatter(title, MIN_PHASE, MAX_PHASE, MIN_PHASE, MAX_PHASE));
 
+    connect(chartSpectrum, &ChartViewSpectrumNB::RecordThresholdSignal, this, [this](double RecordThreshold) {
+        this->RecordThreshold = RecordThreshold;
+    });
     connect(chartSpectrum->xAxis, QOverload<const QCPRange&>::of(&QCPAxis::rangeChanged), this, [this](const QCPRange& newRange) {
         chartWaterfall->xAxis->setRange(newRange);
         chartWaterfall->replot();
@@ -41,6 +49,8 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     });
 
     chartSpectrum->hide();
+    chartWaterfall->hide();
+    chartScatter->hide();
     chartWave->show();
 
     connect(freqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
@@ -120,6 +130,7 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     inR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
     outR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
     planR = fftw_plan_dft_1d(DDC_LEN, inR, outR, FFTW_FORWARD, FFTW_MEASURE);
+    AmplData = std::make_unique<unsigned char[]>(DDC_LEN);
 }
 
 ChartWidgetNB::~ChartWidgetNB()
@@ -129,7 +140,7 @@ ChartWidgetNB::~ChartWidgetNB()
     fftw_free(outR);
 }
 
-void ChartWidgetNB::fft(unsigned char* buf)
+void ChartWidgetNB::FFT(unsigned char* buf)
 {
     auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
     auto data = (NarrowDDC*)(param + 1);
@@ -144,6 +155,10 @@ void ChartWidgetNB::fft(unsigned char* buf)
     for (int p = 0; p < HALF_LEN; ++p)
     {
         std::swap(outR[p], outR[HALF_LEN + p]);
+    }
+    for (int p = 0; p < param->DataPoint; ++p)
+    {
+        AmplData[p] = 20 * std::log10(std::sqrt(std::pow(outR[p][0], 2.0) + std::pow(outR[p][1], 2.0))) + 42;
     }
 }
 
@@ -171,16 +186,24 @@ void ChartWidgetNB::changedRecording()
     }
 }
 
+bool ChartWidgetNB::TestRecordThreshold()
+{
+    for (auto i = 0; i < DDC_LEN; ++i)
+    {
+        if (AmplData[i] + AMPL_OFFSET > RecordThreshold)
+            return true;
+    }
+    return false;
+}
+
 void ChartWidgetNB::Record(unsigned char* const buf)
 {
     if (!recording)
         return;
-    auto head = (DataHead*)buf;
-    if (head->PackType != 0x602)
+    if (!TestRecordThreshold())
         return;
     auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
     auto amplData = (NarrowDDC*)(param + 1);
-
     switch (demodBox->currentIndex())
     {
     case FSK:
@@ -256,13 +279,33 @@ void ChartWidgetNB::ChangeMode(int index)
     case WAVE_MODE:
     {
         chartSpectrum->hide();
+        chartWaterfall->hide();
+        chartScatter->hide();
         chartWave->show();
         break;
     }
     case SPECTRUM_MODE:
     {
         chartWave->hide();
+        chartWaterfall->hide();
+        chartScatter->hide();
         chartSpectrum->show();
+        break;
+    }
+    case WATERFALL_MODE:
+    {
+        chartWave->hide();
+        chartSpectrum->hide();
+        chartScatter->hide();
+        chartWaterfall->show();
+        break;
+    }
+    case SCATTER_MODE:
+    {
+        chartWave->hide();
+        chartSpectrum->hide();
+        chartWaterfall->hide();
+        chartScatter->show();
         break;
     }
     }
@@ -270,9 +313,8 @@ void ChartWidgetNB::ChangeMode(int index)
 
 void ChartWidgetNB::replace(unsigned char* const buf)
 {
-    fft(buf);
+    FFT(buf);
     Record(buf);
-    auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
     switch (showBox->currentData().toInt())
     {
     case WAVE_MODE:
@@ -282,9 +324,14 @@ void ChartWidgetNB::replace(unsigned char* const buf)
     }
     case SPECTRUM_MODE:
     {
-        chartSpectrum->replace(buf, outR);
-//        chartWaterfall->replace(buf, param->);
+        chartSpectrum->replace(buf, AmplData.get());
+        break;
+    }
+    case SCATTER_MODE:
+    {
+        chartScatter->replace(buf);
         break;
     }
     }
+    chartWaterfall->replace(buf, AmplData.get());
 }
