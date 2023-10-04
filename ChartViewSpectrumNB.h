@@ -15,6 +15,9 @@ protected:
     QCPTextElement* ThresholdLbl;
     void UpdateRuler(QMouseEvent*);
     void UpdateThreshold();
+
+signals:
+    void RecordThresholdSignal(double);
 };
 
 #endif // CHARTVIEWSPECTRUMNB_H

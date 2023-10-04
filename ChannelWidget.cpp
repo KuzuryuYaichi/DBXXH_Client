@@ -38,11 +38,11 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     AudioThread = new ThreadAudio(this);
 }
 
-void ChannelWidget::replace(std::shared_ptr<unsigned char[]> data, int channel)
+void ChannelWidget::replace(const std::shared_ptr<unsigned char[]>& data, int channel)
 {
     if (channel < 0 || channel >= ZC_NB_CHANNEL_NUMS)
         return;
-    chartNB[channel]->replace(data.get());
+    chartNB[channel]->replace(data);
     if (chartNB[channel]->playing)
         AudioThread->execute(data);
 }

@@ -11,6 +11,9 @@ public:
     void replace(unsigned char*);
     void replace(unsigned char*, unsigned char*);
 
+protected:
+    bool readyData = true;
+
 private:
     void UpdateAnalyzeDataByCell();
     void RegenerateParams(long long, long long, size_t);

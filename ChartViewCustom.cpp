@@ -49,11 +49,6 @@ void ChartViewCustom::yRangeChanged(const QCPRange& range)
     }
 }
 
-void ChartViewCustom::rescaleKeyAxis(const QCPRange&)
-{
-
-}
-
 double ChartViewCustom::ResolveResolution(int Resolution, double BAND_WIDTH)
 {
     switch (Resolution)

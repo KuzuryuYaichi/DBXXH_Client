@@ -185,7 +185,6 @@ void ChartViewSpectrumWB::replace(unsigned char* const buf)
         MinKeepSeries->setData(amplx, pointsMin, true);
     QCPRange range(param->StartFreq / 1e6, param->StopFreq / 1e6);
     xRangeChanged(range);
-    rescaleKeyAxis(range);
     replot(QCustomPlot::rpQueuedReplot);
 }
 

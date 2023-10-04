@@ -4,7 +4,7 @@
 
 #include <QStyle>
 
-ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWidgetCombine(title, parent), index(index)
+ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWidgetCombine(parent), index(index)
 {
     hBoxLayout = new QHBoxLayout;
     hBoxLayout->addWidget(new QLabel(tr("Domain:")), 1);
@@ -111,9 +111,14 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     for (auto i = 0ull; i < 10; ++i)
         demodBox->addItem(DEMOD_TYPE[i], i);
     connect(demodBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-        auto demodState = demodBox->currentText() == "FSK";
-        LblFSK->setVisible(demodState);
-        RateEditFSK->setVisible(demodState);
+        auto StateFSK = demodBox->currentText() == "FSK";
+        LblFSK->setVisible(StateFSK);
+        RateEditFSK->setVisible(StateFSK);
+
+        auto StateAM = demodBox->currentText() == "AM";
+        LblDepthAM->setVisible(StateAM);
+        DepthAM->setVisible(StateAM);
+
         ParamsChange();
     });
     hBoxLayout->addStretch(1);
@@ -124,8 +129,13 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     RateEditFSK->setMinimum(1);
     RateEditFSK->setMaximum(1000);
     RateEditFSK->setSingleStep(1);
-    RateEditFSK->setDecimals(6);
+    RateEditFSK->setDecimals(3);
     RateEditFSK->hide();
+
+    hBoxLayout->addWidget(LblDepthAM = new QLabel(tr("AM Depth(%):")));
+    LblDepthAM->hide();
+    hBoxLayout->addWidget(DepthAM = new QLabel("0"));
+    DepthAM->hide();
 
     inR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
     outR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
@@ -311,8 +321,9 @@ void ChartWidgetNB::ChangeMode(int index)
     }
 }
 
-void ChartWidgetNB::replace(unsigned char* const buf)
+void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
 {
+    auto buf = data.get();
     FFT(buf);
     Record(buf);
     switch (showBox->currentData().toInt())
@@ -334,4 +345,17 @@ void ChartWidgetNB::replace(unsigned char* const buf)
     }
     }
     chartWaterfall->replace(buf, AmplData.get());
+
+    if (!ready)
+        return;
+    ready = false;
+
+    QTimer::singleShot(0, this, [this, data] {
+        auto param = (StructNBWaveZCResult*)(data.get() + sizeof(DataHead));
+        if (param->DataType == AM && param->AM_DC != 0)
+        {
+            DepthAM->setText(QString::number((char)(100.0 * param->AM_DataMax / param->AM_DC)));
+        }
+        m_updater->start();
+    });
 }

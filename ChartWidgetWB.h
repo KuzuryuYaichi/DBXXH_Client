@@ -12,7 +12,7 @@ class ChartWidgetWB: public ChartWidgetCombine
 public:
     ChartWidgetWB(QString, QWidget* = nullptr);
     virtual void ChangeMode(int) override;
-    virtual void replace(unsigned char* const) override;
+    virtual void replace(const std::shared_ptr<unsigned char[]>&) override;
     ChartViewSpectrumWB* chartSpectrum;
     ChartViewHeatmap* chartHeatmap;
     ChartViewAfterglow* chartAfterglow;

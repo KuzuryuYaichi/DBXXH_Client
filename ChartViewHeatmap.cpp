@@ -16,15 +16,6 @@ ChartViewHeatmap::ChartViewHeatmap(QString title, double AXISX_MIN, double AXISX
     colorScale->setDataRange(QCPRange(0,100));
     m_pColorMap->setColorScale(colorScale);
 }
-
-void ChartViewHeatmap::rescaleKeyAxis(const QCPRange& range)
-{
-    if (range != xRange)
-    {
-        rescaleKeyAxis(xRange);
-    }
-}
-
 void ChartViewHeatmap::replace(unsigned char* const buf)
 {
     if (!ready)
@@ -44,6 +35,5 @@ void ChartViewHeatmap::replace(unsigned char* const buf)
     }
     QCPRange range(param->StartFreq / 1e6, param->StopFreq / 1e6);
     xRangeChanged(range);
-    rescaleKeyAxis(range);
     replot(QCustomPlot::rpQueuedReplot);
 }

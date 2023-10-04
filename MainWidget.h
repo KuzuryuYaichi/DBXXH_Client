@@ -35,8 +35,8 @@ private:
     QPushButton* saveBtn;
 
     std::vector<std::tuple<bool, double, double>> MarkData;
-    double Distance;
-    double MaxFreq, MaxAmpl;
+    double Distance = 0;
+    double MaxFreq = MIN_FREQ, MaxAmpl = MAX_AMPL;
 };
 
 #endif // ChartWidget_H

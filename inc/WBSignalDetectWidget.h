@@ -49,9 +49,15 @@ private:
     QPushButton *pushButton_cleanAllData;
     QPushButton *pushButton_setLegalFreq;
     QTabWidget *tabWidget_SignalDetectTable;
+    QPushButton *pushButton_GenerateSignalDetect;
     QPushButton *pushButton_GenerateDisturbSIgnal;
     QPushButton *pushButton_GenerateManMadeNoise;
     QPushButton *pushButton_GenerateElecEnvReport;
+
+private slots:
+    //根据当前检测状态控制典型频点设置按钮的显隐
+    void slotHideTypicalFreqSetButton();
+    void slotShowTypicalFreqSetButton();
 };
 
 #endif // WBSIGNALDETECTWIDGET_H

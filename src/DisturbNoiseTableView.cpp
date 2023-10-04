@@ -44,12 +44,13 @@ bool DisturbNoiseTableView::GenerateExcelTable(QString folderName)
     xlsx.write("C4", "", format);
 
     xlsx.write("E4", "中频带宽", format);
+    xlsx.write("F4", "2.4KHz", format);
 
     xlsx.write("G4", "检波方式", format);
 
     range = QXlsx::CellRange("H4:I4");
     xlsx.mergeCells(range, format);
-    xlsx.write("H4", "", format);
+    xlsx.write("H4", "RMS", format);
 
     // Write column headers
     QHeaderView *headerView = this->horizontalHeader();
@@ -63,9 +64,10 @@ bool DisturbNoiseTableView::GenerateExcelTable(QString folderName)
     xlsx.write("C5", headerText, format);
 
     headerText = headerView->model()->headerData(3, Qt::Horizontal, Qt::DisplayRole).toString();
-    range = QXlsx::CellRange("E5:F5");
-    xlsx.mergeCells(range, format);
     xlsx.write("E5", headerText, format);
+
+    headerText = headerView->model()->headerData(4, Qt::Horizontal, Qt::DisplayRole).toString();
+    xlsx.write("F5", headerText, format);
 
     range = QXlsx::CellRange("G5:I5");
     xlsx.mergeCells(range, format);
@@ -92,12 +94,17 @@ bool DisturbNoiseTableView::GenerateExcelTable(QString folderName)
         }
         curDataCol += 1;
 
-        range = QXlsx::CellRange("E" + QString::number(dataPosRow) + ":" + "F" + QString::number(dataPosRow));
-        xlsx.mergeCells(range, format);
         item = this->model()->index(row, curDataCol);
         if (item.isValid()) {
             xlsx.write(QString("E") + QString::number(dataPosRow), this->model()->data(item), format);
         }
+        curDataCol += 1;
+
+        item = this->model()->index(row, curDataCol);
+        if (item.isValid()) {
+            xlsx.write(QString("F") + QString::number(dataPosRow), this->model()->data(item), format);
+        }
+        curDataCol += 1;
 
         range = QXlsx::CellRange("G" + QString::number(dataPosRow) + ":" + "I" + QString::number(dataPosRow));
         xlsx.mergeCells(range, format);

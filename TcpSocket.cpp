@@ -75,7 +75,7 @@ void TcpSocket::read()
             offset += bytes_transferred;
         }
         left = head.PackLen - sizeof(DataHead), offset = sizeof(DataHead);
-        // auto data = std::make_shared<char[]>(block_size);
+        // auto data = std::make_shared<char[]>(head.PackLen);
         auto tmp = new unsigned char[head.PackLen];
         *(DataHead*)tmp = head;
         auto data = std::shared_ptr<unsigned char[]>(tmp);

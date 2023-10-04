@@ -1,19 +1,21 @@
 #include "ThreadAudio.h"
 
 #include <QAudioFormat>
-#include <QAudioDevice>
-#include <QMediaDevices>
 
 #include "global.h"
 #include "StructNetData.h"
 
-ThreadAudio::ThreadAudio(QObject *parent): QObject(parent)
+ThreadAudio::ThreadAudio(QObject *parent): QObject(parent), MediaDevices(new QMediaDevices(this))
 {
+    connect(MediaDevices, &QMediaDevices::audioOutputsChanged, this, [this] {
+        MediaOutputChanged = true;
+    });
     m_player = std::thread([this]
     {
-        ParamChanged(275000);
+        ParamChanged(SAMPLE_RATE[11].second);
         while (isRunning)
         {
+            DeviceChanged();
             auto bytesFree = AudioSink->bytesFree();
             if (bytesFree >= sizeof(short) * DDC_LEN)
             {
@@ -63,7 +65,20 @@ void ThreadAudio::ParamChanged(int SampleRate)
     fmt.setChannelConfig(QAudioFormat::ChannelConfigMono);
     if (io)
         io->close();
-    AudioSink = std::make_unique<QAudioSink>(QMediaDevices::defaultAudioOutput(), fmt);
+    AudioSink = std::make_unique<QAudioSink>(MediaDevices->defaultAudioOutput(), fmt);
+    connect(AudioSink.get(), &QAudioSink::stateChanged, this, &ThreadAudio::stateChanged);
+    io = AudioSink->start();
+    io->open(QIODevice::ReadWrite);
+}
+
+void ThreadAudio::DeviceChanged()
+{
+    if (!MediaOutputChanged)
+        return;
+    MediaOutputChanged = false;
+    if (io)
+        io->close();
+    AudioSink = std::make_unique<QAudioSink>(MediaDevices->defaultAudioOutput(), AudioSink->format());
     connect(AudioSink.get(), &QAudioSink::stateChanged, this, &ThreadAudio::stateChanged);
     io = AudioSink->start();
     io->open(QIODevice::ReadWrite);

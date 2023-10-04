@@ -129,32 +129,15 @@ QDateTime Model::timeConvert(unsigned long long time)
     return QDateTime::fromMSecsSinceEpoch(FileTimeToMillSeconds(time));
 }
 
-void Model::showDataWB(std::shared_ptr<unsigned char[]> data)
+void Model::showDataWB(const std::shared_ptr<unsigned char[]>& data)
 {
-    auto buf = data.get();
-    auto head = (DataHead*)buf;
-    switch (head->PackType)
-    {
-    case 0x515:
-    {
-        auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
-        m_mainWidget->chartWB->replace(buf);
-        emit updatetime(param->Time);
-        break;
-    }
-    }
+    auto param = (ParamPowerWB*)(data.get() + sizeof(DataHead));
+    m_mainWidget->chartWB->replace(data);
+    emit updatetime(param->Time);
 }
 
-void Model::showDataNB(std::shared_ptr<unsigned char[]> data)
+void Model::showDataNB(const std::shared_ptr<unsigned char[]>& data)
 {
-    auto buf = data.get();
-    auto head = (DataHead*)buf;
-    switch (head->PackType)
-    {
-    case 0x602:
-    {
-        m_channelWidget->replace(data, head->UnUsed);
-        break;
-    }
-    }
+    auto head = (DataHead*)data.get();
+    m_channelWidget->replace(data, head->UnUsed);
 }

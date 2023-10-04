@@ -5,6 +5,7 @@
 #include <QAudioSink>
 #include <QBuffer>
 #include <QTimer>
+#include <QMediaDevices>
 #include "ThreadSafeQueue.h"
 
 class ThreadAudio: public QObject
@@ -18,6 +19,8 @@ public slots:
     void stateChanged(QAudio::State);
 
 protected:
+    QMediaDevices* MediaDevices;
+    bool MediaOutputChanged = false;
     std::unique_ptr<QAudioSink> AudioSink;
     threadsafe_queue<std::shared_ptr<unsigned char[]>> queue;
     QIODevice* io = nullptr;
@@ -36,6 +39,7 @@ protected:
                                               { 120000, 300000 },
                                               { 150000, 375000 } };
     void ParamChanged(int);
+    void DeviceChanged();
 };
 
 #endif // THREADAUDIO_H

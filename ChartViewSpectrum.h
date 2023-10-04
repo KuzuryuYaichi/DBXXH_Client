@@ -13,14 +13,10 @@ public:
     ChartViewSpectrum(QString, double, double, double, double, QWidget* = nullptr);
 
 protected:
-    void rescaleKeyAxis(const QCPRange& range) override;
     void UpdateTracer(QMouseEvent *);
     QCPGraph *SpectrumSeries, *BoundSeries;
     QCPItemTracer *TracerNormal, *tracer;
     bool LeftButtonPress = false;
-
-signals:
-    void RecordThresholdSignal(double);
 };
 
 #endif // CHARTVIEWSPECTRUM_H

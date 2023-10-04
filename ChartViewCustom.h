@@ -15,10 +15,8 @@ public:
 
 protected:
     bool ready = true;
-    bool readyData = true;
     QCPRange xRange = { MIN_FREQ,  MAX_FREQ }, yRange = { MIN_AMPL, MAX_AMPL };
     double ResolveResolution(int, double);
-    virtual void rescaleKeyAxis(const QCPRange&);
 
 private:
     QTimer* m_updater;

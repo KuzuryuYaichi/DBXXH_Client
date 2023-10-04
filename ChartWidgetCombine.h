@@ -7,8 +7,8 @@ class ChartWidgetCombine: public QWidget
 {
     Q_OBJECT
 public:
-    ChartWidgetCombine(QString, QWidget* = nullptr);
-    virtual void replace(unsigned char* const) = 0;
+    ChartWidgetCombine(QWidget* = nullptr);
+    virtual void replace(const std::shared_ptr<unsigned char[]>&) = 0;
     virtual void ChangeMode(int) = 0;
     ChartViewWaterfall* chartWaterfall;
 
@@ -19,6 +19,11 @@ protected:
     QVBoxLayout* mainLayout;
     QHBoxLayout* layoutSpectrum;
     QHBoxLayout* hBoxLayout;
+    bool ready = true;
+    QTimer* m_updater;
+
+private:
+    static constexpr int REFRESH_INTERVAL = 150;
 };
 
 #endif // CHARTWIDGETCOMBINE_H

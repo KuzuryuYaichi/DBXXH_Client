@@ -28,21 +28,11 @@ void DataProcess::ProcessData()
             if (!res)
                 return;
             auto buf = packets.get();
-            auto head = (DataHead*)buf;
-            switch (head->PackType)
-            {
-            case 0x515:
-            {
-                auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
-                auto BAND_WIDTH = (param->StopFreq - param->StartFreq);
-                auto CenterFreq = (param->StopFreq + param->StartFreq) / 2;
-                auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
-                m_wbWidget->sigTriggerSignalDetect(amplData, 32, param->DataPoint, CenterFreq, BAND_WIDTH);
-                break;
-            }
-            default: return;
-            }
+            auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
+            auto BAND_WIDTH = (param->StopFreq - param->StartFreq);
+            auto CenterFreq = (param->StopFreq + param->StartFreq) / 2;
+            auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
+            m_wbWidget->sigTriggerSignalDetect(amplData, 32, param->DataPoint, CenterFreq, BAND_WIDTH);
         }
-        qDebug() << "DataProcess Exited";
     });
 }

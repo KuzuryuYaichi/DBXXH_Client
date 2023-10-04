@@ -100,6 +100,5 @@ void ChartViewSpectrumNB::replace(unsigned char* const buf, unsigned char* fft_d
     BoundSeries->setData({ mid_freq - HalfBound, mid_freq - HalfBound, mid_freq + HalfBound, mid_freq + HalfBound }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
     QCPRange range(param->Frequency / 1e6 - HalfSpsBound, param->Frequency / 1e6 + HalfSpsBound);
     xRangeChanged(range);
-    rescaleKeyAxis(range);
     replot(QCustomPlot::rpQueuedReplot);
 }

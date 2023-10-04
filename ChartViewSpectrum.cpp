@@ -43,11 +43,3 @@ void ChartViewSpectrum::UpdateTracer(QMouseEvent *event)
     double yValue = tracer->position->value();
     QToolTip::showText(mapToGlobal(tracer->position->pixelPosition().toPoint()), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
 }
-
-void ChartViewSpectrum::rescaleKeyAxis(const QCPRange& range)
-{
-    if (range != xRange)
-    {
-        SpectrumSeries->rescaleKeyAxis();
-    }
-}

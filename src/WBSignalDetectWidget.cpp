@@ -59,8 +59,11 @@ void WBSignalDetectWidget::setupUi()
         m_pPopupParamSet->show();
     });
     horizontalLayout->addWidget(pushButton_TypicalFreqSet = new QPushButton("典型频点设置"));
+    connect(this, &WBSignalDetectWidget::startDetect, this, &WBSignalDetectWidget::slotHideTypicalFreqSetButton);
+    connect(this, &WBSignalDetectWidget::stopDetect, this, &WBSignalDetectWidget::slotShowTypicalFreqSetButton);
     connect(pushButton_TypicalFreqSet, &QPushButton::clicked, this, [this] {
         m_pTypicalFreqSetWidget->setModal(true);
+        m_pTypicalFreqSetWidget->SetCurrentTypicalFreqFromTable(m_pGenericModel->lstTypicalFreq());
         m_pTypicalFreqSetWidget->show();
     });
     horizontalLayout->addStretch();
@@ -96,6 +99,22 @@ void WBSignalDetectWidget::setupUi()
 
     horizontalLayout = new QHBoxLayout;
     horizontalLayout->addStretch();
+    horizontalLayout->addWidget(pushButton_GenerateSignalDetect = new QPushButton("保存信号检测记录"));
+    connect(pushButton_GenerateSignalDetect, &QPushButton::clicked, this, [this] {
+        //先将tabwidget转到对应的tab上
+        tabWidget_SignalDetectTable->setCurrentIndex(0);
+        QFileDialog dialog;
+        QString selectedFolder = dialog.getExistingDirectory(this, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        if (selectedFolder.isEmpty())
+        {
+            qDebug() << "File saving cancelled.";
+            return;
+        }
+        if (!m_pSignalDetectTable->GenerateExcelTable(selectedFolder))
+        {
+            //TODO: 生成失败时的处理方法
+        }
+    });
     horizontalLayout->addWidget(pushButton_GenerateDisturbSIgnal = new QPushButton("保存干扰信号测量记录"));
     connect(pushButton_GenerateDisturbSIgnal, &QPushButton::clicked, this, [this] {
         //先将tabwidget转到对应的tab上
@@ -161,3 +180,14 @@ bool WBSignalDetectWidget::turnToCorrectTableModel()
     emit m_pGenericModel->sigTriggerRefreshData();
     return true;
 }
+
+void WBSignalDetectWidget::slotHideTypicalFreqSetButton()
+{
+    pushButton_TypicalFreqSet->setVisible(false);
+}
+
+void WBSignalDetectWidget::slotShowTypicalFreqSetButton()
+{
+    pushButton_TypicalFreqSet->setVisible(true);
+}
+

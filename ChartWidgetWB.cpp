@@ -2,7 +2,7 @@
 
 extern PARAMETER_SET g_parameter_set;
 
-ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine(title, parent)
+ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine(parent)
 {
     hBoxLayout = new QHBoxLayout;
     hBoxLayout->addWidget(new QLabel(tr("Domain:")), 1);
@@ -235,8 +235,9 @@ void ChartWidgetWB::ChangeMode(int index)
     }
 }
 
-void ChartWidgetWB::replace(unsigned char* const buf)
+void ChartWidgetWB::replace(const std::shared_ptr<unsigned char[]>& data)
 {
+    auto buf = data.get();
     switch (showBox->currentData().toInt())
     {
     case SPECTRUM_MODE:

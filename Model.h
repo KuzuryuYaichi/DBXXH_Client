@@ -15,8 +15,8 @@ class Model: public QMainWindow
 public:
     Model(QWidget *parent = nullptr);
     ~Model();
-    void showDataWB(std::shared_ptr<unsigned char[]>);
-    void showDataNB(std::shared_ptr<unsigned char[]>);
+    void showDataWB(const std::shared_ptr<unsigned char[]>&);
+    void showDataNB(const std::shared_ptr<unsigned char[]>&);
     static QDateTime timeConvert(unsigned long long);
 signals:
     void updatetime(unsigned long long);

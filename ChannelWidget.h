@@ -13,7 +13,7 @@ class ChannelWidget: public QWidget
     Q_OBJECT
 public:
     explicit ChannelWidget(TcpSocket*, QWidget* = nullptr);
-    void replace(std::shared_ptr<unsigned char[]>, int);
+    void replace(const std::shared_ptr<unsigned char[]>&, int);
     ChartWidgetNB *chartNB[ZC_NB_CHANNEL_NUMS];
 
 private:

@@ -31,7 +31,7 @@ public:
     ChartWidgetNB(QString, int, QWidget* = nullptr);
     ~ChartWidgetNB();
     virtual void ChangeMode(int) override;
-    virtual void replace(unsigned char* const) override;
+    virtual void replace(const std::shared_ptr<unsigned char[]>&) override;
     ChartViewWave* chartWave;
     ChartViewSpectrumNB* chartSpectrum;
     ChartViewScatter* chartScatter;
@@ -54,7 +54,7 @@ protected:
     fftw_complex* inR, * outR;
     fftw_plan planR;
     std::unique_ptr<unsigned char[]> AmplData;
-    QLabel* LblFSK;
+    QLabel* LblFSK, *LblDepthAM, *DepthAM;
     QDoubleSpinBox* RateEditFSK;
     QComboBox* demodBox;
     QPushButton* playBtn;
@@ -68,7 +68,7 @@ protected:
 
     enum SHOW_MODE
     {
-        WAVE_MODE = 0,
+        WAVE_MODE,
         SPECTRUM_MODE,
         WATERFALL_MODE,
         SCATTER_MODE
