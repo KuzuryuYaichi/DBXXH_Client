@@ -115,17 +115,17 @@ MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* paren
     connectLayout->addRow(tr("Server Port:"), portEdit);
     auto connectBtn = new QPushButton(tr("Connect"), this);
     connect(connectBtn, &QPushButton::clicked, this, [this]
-            {
-                auto ec = m_socket->connectToServer(ipEdit->text().toStdString(), portEdit->text().toUInt());
-                if (ec.failed())
-                {
-                    //            statusEdit->updateStatus(tr("Failed to Connect To Server: ") + QString::fromLocal8Bit(ec.what()));
-                }
-                else
-                {
-                    //            statusEdit->updateStatus(tr("Connected To Server"));
-                }
-            });
+    {
+        auto ec = m_socket->connectToServer(ipEdit->text().toStdString(), portEdit->text().toUInt());
+        if (ec.failed())
+        {
+            //            statusEdit->updateStatus(tr("Failed to Connect To Server: ") + QString::fromLocal8Bit(ec.what()));
+        }
+        else
+        {
+            //            statusEdit->updateStatus(tr("Connected To Server"));
+        }
+    });
     connectLayout->addRow(connectBtn);
 
     auto mainGridLayout = new QGridLayout(this);

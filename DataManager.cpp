@@ -8,10 +8,6 @@ DataManager::DataManager(QObject *parent): QObject(parent)
     g_parameter_set.tinyConfig = TinyConfig("config.ini");
 }
 
-DataManager::~DataManager()
-{
-}
-
 bool DataManager::load()
 {
     translate(":/client_cn.qm");

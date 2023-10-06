@@ -17,7 +17,7 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
     MinKeepSeries->setLineStyle(QCPGraph::lsLine);
     MinKeepSeries->rescaleAxes(true);
 
-    BoundSeries->setData({ MID_FREQ - 75e-3, MID_FREQ - 75e-3, MID_FREQ + 75e-3, MID_FREQ + 75e-3 }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
+    BandwidthSeries->setData({ MID_FREQ - 75e-3, MID_FREQ - 75e-3, MID_FREQ + 75e-3, MID_FREQ + 75e-3 }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
 
     QColor RectBrushColor(0, 0, 255, 50);
     TrackSeries = addGraph();
@@ -276,7 +276,7 @@ void ChartViewSpectrumWB::UpdateRuler(QMouseEvent *event)
     {
         auto xValue = xAxis->pixelToCoord(event->pos().x());
         QVector<double> x{ xValue - 75e-3, xValue - 75e-3, xValue + 75e-3, xValue + 75e-3 }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
-        BoundSeries->setData(x, y, true);
+        BandwidthSeries->setData(x, y, true);
     }
 }
 

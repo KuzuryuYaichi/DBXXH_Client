@@ -24,7 +24,6 @@ private:
     QComboBox* workMode;
     QSpinBox* rfDesc;
     QSpinBox* mfDesc;
-    QPushButton* reListen;
 };
 
 #endif // CHANNELWIDGET_H

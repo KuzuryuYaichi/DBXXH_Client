@@ -137,33 +137,33 @@ void TcpSocket::write()
 void TcpSocket::self_check(const unsigned int mode)
 {
     char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0101;SCheck:%d\r\n", task_id, mode);
-    write(std::make_unique<NetCmdData>(std::string(tmp)));
+    std::sprintf(tmp, "Task:%d;Type:0101;SCheck:%d\r\n", task_id, mode);
+    write(std::make_unique<NetCmdData>(tmp));
 }
 
 void TcpSocket::work_ctrl(const unsigned int mode)
 {
     char tmp[100];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0102;WorkCtrl:%d\r\n", task_id, mode);
-    write(std::make_unique<NetCmdData>(std::string(tmp)));
+    std::sprintf(tmp, "Task:%d;Type:0102;WorkCtrl:%d\r\n", task_id, mode);
+    write(std::make_unique<NetCmdData>(tmp));
 }
 
 void TcpSocket::wb_parameter_set()
 {
     char tmp[200];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0103;SimBW:%d;CenterFreq:%lld;FreqRes:%d;SmNum:%d;Feedback:%d;GainMode:%d;Rf_MGC:%d;Digit_MGC:%d\r\n",
+    std::sprintf(tmp, "Task:%d;Type:0103;SimBW:%d;CenterFreq:%lld;FreqRes:%d;SmNum:%d;Feedback:%d;GainMode:%d;Rf_MGC:%d;Digit_MGC:%d\r\n",
                  task_id, g_parameter_set.SimBW, g_parameter_set.CenterFreq, g_parameter_set.FreqRes, g_parameter_set.SmNum,
                  g_parameter_set.Feedback, g_parameter_set.GainMode, g_parameter_set.Rf_MGC, g_parameter_set.Digit_MGC);
-    write(std::make_unique<NetCmdData>(std::string(tmp)));
+    write(std::make_unique<NetCmdData>(tmp));
 }
 
-void TcpSocket::nb_parameter_set(const unsigned int receiver, const unsigned int channel, const unsigned int freq_Hz,
-                           const unsigned int bandwidth, const unsigned int demodType, const unsigned int cwOffset)
+void TcpSocket::nb_parameter_set(const unsigned int receiver, const unsigned int channel, const unsigned int freq,
+                                const unsigned int bandwidth, const unsigned int demodType, const unsigned int cw)
 {
     char tmp[200];
-    std::sprintf(tmp, "Task:%d;Sta:2;Type:0411;RcvNum:%d;BankNum:%d;GMode:0;MGC:30;KpTime:2;Sn:1;Freq:%d;DDCBW:%d;DemodType:%d;CW:%d;\r\n",
-                 task_id, receiver, channel, freq_Hz, bandwidth, demodType, cwOffset);
-    write(std::make_unique<NetCmdData>(std::string(tmp)));
+    std::sprintf(tmp, "Task:%d;Type:0411;RcvNum:%d;BankNum:%d;DemodType:%d;DDCBW:%d;Freq:%d;CW:%d;\r\n",
+                 task_id, receiver, channel, demodType, bandwidth, freq, cw);
+    write(std::make_unique<NetCmdData>(tmp));
 }
 
 boost::system::error_code TcpSocket::connectToServer(const std::string& addr, const unsigned short port)

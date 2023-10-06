@@ -4,20 +4,14 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
 {
     auto mainLayout = new QVBoxLayout(this);
 
-    auto rfLayout = new QHBoxLayout;
-    rfLayout->setAlignment(Qt::AlignLeft);
-    rfLayout->addWidget(new QLabel(tr("ReListen:")));
-    rfLayout->addWidget(reListen = new QPushButton(tr("Select File")));
-//    mainLayout->addLayout(rfLayout, 1);
-
     auto scrollArea = new QScrollArea(this);
     auto scrollWidget = new QWidget(this);
     auto scrollLayout = new QHBoxLayout(scrollWidget);
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
     {
         chartNB[i] = new ChartWidgetNB(tr("NB") + (i > 0? QString::number(i): ""), i);
-        connect(chartNB[i], &ChartWidgetNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType, unsigned int cwOffset) {
-            m_socket->nb_parameter_set(1, i, freq, bandwidth, demodType, cwOffset);
+        connect(chartNB[i], &ChartWidgetNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType, unsigned int cw) {
+            m_socket->nb_parameter_set(1, i, freq, bandwidth, demodType, cw);
         });
         if (i > 0)
         {

@@ -75,15 +75,15 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
     });
 
     hBoxLayout->addWidget(new QLabel(tr("Sim Band(MHz):")));
-    hBoxLayout->addWidget(boundBox = new QComboBox);
-    boundBox->addItem("0.9375", 64);
-    boundBox->addItem("1.875", 32);
-    boundBox->addItem("3.75", 16);
-    boundBox->addItem("7.5", 8);
-    boundBox->addItem("15", 4);
-    boundBox->addItem("30",2);
-    boundBox->setCurrentIndex(boundBox->count() - 1);
-    connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
+    hBoxLayout->addWidget(bandwidthBox = new QComboBox);
+    bandwidthBox->addItem("0.9375", 64);
+    bandwidthBox->addItem("1.875", 32);
+    bandwidthBox->addItem("3.75", 16);
+    bandwidthBox->addItem("7.5", 8);
+    bandwidthBox->addItem("15", 4);
+    bandwidthBox->addItem("30",2);
+    bandwidthBox->setCurrentIndex(bandwidthBox->count() - 1);
+    connect(bandwidthBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if (index < 0)
             return;
         for (int i = 0; i < 5; ++i)
@@ -91,14 +91,14 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
             freqResBox->setItemText(i, QString::number(RESOLUTIONS[index + i]));
         }
         g_parameter_set.FreqRes = freqResBox->currentData().toInt();
-        g_parameter_set.SimBW = boundBox->currentData().toInt();
+        g_parameter_set.SimBW = bandwidthBox->currentData().toInt();
         emit ParamsChanged();
     });
     hBoxLayout->addStretch(1);
 
     hBoxLayout->addWidget(new QLabel(tr("Resolution(kHz):")));
     hBoxLayout->addWidget(freqResBox = new QComboBox);
-    auto index = boundBox->currentIndex();
+    auto index = bandwidthBox->currentIndex();
     for (auto i = 0; i < 5; ++i)
     {
         freqResBox->addItem(QString::number(RESOLUTIONS[index + i]), 14 - i);

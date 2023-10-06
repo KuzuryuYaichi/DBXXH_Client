@@ -22,10 +22,10 @@ static constexpr int DECIMALS_PRECISION = 6;
 static constexpr char DATETIME_FORMAT[] = "yyyy-MM-dd hh:mm:ss";
 static constexpr int MARKER_NUM = 5;
 static constexpr Qt::GlobalColor MARKER_COLOR[MARKER_NUM] = { Qt::red, Qt::magenta, Qt::green, Qt::darkYellow, Qt::gray };
-static constexpr double NB_HALF_BOUND_MHz[] =
+static constexpr double NB_HALF_BANDWIDTH_MHz[] =
     { 0.375 / 2 / 1e3, 0.75 / 2 / 1e3, 1.5 / 2 / 1e3, 3.75 / 2 / 1e3, 6 / 2 / 1e3, 15 / 2 / 1e3,
      22.5 / 2 / 1e3, 37.5 / 2 / 1e3, 75 / 2 / 1e3, 125 / 2 / 1e3, 300 / 2 / 1e3, 375 / 2 / 1e3 };
-static constexpr double NB_HALF_BOUND_Hz[] =
+static constexpr double NB_HALF_BANDWIDTH_Hz[] =
     { 375000 / 2, 750000 / 2, 1500 / 2, 3750 / 2, 6000 / 2, 00000 / 2,
      22500 / 2, 37500 / 2, 75000 / 2, 125000 / 2, 300000 / 2, 375000 / 2 };
 

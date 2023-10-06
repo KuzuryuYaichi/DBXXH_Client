@@ -15,7 +15,7 @@ public:
 protected:
     QComboBox* showBox;
     QDoubleSpinBox* freqEdit;
-    QComboBox* boundBox;
+    QComboBox* bandwidthBox;
     QVBoxLayout* mainLayout;
     QHBoxLayout* layoutSpectrum;
     QHBoxLayout* hBoxLayout;

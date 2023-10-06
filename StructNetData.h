@@ -36,14 +36,14 @@ struct ParamPowerWB
     int ChannelNum;
 };
 
-struct StructNBWaveZCResult
+struct StructNBWave
 {
     long long StartTime;
 //    int NanoSeconds;
     unsigned short AM_DataMax;
     unsigned short AM_DC;
     long long Frequency;
-    int Bound;
+    int Bandwidth;
     int Sps;
     char Accuracy;
 //    char ChannelNum;
@@ -104,9 +104,7 @@ struct NetCmdData
     ~NetCmdData()
     {
         if (data != nullptr)
-        {
             delete[] data;
-        }
     }
 };
 

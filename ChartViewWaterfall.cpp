@@ -94,24 +94,24 @@ void ChartViewWaterfall::replace(unsigned char* buf)
 
 void ChartViewWaterfall::replace(unsigned char* buf, unsigned char* fft_data)
 {
-    auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
-    double HalfSpsBound = NB_HALF_BOUND_Hz[11];
-    switch (param->Bound)
+    auto param = (StructNBWave*)(buf + sizeof(DataHead));
+    double HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[11];
+    switch (param->Bandwidth)
     {
-    case 150: HalfSpsBound = NB_HALF_BOUND_Hz[0]; break;
-    case 300: HalfSpsBound = NB_HALF_BOUND_Hz[1]; break;
-    case 600: HalfSpsBound = NB_HALF_BOUND_Hz[2]; break;
-    case 1500: HalfSpsBound = NB_HALF_BOUND_Hz[3]; break;
-    case 2400: HalfSpsBound = NB_HALF_BOUND_Hz[4]; break;
-    case 6000: HalfSpsBound = NB_HALF_BOUND_Hz[5]; break;
-    case 9000: HalfSpsBound = NB_HALF_BOUND_Hz[6]; break;
-    case 15000: HalfSpsBound = NB_HALF_BOUND_Hz[7]; break;
-    case 30000: HalfSpsBound = NB_HALF_BOUND_Hz[8]; break;
-    case 50000: HalfSpsBound = NB_HALF_BOUND_Hz[9]; break;
-    case 120000: HalfSpsBound = NB_HALF_BOUND_Hz[10]; break;
-    case 150000: HalfSpsBound = NB_HALF_BOUND_Hz[11]; break;
+    case 150: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[0]; break;
+    case 300: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[1]; break;
+    case 600: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[2]; break;
+    case 1500: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[3]; break;
+    case 2400: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[4]; break;
+    case 6000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[5]; break;
+    case 9000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[6]; break;
+    case 15000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[7]; break;
+    case 30000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[8]; break;
+    case 50000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[9]; break;
+    case 120000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[10]; break;
+    case 150000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_Hz[11]; break;
     }
-    RegenerateParams(param->Frequency - HalfSpsBound, param->Frequency + HalfSpsBound, param->DataPoint);
+    RegenerateParams(param->Frequency - HalfSpsBandwidth, param->Frequency + HalfSpsBandwidth, param->DataPoint);
     analyzeFrame(fft_data, param->DataPoint);
     if (readyData)
     {

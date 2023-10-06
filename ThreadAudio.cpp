@@ -22,11 +22,11 @@ ThreadAudio::ThreadAudio(QObject *parent): QObject(parent), MediaDevices(new QMe
                 auto [res, pack] = queue.wait_and_pop();
                 if (!res)
                     return;
-                auto param = (StructNBWaveZCResult*)(pack.get() + sizeof(DataHead));
+                auto param = (StructNBWave*)(pack.get() + sizeof(DataHead));
                 auto data = (NarrowDDC*)(param + 1);
-                for (auto& [bound, sampleRate]: SAMPLE_RATE)
+                for (auto& [bandwitdh, sampleRate]: SAMPLE_RATE)
                 {
-                    if (param->Bound == bound && AudioSink->format().sampleRate() != sampleRate)
+                    if (param->Bandwidth == bandwitdh && AudioSink->format().sampleRate() != sampleRate)
                     {
                         ParamChanged(sampleRate);
                         break;

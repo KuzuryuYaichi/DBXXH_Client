@@ -3,6 +3,7 @@
 #include "StructNetData.h"
 
 #include <QStyle>
+#include <QStorageInfo>
 
 ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWidgetCombine(parent), index(index)
 {
@@ -61,21 +62,21 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     });
 
     hBoxLayout->addWidget(new QLabel(tr("BW(kHz):")), 1);
-    hBoxLayout->addWidget(boundBox = new QComboBox, 2);
-    boundBox->addItem("0.15", 150);
-    boundBox->addItem("0.3", 300);
-    boundBox->addItem("0.6", 600);
-    boundBox->addItem("1.5", 1500);
-    boundBox->addItem("2.4", 2400);
-    boundBox->addItem("6", 6000);
-    boundBox->addItem("9", 9000);
-    boundBox->addItem("15", 15000);
-    boundBox->addItem("30", 30000);
-    boundBox->addItem("50", 50000);
-    boundBox->addItem("120", 120000);
-    boundBox->addItem("150", 150000);
-    boundBox->setCurrentIndex(boundBox->count() - 1);
-    connect(boundBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
+    hBoxLayout->addWidget(bandwidthBox = new QComboBox, 2);
+    bandwidthBox->addItem("0.15", 150);
+    bandwidthBox->addItem("0.3", 300);
+    bandwidthBox->addItem("0.6", 600);
+    bandwidthBox->addItem("1.5", 1500);
+    bandwidthBox->addItem("2.4", 2400);
+    bandwidthBox->addItem("6", 6000);
+    bandwidthBox->addItem("9", 9000);
+    bandwidthBox->addItem("15", 15000);
+    bandwidthBox->addItem("30", 30000);
+    bandwidthBox->addItem("50", 50000);
+    bandwidthBox->addItem("120", 120000);
+    bandwidthBox->addItem("150", 150000);
+    bandwidthBox->setCurrentIndex(bandwidthBox->count() - 1);
+    connect(bandwidthBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
         ParamsChange();
     });
     hBoxLayout->addStretch(1);
@@ -152,7 +153,7 @@ ChartWidgetNB::~ChartWidgetNB()
 
 void ChartWidgetNB::FFT(unsigned char* buf)
 {
-    auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
+    auto param = (StructNBWave*)(buf + sizeof(DataHead));
     auto data = (NarrowDDC*)(param + 1);
     static const auto WINDOW = HanningWindow<DDC_LEN>();
     for (auto p = 0; p < param->DataPoint; ++p)
@@ -174,7 +175,7 @@ void ChartWidgetNB::FFT(unsigned char* buf)
 
 void ChartWidgetNB::ParamsChange()
 {
-    emit ParamsChanged(freqEdit->value() * 1e6, boundBox->currentData().toULongLong(), demodBox->currentData().toUInt(), cwEdit->value() * 1e3);
+    emit ParamsChanged(freqEdit->value() * 1e6, bandwidthBox->currentData().toULongLong(), demodBox->currentData().toUInt(), cwEdit->value() * 1e3);
 }
 
 void ChartWidgetNB::changedListening(int index, bool state)
@@ -192,7 +193,7 @@ void ChartWidgetNB::changedRecording()
     if (recording)
     {
         std::lock_guard<std::mutex> lk(fileLock);
-        file.setFileName(QString("Channel_%1 %2").arg(index + 1).arg(QDateTime::currentDateTime().toString("yyyy_MM_dd hh_mm_ss")));
+        file.setFileName(QString("Channel_%1 %2").arg(index + 1).arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss")));
     }
 }
 
@@ -212,7 +213,7 @@ void ChartWidgetNB::Record(unsigned char* const buf)
         return;
     if (!TestRecordThreshold())
         return;
-    auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
+    auto param = (StructNBWave*)(buf + sizeof(DataHead));
     auto amplData = (NarrowDDC*)(param + 1);
     switch (demodBox->currentIndex())
     {
@@ -273,13 +274,43 @@ void ChartWidgetNB::WriteFile(char* buf, int length)
     while (length > 0)
     {
         auto len = file.write(buf + offset, length);
-        if (len > 0)
-        {
-            length -= len;
-            offset += len;
-        }
+        if (len < 0)
+            break;
+        length -= len;
+        offset += len;
     }
     file.close();
+}
+
+void ChartWidgetNB::CheckStorage()
+{
+    auto storageInfoList = QStorageInfo::mountedVolumes();
+    foreach (QStorageInfo storage, storageInfoList)
+    {
+        qDebug() << "盘符" << storage.rootPath();
+        if (storage.isReadOnly())
+            qDebug() << "isReadOnly:" << storage.isReadOnly();
+        qDebug() << "fileSystemType:" << storage.fileSystemType();
+        qDebug() << "size:" << storage.bytesTotal()/1000/1000 << "MB";
+        qDebug() << "availableSize:" << storage.bytesAvailable()/1000/1000 << "MB";
+    }
+}
+
+void ChartWidgetNB::RemoveFile()
+{
+    auto path = QApplication::applicationDirPath();
+    QDir dir(path + "/File");
+    if (!dir.exists())
+        return;
+    dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
+    dir.setSorting(QDir::Time | QDir::Reversed);
+    auto fileList = dir.entryList();
+    for (int i = 0; i < fileList.size(); i++)
+    {
+        QFile removFile(path + "/" + fileList.at(i));
+        if (!removFile.remove())
+            break;
+    }
 }
 
 void ChartWidgetNB::ChangeMode(int index)
@@ -351,7 +382,7 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
     ready = false;
 
     QTimer::singleShot(0, this, [this, data] {
-        auto param = (StructNBWaveZCResult*)(data.get() + sizeof(DataHead));
+        auto param = (StructNBWave*)(data.get() + sizeof(DataHead));
         if (param->DataType == AM && param->AM_DC != 0)
         {
             DepthAM->setText(QString::number((char)(100.0 * param->AM_DataMax / param->AM_DC)));

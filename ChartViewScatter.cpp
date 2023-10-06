@@ -21,7 +21,7 @@ void ChartViewScatter::replace(unsigned char* const buf)
     if (!ready)
         return;
     ready = false;
-    auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
+    auto param = (StructNBWave*)(buf + sizeof(DataHead));
     auto amplData = (NarrowDDC*)(param + 1);
 //    switch (demodBox)
 //    {

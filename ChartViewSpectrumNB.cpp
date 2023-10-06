@@ -70,25 +70,25 @@ void ChartViewSpectrumNB::replace(unsigned char* const buf, unsigned char* fft_d
     if (!ready)
         return;
     ready = false;
-    auto param = (StructNBWaveZCResult*)(buf + sizeof(DataHead));
-    double HalfSpsBound = NB_HALF_BOUND_MHz[11], HalfBound = param->Bound / 1e6 / 2;
-    switch (param->Bound)
+    auto param = (StructNBWave*)(buf + sizeof(DataHead));
+    double HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[11], HalfBandwidth = param->Bandwidth / 1e6 / 2;
+    switch (param->Bandwidth)
     {
-    case 150: HalfSpsBound = NB_HALF_BOUND_MHz[0]; break;
-    case 300: HalfSpsBound = NB_HALF_BOUND_MHz[1]; break;
-    case 600: HalfSpsBound = NB_HALF_BOUND_MHz[2]; break;
-    case 1500: HalfSpsBound = NB_HALF_BOUND_MHz[3]; break;
-    case 2400: HalfSpsBound = NB_HALF_BOUND_MHz[4]; break;
-    case 6000: HalfSpsBound = NB_HALF_BOUND_MHz[5]; break;
-    case 9000: HalfSpsBound = NB_HALF_BOUND_MHz[6]; break;
-    case 15000: HalfSpsBound = NB_HALF_BOUND_MHz[7]; break;
-    case 30000: HalfSpsBound = NB_HALF_BOUND_MHz[8]; break;
-    case 50000: HalfSpsBound = NB_HALF_BOUND_MHz[9]; break;
-    case 120000: HalfSpsBound = NB_HALF_BOUND_MHz[10]; break;
-    case 150000: HalfSpsBound = NB_HALF_BOUND_MHz[11]; break;
+    case 150: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[0]; break;
+    case 300: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[1]; break;
+    case 600: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[2]; break;
+    case 1500: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[3]; break;
+    case 2400: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[4]; break;
+    case 6000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[5]; break;
+    case 9000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[6]; break;
+    case 15000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[7]; break;
+    case 30000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[8]; break;
+    case 50000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[9]; break;
+    case 120000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[10]; break;
+    case 150000: HalfSpsBandwidth = NB_HALF_BANDWIDTH_MHz[11]; break;
     }
     double mid_freq = param->Frequency / 1e6;
-    double freq = param->Frequency / 1e6 - HalfSpsBound, step = HalfSpsBound * 2 / param->DataPoint;
+    double freq = param->Frequency / 1e6 - HalfSpsBandwidth, step = HalfSpsBandwidth * 2 / param->DataPoint;
     QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
     for (int p = 0; p < param->DataPoint; ++p)
     {
@@ -97,8 +97,8 @@ void ChartViewSpectrumNB::replace(unsigned char* const buf, unsigned char* fft_d
         freq += step;
     }
     SpectrumSeries->setData(amplx, amply);
-    BoundSeries->setData({ mid_freq - HalfBound, mid_freq - HalfBound, mid_freq + HalfBound, mid_freq + HalfBound }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
-    QCPRange range(param->Frequency / 1e6 - HalfSpsBound, param->Frequency / 1e6 + HalfSpsBound);
+    BandwidthSeries->setData({ mid_freq - HalfBandwidth, mid_freq - HalfBandwidth, mid_freq + HalfBandwidth, mid_freq + HalfBandwidth }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
+    QCPRange range(param->Frequency / 1e6 - HalfSpsBandwidth, param->Frequency / 1e6 + HalfSpsBandwidth);
     xRangeChanged(range);
     replot(QCustomPlot::rpQueuedReplot);
 }

@@ -45,9 +45,11 @@ public slots:
     void changedRecording();
 
 protected:
-    void FFT(unsigned char* buf);
+    void FFT(unsigned char*);
     bool TestRecordThreshold();
     void WriteFile(char*, int);
+    void RemoveFile();
+    void CheckStorage();
     void Record(unsigned char* const);
     void ParamsChange();
 
