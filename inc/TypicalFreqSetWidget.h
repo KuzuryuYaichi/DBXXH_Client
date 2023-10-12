@@ -13,14 +13,13 @@ class TypicalFreqSetWidget : public QDialog
     Q_OBJECT
 public:
     explicit TypicalFreqSetWidget(QWidget *parent = nullptr);
-    void SetCurrentTypicalFreqFromTable(QList<int> lst);
+    void SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, int>>& lst);
 
 signals:
-    void sigHaveTypicalFreq(const QList<int>& mapValue);
+    void sigHaveTypicalFreq(const std::list<int>& mapValue);
 
 private:
     void setupUi();
-    QList<int> m_lstValue;
     static constexpr int SETTING_LINE = 7;
     QCheckBox *checkBox_Enable[SETTING_LINE];
     QDoubleSpinBox *lineEdit_TypicalFreq[SETTING_LINE];

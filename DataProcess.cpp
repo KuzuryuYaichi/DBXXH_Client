@@ -21,7 +21,6 @@ void DataProcess::ProcessData()
 {
     ProcessThread = std::thread([this]
     {
-        m_wbWidget->sigSetValidAmpThreshold(-60);
         while (true)
         {
             auto [res, packets] = queue.wait_and_pop();
@@ -30,9 +29,8 @@ void DataProcess::ProcessData()
             auto buf = packets.get();
             auto param = (ParamPowerWB*)(buf + sizeof(DataHead));
             auto BAND_WIDTH = (param->StopFreq - param->StartFreq);
-            auto CenterFreq = (param->StopFreq + param->StartFreq) / 2;
             auto amplData = (unsigned char*)(buf + sizeof(DataHead) + sizeof(ParamPowerWB));
-            m_wbWidget->sigTriggerSignalDetect(amplData, 32, param->DataPoint, CenterFreq, BAND_WIDTH);
+            m_wbWidget->sigTriggerSignalDetect(amplData, param->DataPoint, param->StartFreq, BAND_WIDTH);
         }
     });
 }

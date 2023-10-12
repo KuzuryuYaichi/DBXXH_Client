@@ -7,7 +7,7 @@
 
 CheckBoxDelegate::CheckBoxDelegate(QObject *parent): QItemDelegate(parent) {}
 
-QWidget *CheckBoxDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &) const
+QWidget* CheckBoxDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &, const QModelIndex &) const
 {
     auto checkBox = new QCheckBox(parent);
     checkBox->setTristate(false);
@@ -71,19 +71,55 @@ bool SignalDetectTableView::GenerateExcelTable(QString folderName)
     QHeaderView *headerView = horizontalHeader();
     for (int col = 0; col < model()->columnCount(); ++col)
     {
-        QString headerText = headerView->model()->headerData(col, Qt::Horizontal, Qt::DisplayRole).toString();
-        xlsx.write(1, col + 1, headerText, format);
+        xlsx.write(1, col + 1, headerView->model()->headerData(col, Qt::Horizontal, Qt::DisplayRole).toString(), format);
     }
     // Write table data
     for (int row = 0; row < model()->rowCount(); ++row)
     {
-        for (int col = 0; col < model()->columnCount(); ++col) {
+        for (int col = 0; col < model()->columnCount(); ++col)
+        {
             auto item = model()->index(row, col);
-            if (item.isValid()) {
+            if (item.isValid())
                 xlsx.write(row + 2, col + 1, model()->data(item), format);
-            }
         }
     }
     // Save the Excel file
     return xlsx.saveAs(fileName);
+}
+
+void SignalDetectTableView::GenerateSignalDetectTable(QAxObject* document)
+{
+    auto bookmark_table = document->querySubObject("Bookmarks(QVariant)", "SignalDetect");
+    if (!bookmark_table || bookmark_table->isNull())
+        return;
+    auto rowCount = model()->rowCount(), colCount = model()->columnCount();
+    QVariantList params;
+    params.append(bookmark_table->querySubObject("Range")->asVariant());
+    params.append(rowCount + 1);
+    params.append(colCount);
+
+    auto datatable = document->querySubObject("Tables")->querySubObject("Add(QAxObject*, int, int, QVariant&, QVariant&)", params);
+    datatable->setProperty("Style", "网格型");
+
+    for (int col = 0; col < colCount; ++col)
+    {
+        auto rangeTitle = datatable->querySubObject("Cell(int, int)", 1, col + 1)->querySubObject("Range");
+        rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
+        rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
+        rangeTitle->dynamicCall("SetText(QString)", horizontalHeader()->model()->headerData(col, Qt::Horizontal, Qt::DisplayRole).toString());
+    }
+    for (int row = 0; row < rowCount; ++row)
+    {
+        for (int col = 0; col < colCount; ++col)
+        {
+            auto item = model()->index(row, col);
+            if (item.isValid())
+            {
+                auto rangeTitle = datatable->querySubObject("Cell(int, int)", row + 2, col + 1)->querySubObject("Range");
+                rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
+                rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
+                rangeTitle->dynamicCall("SetText(QString)", model()->data(item));
+            }
+        }
+    }
 }

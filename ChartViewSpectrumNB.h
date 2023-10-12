@@ -11,8 +11,6 @@ public:
     void replace(unsigned char* const, unsigned char*);
 
 protected:
-    QCPGraph *GateSeries;
-    QCPTextElement* ThresholdLbl;
     void UpdateRuler(QMouseEvent*);
     void UpdateThreshold();
 

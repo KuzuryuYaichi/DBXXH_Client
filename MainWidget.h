@@ -4,6 +4,7 @@
 #include <QWidget>
 #include <QLineEdit>
 #include <QTimer>
+#include <QDoubleSpinBox>
 
 #include "TcpSocket.h"
 #include "ChartWidgetNB.h"
@@ -33,6 +34,8 @@ private:
     QLabel* MarkerFreqLbl[MARKER_NUM], * MarkerAmplLbl[MARKER_NUM], *MeasureLbl, *MaxFreqLbl, *MaxAmplLbl;
     QTimer* m_updater;
     QPushButton* saveBtn;
+    QDoubleSpinBox* FM_BWEdit, *FM_FreqEdit;
+    QLabel* FM_Res;
 
     std::vector<std::tuple<bool, double, double>> MarkData;
     double Distance = 0;

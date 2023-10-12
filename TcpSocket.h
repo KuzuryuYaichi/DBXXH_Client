@@ -21,7 +21,7 @@ public:
     void self_check(const unsigned int);
     void work_ctrl(const unsigned int);
     void wb_parameter_set();
-    void nb_parameter_set(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int);
+    void nb_parameter_set(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int);
     boost::system::error_code connectToServer(const std::string&, const unsigned short);
     boost::system::error_code connectToServer();
     bool IsConnected();

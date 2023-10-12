@@ -39,7 +39,7 @@ public:
 
 signals:
     void triggerListening(int, bool);
-    void ParamsChanged(unsigned long long, unsigned int, unsigned int, unsigned int);
+    void ParamsChanged(unsigned long long, unsigned int, unsigned int, unsigned int, unsigned int);
 public slots:
     void changedListening(int, bool);
     void changedRecording();
@@ -49,15 +49,15 @@ protected:
     bool TestRecordThreshold();
     void WriteFile(char*, int);
     void RemoveFile();
-    void CheckStorage();
+    bool CheckStorage();
     void Record(unsigned char* const);
     void ParamsChange();
 
     fftw_complex* inR, * outR;
     fftw_plan planR;
     std::unique_ptr<unsigned char[]> AmplData;
-    QLabel* LblFSK, *LblDepthAM, *DepthAM;
-    QDoubleSpinBox* RateEditFSK;
+    QLabel* LblFSK, *LblDQPSK, *LblDepthAM, *DepthAM;
+    QDoubleSpinBox* RateEditFSK, *RateEditDQPSK;
     QComboBox* demodBox;
     QPushButton* playBtn;
     QPushButton* recordBtn;
@@ -67,6 +67,7 @@ protected:
     std::mutex fileLock;
     int index;
     double RecordThreshold = MAX_AMPL;
+    bool showWave = true;
 
     enum SHOW_MODE
     {

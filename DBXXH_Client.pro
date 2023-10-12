@@ -1,4 +1,4 @@
-QT += widgets core gui multimedia sql printsupport opengl
+QT += widgets core axcontainer gui multimedia printsupport opengl
 
 CONFIG += c++20
 
@@ -29,9 +29,8 @@ SOURCES += \
     DemodulationDetect.cpp \
     MainWidget.cpp \
     Model.cpp \
-    SampleTableWidget.cpp \
-    SqlData.cpp \
-    SqlWidget.cpp \
+    PulseDetectModel.cpp \
+    PulseDetectTableView.cpp \
     TcpSocket.cpp \
     ThreadAudio.cpp \
     TinyConfig.cpp \
@@ -64,9 +63,8 @@ HEADERS += \
     DemodulationDetect.h \
     MainWidget.h \
     Model.h \
-    SampleTableWidget.h \
-    SqlData.h \
-    SqlWidget.h \
+    PulseDetectModel.h \
+    PulseDetectTableView.h \
     StructNetData.h \
     StructSample.h \
     TcpSocket.h \
@@ -93,10 +91,14 @@ LIBS += -lOpengl32
 LIBS += -lws2_32
 
 win32:CONFIG(release, debug|release): LIBS += -L$$PWD/QCustomPlot/ -lqcustomplot2
+#-lqcustomplot2
 else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/QCustomPlot/ -lqcustomplotd2
+#-lqcustomplotd2
 
-win32:CONFIG(release, debug|release): LIBS += -L$$PWD/QXlsx/ -llibQXlsx
-else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/QXlsx/ -llibQXlsxd
+win32:CONFIG(release, debug|release): LIBS += -L$$PWD/QXlsx/ -lQXlsx
+#-llibQXlsx
+else:win32:CONFIG(debug, debug|release): LIBS += -L$$PWD/QXlsx/ -lQXlsxd
+#-llibQXlsxd
 
 TRANSLATIONS += \
     client_cn.ts

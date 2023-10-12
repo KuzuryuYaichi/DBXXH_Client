@@ -9,22 +9,17 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     auto scrollLayout = new QHBoxLayout(scrollWidget);
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
     {
-        chartNB[i] = new ChartWidgetNB(tr("NB") + (i > 0? QString::number(i): ""), i);
-        connect(chartNB[i], &ChartWidgetNB::ParamsChanged, this, [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType, unsigned int cw) {
-            m_socket->nb_parameter_set(1, i, freq, bandwidth, demodType, cw);
+        connect(chartNB[i] = new ChartWidgetNB(tr("NB") + (i > 0? QString::number(i): ""), i), &ChartWidgetNB::ParamsChanged, this,
+            [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType, unsigned int cw, unsigned int RatePSK)
+        {
+            m_socket->nb_parameter_set(1, i, freq, bandwidth, demodType, cw, RatePSK);
         });
         if (i > 0)
-        {
             scrollLayout->addWidget(chartNB[i]);
-        }
     }
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
-    {
         for (int j = 0; j < ZC_NB_CHANNEL_NUMS; ++j)
-        {
             connect(chartNB[i], &ChartWidgetNB::triggerListening, chartNB[j], &ChartWidgetNB::changedListening);
-        }
-    }
     scrollArea->setWidget(scrollWidget);
     scrollArea->setWidgetResizable(true);
     mainLayout->addWidget(scrollArea, 25);

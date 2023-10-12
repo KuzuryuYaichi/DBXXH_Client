@@ -233,11 +233,11 @@ void ChartViewSpectrumWB::InitMenu()
         });
     }
 
-    auto measureAction = new QAction(tr("Measure"));
-    menu->addAction(measureAction);
-    connect(measureAction, &QAction::triggered, this, [this] {
-        DisplayState = MEASURE;
-    });
+//    auto measureAction = new QAction(tr("Measure"));
+//    menu->addAction(measureAction);
+//    connect(measureAction, &QAction::triggered, this, [this] {
+//        DisplayState = MEASURE;
+//    });
 
     auto trackAction = new QAction(tr("Track"));
     menu->addAction(trackAction);

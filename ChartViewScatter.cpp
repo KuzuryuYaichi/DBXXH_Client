@@ -40,8 +40,8 @@ void ChartViewScatter::replace(unsigned char* const buf)
         QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
         for (auto i = 0; i < param->DataPoint; ++i)
         {
-            amplx[i] = amplData[i].I > 0? 1: 0;
-            amply[i] = amplData[i].Q > 0? 1: 0;
+            amplx[i] = amplData[i].I;
+            amply[i] = amplData[i].Q;
         }
 //        break;
 //    }

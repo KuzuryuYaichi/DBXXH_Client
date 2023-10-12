@@ -16,6 +16,7 @@ signals:
     void triggerMark(std::vector<std::tuple<bool, double, double>>);
     void triggerTrack(double, double);
     void triggerMeasure(double);
+    void UpdateThreshold(float);
 
 protected:
     QCPGraph *MaxKeepSeries, *MinKeepSeries, *TrackSeries;

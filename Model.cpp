@@ -39,8 +39,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
             if (!res)
                 continue;
             auto buf = data.get();
-            auto head = (DataHead*)buf;
-            switch (head->PackType)
+            switch (((DataHead*)buf)->PackType)
             {
             case 0x511:
             {
@@ -106,6 +105,11 @@ Model::Model(QWidget *parent): QMainWindow(parent)
                 showDataNB(data);
                 break;
             }
+            case 0x605:
+            {
+                showDataPulse(data);
+                break;
+            }
             }
         }
     });
@@ -140,4 +144,10 @@ void Model::showDataNB(const std::shared_ptr<unsigned char[]>& data)
 {
     auto head = (DataHead*)data.get();
     m_channelWidget->replace(data, head->UnUsed);
+}
+
+void Model::showDataPulse(const std::shared_ptr<unsigned char[]>& data)
+{
+    auto pulse = (Pulse*)(data.get() + sizeof(DataHead));
+    m_mainWidget->wbSignalDetectWidget->PulseDetect(pulse, 16);
 }

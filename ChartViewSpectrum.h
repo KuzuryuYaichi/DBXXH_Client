@@ -14,7 +14,8 @@ public:
 
 protected:
     void UpdateTracer(QMouseEvent *);
-    QCPGraph *SpectrumSeries, *BandwidthSeries;
+    QCPTextElement* ThresholdLbl;
+    QCPGraph *SpectrumSeries, *BandwidthSeries, *GateSeries;
     QCPItemTracer *TracerNormal, *tracer;
     bool LeftButtonPress = false;
 };

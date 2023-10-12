@@ -3,20 +3,16 @@
 
 #include <QWidget>
 #include <QTableView>
+#include <QAxObject>
+#include <unordered_map>
 
 class ManMadeNoiseTableView : public QTableView
 {
     Q_OBJECT
 public:
-    explicit ManMadeNoiseTableView(QWidget *parent = nullptr);
-    //电磁环境人为噪声电平测量记录  //输入为，传入每个界面显示的记录，key为典型频点记录
-    bool GenerateExcelTable(QString folderName, QMap<int, int> mapExistTypicalFreqNoiseRecordAmount);
-
-signals:
-
-protected:
-    virtual ~ManMadeNoiseTableView();
-
+    explicit ManMadeNoiseTableView(QWidget* = nullptr);
+    bool GenerateExcelTable(QString, const std::unordered_map<int, int>&);
+    void GenerateManMadeNoiseTable(QAxObject*, const std::unordered_map<int, int>&);
 };
 
 #endif // MANMADENOISETABLEVIEW_H

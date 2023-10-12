@@ -5,6 +5,8 @@
 #include <QStyle>
 #include <QStorageInfo>
 
+extern PARAMETER_SET g_parameter_set;
+
 ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWidgetCombine(parent), index(index)
 {
     hBoxLayout = new QHBoxLayout;
@@ -112,13 +114,17 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     for (auto i = 0ull; i < 10; ++i)
         demodBox->addItem(DEMOD_TYPE[i], i);
     connect(demodBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-        auto StateFSK = demodBox->currentText() == "FSK";
-        LblFSK->setVisible(StateFSK);
-        RateEditFSK->setVisible(StateFSK);
+        auto State = demodBox->currentText() == "FSK";
+        LblFSK->setVisible(State);
+        RateEditFSK->setVisible(State);
 
-        auto StateAM = demodBox->currentText() == "AM";
-        LblDepthAM->setVisible(StateAM);
-        DepthAM->setVisible(StateAM);
+        State = demodBox->currentText() == "PSK";
+        LblDQPSK->setVisible(State);
+        RateEditDQPSK->setVisible(State);
+
+        State = demodBox->currentText() == "AM";
+        LblDepthAM->setVisible(State);
+        DepthAM->setVisible(State);
 
         ParamsChange();
     });
@@ -133,15 +139,37 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     RateEditFSK->setDecimals(3);
     RateEditFSK->hide();
 
+    hBoxLayout->addWidget(LblDQPSK = new QLabel(tr("PSK Rate(kHz):")));
+    LblDQPSK->hide();
+    hBoxLayout->addWidget(RateEditDQPSK = new QDoubleSpinBox);
+    RateEditDQPSK->setMinimum(1);
+    RateEditDQPSK->setMaximum(1000);
+    RateEditDQPSK->setSingleStep(1);
+    RateEditDQPSK->setDecimals(3);
+    RateEditDQPSK->hide();
+    connect(RateEditDQPSK, &QSpinBox::editingFinished, this, [this] {
+        if (RateEditDQPSK->hasFocus())
+        {
+            ParamsChange();
+        }
+    });
+
     hBoxLayout->addWidget(LblDepthAM = new QLabel(tr("AM Depth(%):")));
     LblDepthAM->hide();
     hBoxLayout->addWidget(DepthAM = new QLabel("0"));
     DepthAM->hide();
 
+    auto showWaveBtn = new QPushButton(style->standardIcon(QStyle::SP_MediaPlay), "");
+    hBoxLayout->addWidget(showWaveBtn, 2);
+    connect(showWaveBtn, &QPushButton::clicked, this, [this] {
+        showWave = !showWave;
+    });
+
+    AmplData = std::make_unique<unsigned char[]>(DDC_LEN);
+
     inR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
     outR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
     planR = fftw_plan_dft_1d(DDC_LEN, inR, outR, FFTW_FORWARD, FFTW_MEASURE);
-    AmplData = std::make_unique<unsigned char[]>(DDC_LEN);
 }
 
 ChartWidgetNB::~ChartWidgetNB()
@@ -175,7 +203,7 @@ void ChartWidgetNB::FFT(unsigned char* buf)
 
 void ChartWidgetNB::ParamsChange()
 {
-    emit ParamsChanged(freqEdit->value() * 1e6, bandwidthBox->currentData().toULongLong(), demodBox->currentData().toUInt(), cwEdit->value() * 1e3);
+    emit ParamsChanged(freqEdit->value() * 1e6, bandwidthBox->currentData().toULongLong(), demodBox->currentData().toUInt(), cwEdit->value() * 1e3, RateEditDQPSK->value() * 1e3);
 }
 
 void ChartWidgetNB::changedListening(int index, bool state)
@@ -192,8 +220,12 @@ void ChartWidgetNB::changedRecording()
     recordBtn->setIcon(QApplication::style()->standardIcon((recording = !recording)? QStyle::SP_MediaStop: QStyle::SP_DialogNoButton));
     if (recording)
     {
+        auto Path = g_parameter_set.tinyConfig.Get_StoragePath();
+        QDir dir;
+        if (!dir.exists(Path))
+            dir.mkpath(Path);
         std::lock_guard<std::mutex> lk(fileLock);
-        file.setFileName(QString("Channel_%1 %2").arg(index + 1).arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss")));
+        file.setFileName(Path + "/" + QString("Channel_%1 %2.dat").arg(index + 1).arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss")));
     }
 }
 
@@ -201,18 +233,21 @@ bool ChartWidgetNB::TestRecordThreshold()
 {
     for (auto i = 0; i < DDC_LEN; ++i)
     {
-        if (AmplData[i] + AMPL_OFFSET > RecordThreshold)
+        auto Ampl = (short)AmplData[i] + AMPL_OFFSET;
+        if (Ampl > RecordThreshold)
+        {
+//            qDebug() << Ampl;
             return true;
+        }
     }
     return false;
 }
 
 void ChartWidgetNB::Record(unsigned char* const buf)
 {
-    if (!recording)
+    if (!(recording && TestRecordThreshold()))
         return;
-    if (!TestRecordThreshold())
-        return;
+    RemoveFile();
     auto param = (StructNBWave*)(buf + sizeof(DataHead));
     auto amplData = (NarrowDDC*)(param + 1);
     switch (demodBox->currentIndex())
@@ -282,34 +317,51 @@ void ChartWidgetNB::WriteFile(char* buf, int length)
     file.close();
 }
 
-void ChartWidgetNB::CheckStorage()
+bool ChartWidgetNB::CheckStorage()
 {
+    auto Path = g_parameter_set.tinyConfig.Get_StoragePath();
+    auto Threshold = g_parameter_set.tinyConfig.Get_StorageThreshold();
     auto storageInfoList = QStorageInfo::mountedVolumes();
-    foreach (QStorageInfo storage, storageInfoList)
+    foreach (const auto& storage, storageInfoList)
     {
-        qDebug() << "盘符" << storage.rootPath();
-        if (storage.isReadOnly())
-            qDebug() << "isReadOnly:" << storage.isReadOnly();
-        qDebug() << "fileSystemType:" << storage.fileSystemType();
-        qDebug() << "size:" << storage.bytesTotal()/1000/1000 << "MB";
-        qDebug() << "availableSize:" << storage.bytesAvailable()/1000/1000 << "MB";
+        if (Path.contains(storage.rootPath()))
+        {
+            qDebug() << storage.rootPath() << " " << storage.bytesAvailable();
+            if (storage.bytesAvailable() < Threshold)
+                return false;
+        }
     }
+    return true;
 }
 
 void ChartWidgetNB::RemoveFile()
 {
-    auto path = QApplication::applicationDirPath();
-    QDir dir(path + "/File");
+    auto Path = g_parameter_set.tinyConfig.Get_StoragePath();
+    auto Threshold = g_parameter_set.tinyConfig.Get_StorageThreshold();
+    QDir dir(Path);
     if (!dir.exists())
         return;
     dir.setFilter(QDir::Files | QDir::NoDotAndDotDot);
+    dir.setNameFilters({ "*.dat" });
     dir.setSorting(QDir::Time | QDir::Reversed);
     auto fileList = dir.entryList();
-    for (int i = 0; i < fileList.size(); i++)
+    unsigned long long fileSize = 0;
+    for (int i = 0; i < fileList.size(); ++i)
     {
-        QFile removFile(path + "/" + fileList.at(i));
-        if (!removFile.remove())
+        QFile file(Path + "/" + fileList.at(i));
+        fileSize += file.size();
+    }
+    for (int i = 0; i < fileList.size(); ++i)
+    {
+        if (fileSize < Threshold)
             break;
+        QFile file(Path + "/" + fileList.at(i));
+        if (!file.exists())
+            continue;
+        auto size = file.size();
+        if (!file.remove())
+            break;
+        fileSize -= size;
     }
 }
 
@@ -354,7 +406,21 @@ void ChartWidgetNB::ChangeMode(int index)
 
 void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
 {
+    if (!showWave)
+        return;
     auto buf = data.get();
+
+    //Especially For ISB
+    auto param = (StructNBWave*)(buf + sizeof(DataHead));
+    auto amplData = (NarrowDDC*)(param + 1);
+    if (demodBox->currentIndex() == ISB)
+    {
+        for (auto i = 0; i < param->DataPoint; ++i)
+        {
+            std::swap(amplData[i].I, amplData[i].Q);
+        }
+    }
+
     FFT(buf);
     Record(buf);
     switch (showBox->currentData().toInt())
@@ -385,7 +451,9 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
         auto param = (StructNBWave*)(data.get() + sizeof(DataHead));
         if (param->DataType == AM && param->AM_DC != 0)
         {
-            DepthAM->setText(QString::number((char)(100.0 * param->AM_DataMax / param->AM_DC)));
+            auto depth = (char)(100.0 * param->AM_DataMax / param->AM_DC);
+            if (depth >= 0 && depth <= 100)
+                DepthAM->setText(QString::number(depth));
         }
         m_updater->start();
     });

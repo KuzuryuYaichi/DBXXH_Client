@@ -2,9 +2,8 @@
 #define DISTURBNOISETABLEVIEW_H
 
 #include <QTableView>
-#include <QWidget>
 
-class DisturbNoiseTableView : public QTableView
+class DisturbNoiseTableView: public QTableView
 {
     Q_OBJECT
 public:
@@ -13,7 +12,6 @@ public:
     bool GenerateExcelTable(QString folderName);
 protected:
     virtual ~DisturbNoiseTableView();
-
 };
 
 #endif // DISTURBNOISETABLEVIEW_H

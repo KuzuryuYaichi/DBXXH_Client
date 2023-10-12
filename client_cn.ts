@@ -4,17 +4,15 @@
 <context>
     <name>ChannelWidget</name>
     <message>
-        <location filename="ChannelWidget.cpp" line="9"/>
         <source>ReListen:</source>
-        <translation>复听:</translation>
+        <translation type="vanished">复听:</translation>
     </message>
     <message>
-        <location filename="ChannelWidget.cpp" line="10"/>
         <source>Select File</source>
-        <translation>选择文件</translation>
+        <translation type="vanished">选择文件</translation>
     </message>
     <message>
-        <location filename="ChannelWidget.cpp" line="18"/>
+        <location filename="ChannelWidget.cpp" line="12"/>
         <source>NB</source>
         <translation>窄带</translation>
     </message>
@@ -146,38 +144,37 @@
     </message>
     <message>
         <location filename="ChartViewSpectrumWB.cpp" line="34"/>
-        <location filename="ChartViewSpectrumWB.cpp" line="212"/>
-        <location filename="ChartViewSpectrumWB.cpp" line="227"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="211"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="226"/>
         <source>Marker %1</source>
         <translation>标记 %1</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="203"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="202"/>
         <source>Mark</source>
         <translation>标记</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="206"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="205"/>
         <source>Add</source>
         <translation>添加</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="221"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="220"/>
         <source>Delete</source>
         <translation>移除</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="237"/>
         <source>Measure</source>
-        <translation>测量</translation>
+        <translation type="vanished">测量</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="243"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="242"/>
         <source>Track</source>
         <translation>追踪</translation>
     </message>
     <message>
-        <location filename="ChartViewSpectrumWB.cpp" line="305"/>
+        <location filename="ChartViewSpectrumWB.cpp" line="304"/>
         <source>Marker %1: %2dBm @ %3MHz</source>
         <translation>标记: %1: %2dBm @ %3MHz</translation>
     </message>
@@ -242,62 +239,67 @@
 <context>
     <name>ChartWidgetNB</name>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="10"/>
+        <location filename="ChartWidgetNB.cpp" line="13"/>
         <source>Domain:</source>
         <translation>图谱:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="12"/>
+        <location filename="ChartWidgetNB.cpp" line="15"/>
         <source>Time</source>
         <translation>波形图</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="13"/>
+        <location filename="ChartWidgetNB.cpp" line="16"/>
         <source>Freq</source>
         <translation>频谱图</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="14"/>
+        <location filename="ChartWidgetNB.cpp" line="17"/>
         <source>Waterfall</source>
         <translation>瀑布图</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="15"/>
+        <location filename="ChartWidgetNB.cpp" line="18"/>
         <source>Scatter</source>
         <translation>星座图</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="21"/>
+        <location filename="ChartWidgetNB.cpp" line="24"/>
         <source>Freq(MHz):</source>
         <translation>频率(MHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="63"/>
+        <location filename="ChartWidgetNB.cpp" line="66"/>
         <source>BW(kHz):</source>
         <translation>带宽(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="108"/>
+        <location filename="ChartWidgetNB.cpp" line="111"/>
         <source>Demod:</source>
         <translation>解调模式:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="126"/>
+        <location filename="ChartWidgetNB.cpp" line="133"/>
         <source>FSK Rate(kHz):</source>
         <translation>FSK 速率(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="83"/>
+        <location filename="ChartWidgetNB.cpp" line="86"/>
         <source>CW(kHz):</source>
         <translation>拍频(kHz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="135"/>
+        <location filename="ChartWidgetNB.cpp" line="142"/>
+        <source>PSK Rate(kHz):</source>
+        <translation>PSK 速率(kHz):</translation>
+    </message>
+    <message>
+        <location filename="ChartWidgetNB.cpp" line="157"/>
         <source>AM Depth(%):</source>
         <translation>AM深度(%):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="269"/>
+        <location filename="ChartWidgetNB.cpp" line="305"/>
         <source>Failed to Open file</source>
         <translation>打开文件失败</translation>
     </message>
@@ -306,12 +308,12 @@
         <translation type="vanished">拍频(Hz):</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="93"/>
+        <location filename="ChartWidgetNB.cpp" line="96"/>
         <source>Play:</source>
         <translation>播放:</translation>
     </message>
     <message>
-        <location filename="ChartWidgetNB.cpp" line="101"/>
+        <location filename="ChartWidgetNB.cpp" line="104"/>
         <source>Rec:</source>
         <translation>录音:</translation>
     </message>
@@ -492,21 +494,42 @@
     </message>
     <message>
         <location filename="MainWidget.cpp" line="106"/>
+        <source>FM Frequecy Offset</source>
+        <translation>调频</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="109"/>
+        <source>FM_BW(kHz)</source>
+        <oldsource>FM_BW</oldsource>
+        <translation>FM频偏(kHz)</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="111"/>
+        <source>FM_Freq(kHz)</source>
+        <translation>FM调制频率(kHz)</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="113"/>
+        <source>FM_Res</source>
+        <translation>FM调频指数</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="127"/>
         <source>Network</source>
         <translation>网络连接</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="112"/>
+        <location filename="MainWidget.cpp" line="133"/>
         <source>Server IP:</source>
         <translation>服务IP:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="115"/>
+        <location filename="MainWidget.cpp" line="136"/>
         <source>Server Port:</source>
         <translation>服务端口:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="116"/>
+        <location filename="MainWidget.cpp" line="137"/>
         <source>Connect</source>
         <translation>连接</translation>
     </message>
@@ -537,7 +560,7 @@
         <translation>宽带</translation>
     </message>
     <message>
-        <location filename="Model.cpp" line="48"/>
+        <location filename="Model.cpp" line="47"/>
         <source>Work Params:
  Resolution:%1 kHz
  SimBand:20 MHz
@@ -546,33 +569,33 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="Model.cpp" line="49"/>
+        <location filename="Model.cpp" line="48"/>
         <source>AGC</source>
         <translation>自动</translation>
     </message>
     <message>
-        <location filename="Model.cpp" line="49"/>
+        <location filename="Model.cpp" line="48"/>
         <source>MGC</source>
         <translation>手动</translation>
     </message>
     <message>
-        <location filename="Model.cpp" line="81"/>
+        <location filename="Model.cpp" line="80"/>
+        <location filename="Model.cpp" line="82"/>
         <location filename="Model.cpp" line="83"/>
-        <location filename="Model.cpp" line="84"/>
-        <location filename="Model.cpp" line="87"/>
+        <location filename="Model.cpp" line="86"/>
         <source>Fault</source>
         <translation>故障</translation>
     </message>
     <message>
-        <location filename="Model.cpp" line="81"/>
+        <location filename="Model.cpp" line="80"/>
+        <location filename="Model.cpp" line="82"/>
         <location filename="Model.cpp" line="83"/>
-        <location filename="Model.cpp" line="84"/>
-        <location filename="Model.cpp" line="87"/>
+        <location filename="Model.cpp" line="86"/>
         <source>OK</source>
         <translation>正常</translation>
     </message>
     <message>
-        <location filename="Model.cpp" line="89"/>
+        <location filename="Model.cpp" line="88"/>
         <source>
 ReceiverChannel:%1
 Channel1:%2, Channel2:%3, Channel3:%4, Channel4:%5
@@ -596,12 +619,12 @@ Antenna1：%9, Antenna2：%10, Antenna3：%11, Antenna4：%12</oldsource>
 天线1:%9, 天线2:%10, 天线3:%11, 天线4:%12</translation>
     </message>
     <message>
-        <location filename="Model.cpp" line="61"/>
+        <location filename="Model.cpp" line="60"/>
         <source>Control Failed</source>
         <translation>控制失败</translation>
     </message>
     <message>
-        <location filename="Model.cpp" line="67"/>
+        <location filename="Model.cpp" line="66"/>
         <source>Control Succeed</source>
         <translation>控制成功</translation>
     </message>
@@ -614,109 +637,98 @@ Antenna1：%9, Antenna2：%10, Antenna3：%11, Antenna4：%12</oldsource>
 Allowed to run only one instance of the application.</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <location filename="src/WBSignalDetectWidget.cpp" line="248"/>
+        <source>Save Report</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="src/WBSignalDetectWidget.cpp" line="248"/>
+        <source>Microsoft Word 2007 (*.docx)</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>SampleTableWidget</name>
     <message>
-        <location filename="SampleTableWidget.cpp" line="75"/>
         <source>CH1-2</source>
         <oldsource>通道1-2</oldsource>
-        <translation>通道1-2</translation>
+        <translation type="vanished">通道1-2</translation>
     </message>
     <message>
-        <location filename="SampleTableWidget.cpp" line="76"/>
         <source>CH1-3</source>
-        <translation>通道1-3</translation>
+        <translation type="vanished">通道1-3</translation>
     </message>
     <message>
-        <location filename="SampleTableWidget.cpp" line="77"/>
         <source>CH1-4</source>
-        <translation>通道1-4</translation>
+        <translation type="vanished">通道1-4</translation>
     </message>
     <message>
-        <location filename="SampleTableWidget.cpp" line="83"/>
         <source>Sub</source>
-        <translation>误差</translation>
+        <translation type="vanished">误差</translation>
     </message>
     <message>
-        <location filename="SampleTableWidget.cpp" line="83"/>
         <source>Theory</source>
-        <translation>理论</translation>
+        <translation type="vanished">理论</translation>
     </message>
     <message>
-        <location filename="SampleTableWidget.cpp" line="83"/>
         <source>Real</source>
-        <translation>实际</translation>
+        <translation type="vanished">实际</translation>
     </message>
     <message>
-        <location filename="SampleTableWidget.cpp" line="122"/>
         <source>Layer</source>
-        <translation>层</translation>
+        <translation type="vanished">层</translation>
     </message>
     <message>
-        <location filename="SampleTableWidget.cpp" line="122"/>
         <source>Freq(MHz)</source>
-        <translation>频点(MHz)</translation>
+        <translation type="vanished">频点(MHz)</translation>
     </message>
 </context>
 <context>
     <name>SqlWidget</name>
     <message>
-        <location filename="SqlWidget.cpp" line="13"/>
         <source>Query Condition</source>
-        <translation>查询条件</translation>
+        <translation type="vanished">查询条件</translation>
     </message>
     <message>
-        <location filename="SqlWidget.cpp" line="15"/>
         <source>Start Freq(MHz)</source>
         <oldsource>Start Freq(MHz):</oldsource>
-        <translation>起始频率(MHz)</translation>
+        <translation type="vanished">起始频率(MHz)</translation>
     </message>
     <message>
-        <location filename="SqlWidget.cpp" line="25"/>
-        <source>End Freq(MHz)</source>
-        <oldsource>End Freq(MHz):</oldsource>
-        <translation></translation>
-    </message>
-    <message>
-        <location filename="SqlWidget.cpp" line="35"/>
         <source>Confidence Gate</source>
         <oldsource>Confidence Gate:</oldsource>
-        <translation>置信度门限</translation>
+        <translation type="vanished">置信度门限</translation>
     </message>
     <message>
-        <location filename="SqlWidget.cpp" line="45"/>
         <source>Start Time</source>
         <oldsource>Start Time:</oldsource>
-        <translation>起始时间</translation>
+        <translation type="vanished">起始时间</translation>
     </message>
     <message>
-        <location filename="SqlWidget.cpp" line="49"/>
         <source>End Time</source>
         <oldsource>End Time:</oldsource>
-        <translation>结束时间</translation>
+        <translation type="vanished">结束时间</translation>
     </message>
     <message>
-        <location filename="SqlWidget.cpp" line="53"/>
         <source>Query Operation</source>
-        <translation>查询操作</translation>
+        <translation type="vanished">查询操作</translation>
     </message>
     <message>
-        <location filename="SqlWidget.cpp" line="55"/>
         <source>Query</source>
-        <translation>查询</translation>
+        <translation type="vanished">查询</translation>
     </message>
     <message>
-        <location filename="SqlWidget.cpp" line="70"/>
         <source>Page</source>
-        <translation>页数</translation>
+        <translation type="vanished">页数</translation>
     </message>
 </context>
 <context>
     <name>WBSignalDetectWidget</name>
     <message>
-        <location filename="src/WBSignalDetectWidget.cpp" line="104"/>
-        <location filename="src/WBSignalDetectWidget.cpp" line="120"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="124"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="140"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="156"/>
         <source>Select Directory</source>
         <translation>选择文件夹</translation>
     </message>

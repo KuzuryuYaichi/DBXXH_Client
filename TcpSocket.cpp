@@ -75,10 +75,8 @@ void TcpSocket::read()
             offset += bytes_transferred;
         }
         left = head.PackLen - sizeof(DataHead), offset = sizeof(DataHead);
-        // auto data = std::make_shared<char[]>(head.PackLen);
-        auto tmp = new unsigned char[head.PackLen];
-        *(DataHead*)tmp = head;
-        auto data = std::shared_ptr<unsigned char[]>(tmp);
+        auto data = std::make_shared<unsigned char[]>(head.PackLen);
+        *(DataHead*)data.get() = head;
         while (left > 0)
         {
             auto bytes_transferred = boost::asio::read(socket, boost::asio::buffer(data.get() + offset, left), ec);
@@ -158,11 +156,11 @@ void TcpSocket::wb_parameter_set()
 }
 
 void TcpSocket::nb_parameter_set(const unsigned int receiver, const unsigned int channel, const unsigned int freq,
-                                const unsigned int bandwidth, const unsigned int demodType, const unsigned int cw)
+    const unsigned int bandwidth, const unsigned int demodType, const unsigned int cw, const unsigned int RatePSK)
 {
     char tmp[200];
-    std::sprintf(tmp, "Task:%d;Type:0411;RcvNum:%d;BankNum:%d;DemodType:%d;DDCBW:%d;Freq:%d;CW:%d;\r\n",
-                 task_id, receiver, channel, demodType, bandwidth, freq, cw);
+    std::sprintf(tmp, "Task:%d;Type:0411;RcvNum:%d;BankNum:%d;DemodType:%d;DDCBW:%d;Freq:%d;CW:%d;PSK:%d\r\n",
+                 task_id, receiver, channel, demodType, bandwidth, freq, cw, RatePSK);
     write(std::make_unique<NetCmdData>(tmp));
 }
 

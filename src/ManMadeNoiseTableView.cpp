@@ -12,7 +12,7 @@ ManMadeNoiseTableView::ManMadeNoiseTableView(QWidget *parent): QTableView{parent
     verticalHeader()->hide();
 }
 
-bool ManMadeNoiseTableView::GenerateExcelTable(QString folderName, QMap<int, int> mapExistTypicalFreqNoiseRecordAmount)
+bool ManMadeNoiseTableView::GenerateExcelTable(QString folderName, const std::unordered_map<int, int>& mapExistTypicalFreqNoiseRecordAmount)
 {
     QString fileName = folderName + "/电磁环境人为噪声电平测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh：mm：ss") + ".xlsx";
     QXlsx::Document xlsx;
@@ -57,8 +57,8 @@ bool ManMadeNoiseTableView::GenerateExcelTable(QString folderName, QMap<int, int
     // Write table data
     //先将典型频率点占用的单元格合并
     int startRow = 5;
-    foreach(const auto& curTypicalFreq, mapExistTypicalFreqNoiseRecordAmount.keys()){
-        int curNoiseRecordAmount = mapExistTypicalFreqNoiseRecordAmount[curTypicalFreq];
+    for (const auto& [curTypicalFreq, curNoiseRecordAmount]: mapExistTypicalFreqNoiseRecordAmount)
+    {
         range = QXlsx::CellRange("B" + QString::number(startRow) + ":B" + QString::number(startRow + curNoiseRecordAmount - 1));
         xlsx.mergeCells(range, format);
         xlsx.write("B" + QString::number(startRow), QString::number(double(curTypicalFreq) / 1e6, 'f', 6), format);
@@ -70,41 +70,37 @@ bool ManMadeNoiseTableView::GenerateExcelTable(QString folderName, QMap<int, int
     int dataPosRow = 5;
     QList<int> existAmpForEveryTypicalFreqLst;
     QModelIndex item;
-    for (int row = 0; row < this->model()->rowCount(); ++row) {
-        curDataCol = 1;
-        item = this->model()->index(row, curDataCol);       //测量频率
-        if (item.isValid()) {
+    for (int row = 0; row < this->model()->rowCount(); ++row)
+    {
+        curDataCol = 0;
+        item = this->model()->index(row, ++curDataCol);       //测量频率
+        if (item.isValid())
             xlsx.write("C" + QString::number(dataPosRow), this->model()->data(item), format);
-        }
-        curDataCol += 1;
 
-        item = this->model()->index(row, curDataCol);           //起始时间
-        if (item.isValid()) {
+        item = this->model()->index(row, ++curDataCol);           //起始时间
+        if (item.isValid())
             xlsx.write(QString("D") + QString::number(dataPosRow), this->model()->data(item), format);
-        }
-        curDataCol += 1;
 
-        item = this->model()->index(row, curDataCol);           //结束时间
-        if (item.isValid()) {
+        item = this->model()->index(row, ++curDataCol);           //结束时间
+        if (item.isValid())
             xlsx.write(QString("E") + QString::number(dataPosRow), this->model()->data(item), format);
-        }
-        curDataCol += 1;
 
-        item = this->model()->index(row, curDataCol);           //测量电平
-        if (item.isValid()) {
+        item = this->model()->index(row, ++curDataCol);           //测量电平
+        if (item.isValid())
             xlsx.write(QString("F") + QString::number(dataPosRow), this->model()->data(item), format);
-        }
+
         existAmpForEveryTypicalFreqLst.append(this->model()->data(item).toString().toDouble());
-        dataPosRow += 1;
+        ++dataPosRow;
     }
 
     //计算平均电平、最大电平、最小电平，合并对应单元格并填入
     int staticStartRow = 5;
-    foreach(const auto& curTypicalFreq, mapExistTypicalFreqNoiseRecordAmount.keys()){
+    for (const auto& [curTypicalFreq, curNoiseRecordAmount]: mapExistTypicalFreqNoiseRecordAmount)
+    {
         QList<int> existAmpForCurrentTypicalFreqLst;
-        int curNoiseRecordAmount = mapExistTypicalFreqNoiseRecordAmount[curTypicalFreq];
         int totalAmpValue = 0;
-        for(int num = 0; num < curNoiseRecordAmount; ++num){
+        for (int num = 0; num < curNoiseRecordAmount; ++num)
+        {
             existAmpForCurrentTypicalFreqLst.append(existAmpForEveryTypicalFreqLst.takeFirst());
             totalAmpValue += existAmpForCurrentTypicalFreqLst.constLast();
         }
@@ -134,14 +130,80 @@ bool ManMadeNoiseTableView::GenerateExcelTable(QString folderName, QMap<int, int
         xlsx.write("K" + QString::number(staticStartRow), "2.4KHz", format);
         staticStartRow += curNoiseRecordAmount;
     }
-
-    // Save the Excel file
-    return xlsx.saveAs(fileName);
+    return xlsx.saveAs(fileName); // Save the Excel file
 }
 
-ManMadeNoiseTableView::~ManMadeNoiseTableView()
+void ManMadeNoiseTableView::GenerateManMadeNoiseTable(QAxObject* document, const std::unordered_map<int, int>& mapExistTypicalFreqNoiseRecordAmount)
 {
+    auto bookmark_table = document->querySubObject("Bookmarks(QVariant)", "ManMadeNoise");
+    if (!bookmark_table || bookmark_table->isNull())
+        return;
+    auto rowCount = model()->rowCount(), colCount = 10;
+    QVariantList params;
+    params.append(bookmark_table->querySubObject("Range")->asVariant());
+    params.append(rowCount + 1);
+    params.append(colCount);
 
+    auto datatable = document->querySubObject("Tables")->querySubObject("Add(QAxObject*, int, int, QVariant&, QVariant&)", params);
+    datatable->setProperty("Style", "网格型");
+
+    static QStringList HEADER_LIST
+        { "典型频率点(MHz)", "测量频率(MHz)", "起始时间", "结束时间", "测量电平(dBuV)", "平均电平(dBuV)", "最大电平(dBuV)", "最小电平(dBuV)", "检波方式", "中频带宽" };
+    for (int col = 0; col < colCount; ++col)
+    {
+        auto rangeTitle = datatable->querySubObject("Cell(int, int)", 1, col + 1)->querySubObject("Range");
+        rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
+        rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
+        rangeTitle->dynamicCall("SetText(QString)", HEADER_LIST[col]);
+    }
+
+    std::list<int> existAmpForEveryTypicalFreqLst; //填写界面上相应的数据
+    for (int row = 0; row < rowCount; ++row)
+    {
+        for (int col = 0; col < 5; ++col)
+        {
+            auto item = model()->index(row, col); //测量频率 起始时间 结束时间 测量电平
+            if (item.isValid())
+            {
+                auto rangeTitle = datatable->querySubObject("Cell(int, int)", row + 2, col + 1)->querySubObject("Range");
+                rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
+                rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
+                rangeTitle->dynamicCall("SetText(QString)", model()->data(item).toString());
+                if (col == 3)
+                    existAmpForEveryTypicalFreqLst.emplace_back(model()->data(item).toString().toDouble());
+            }
+        }
+    }
+
+    //计算平均电平、最大电平、最小电平，合并对应单元格并填入
+    for (const auto& [curTypicalFreq, curNoiseRecordAmount]: mapExistTypicalFreqNoiseRecordAmount)
+    {
+        std::vector<int> existAmpForCurrentTypicalFreqLst;
+        int totalAmpValue = 0;
+        for (int num = 0; num < curNoiseRecordAmount; ++num)
+        {
+            existAmpForCurrentTypicalFreqLst.emplace_back(existAmpForEveryTypicalFreqLst.front());
+            totalAmpValue += existAmpForCurrentTypicalFreqLst.back();
+        }
+
+        std::sort(existAmpForCurrentTypicalFreqLst.begin(), existAmpForCurrentTypicalFreqLst.end());
+
+        for (int row = 0; row < rowCount; ++row)
+        {
+            for (int col = 5; col < 10; ++col)
+            {
+                auto rangeTitle = datatable->querySubObject("Cell(int, int)", row + 2, col + 1)->querySubObject("Range");
+                rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
+                rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
+                switch (col)
+                {
+                case 5: rangeTitle->dynamicCall("SetText(QString)", QString::number(double(totalAmpValue) / curNoiseRecordAmount, 'f', 1)); break;
+                case 6: rangeTitle->dynamicCall("SetText(QString)", QString::number(existAmpForCurrentTypicalFreqLst.back())); break;
+                case 7: rangeTitle->dynamicCall("SetText(QString)", QString::number(existAmpForCurrentTypicalFreqLst.front())); break;
+                case 8: rangeTitle->dynamicCall("SetText(QString)", "RMS"); break;
+                case 9: rangeTitle->dynamicCall("SetText(QString)", "2.4KHz"); break;
+                }
+            }
+        }
+    }
 }
-
-
