@@ -8,4 +8,5 @@ PulseDetectTableView::PulseDetectTableView(QWidget *parent): QTableView(parent)
     horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     setSortingEnabled(true);
     verticalHeader()->hide();
+    setModel(m_pPulseDetectModel = new PulseDetectModel);
 }

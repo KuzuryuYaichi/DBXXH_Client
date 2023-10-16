@@ -3,8 +3,8 @@
 #include <QFormLayout>
 #include <QLabel>
 
-extern int g_FreqPointThreshold;
-extern int g_BandwidthThreshold;
+extern uint g_FreqPointThreshold;
+extern uint g_BandwidthThreshold;
 extern float g_AmplThreshold;
 
 PopupParamSet::PopupParamSet(QWidget *parent): QDialog(parent)

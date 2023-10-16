@@ -2,16 +2,13 @@
 #define DISTURBNOISETABLEVIEW_H
 
 #include <QTableView>
+#include <QAxObject>
 
 class DisturbNoiseTableView: public QTableView
 {
     Q_OBJECT
 public:
-    explicit DisturbNoiseTableView(QWidget *parent = nullptr);
-
-    bool GenerateExcelTable(QString folderName);
-protected:
-    virtual ~DisturbNoiseTableView();
+    explicit DisturbNoiseTableView(QWidget* = nullptr);
 };
 
 #endif // DISTURBNOISETABLEVIEW_H

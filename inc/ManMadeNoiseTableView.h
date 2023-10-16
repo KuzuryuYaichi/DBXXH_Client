@@ -6,13 +6,14 @@
 #include <QAxObject>
 #include <unordered_map>
 
+#include "ManMadeNoiseModel.h"
+
 class ManMadeNoiseTableView : public QTableView
 {
     Q_OBJECT
 public:
     explicit ManMadeNoiseTableView(QWidget* = nullptr);
-    bool GenerateExcelTable(QString, const std::unordered_map<int, int>&);
-    void GenerateManMadeNoiseTable(QAxObject*, const std::unordered_map<int, int>&);
+    ManMadeNoiseModel* m_pManMadeNoiseModel;
 };
 
 #endif // MANMADENOISETABLEVIEW_H

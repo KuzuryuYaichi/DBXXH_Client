@@ -1,12 +1,12 @@
 #ifndef PULSEDETECTMODEL_H
 #define PULSEDETECTMODEL_H
 
-#include <QAbstractTableModel>
 #include <QFont>
 #include <QTimer>
 #include <QDateTime>
 #include <mutex>
 #include "StructNetData.h"
+#include "inc/WBSignalDetectModel.h"
 
 struct PulseInfo
 {
@@ -48,27 +48,25 @@ struct PulseInfo
     }
 };
 
-class PulseDetectModel: public QAbstractTableModel
+class PulseDetectModel: public WBSignalDetectModel
 {
     Q_OBJECT
 public:
     explicit PulseDetectModel(QObject* = nullptr);
     void replace(Pulse*, int);
     QVariant headerData(int, Qt::Orientation, int = Qt::DisplayRole) const override;
-    int rowCount(const QModelIndex& = QModelIndex()) const override;
     int columnCount(const QModelIndex& = QModelIndex()) const override;
-    bool setData(const QModelIndex&, const QVariant&, int = Qt::EditRole) override;
     Qt::ItemFlags flags(const QModelIndex&) const override;
-    QVariant data(const QModelIndex&, int = Qt::DisplayRole) const override;
+
 public slots:
-    void UpdateData();
+    void UpdateData() override;
 
 protected:
-    std::vector<std::vector<QVariant>> m_DisplayData;
-    QFont m_Font;
-    QTimer* m_pPulseActiveChecker;
-    std::unordered_map<long long, PulseInfo> m_Pulse;
-    std::mutex m_mutex;
+    std::map<long long, PulseInfo> m_Pulse;
+
+private:
+    static constexpr const char* HEADER_LABEL[] = { "频率(MHz)", "脉幅(dBm)", "脉宽(us)", "时间" };
+    static constexpr auto LENGTH = sizeof(HEADER_LABEL) / sizeof(HEADER_LABEL[0]);
 };
 
 #endif // PULSEDETECTMODEL_H

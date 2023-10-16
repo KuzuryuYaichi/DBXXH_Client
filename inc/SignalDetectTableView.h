@@ -24,8 +24,6 @@ class SignalDetectTableView : public QTableView
     Q_OBJECT
 public:
     explicit SignalDetectTableView(QWidget* = nullptr);
-    bool GenerateExcelTable(QString);
-    void GenerateSignalDetectTable(QAxObject*);
 };
 
 #endif // SIGNALDETECTTABLEVIEW_H

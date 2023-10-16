@@ -6,11 +6,10 @@
 #include "../inc/PopupParamSet.h"
 #include "../inc/TypicalFreqSetWidget.h"
 #include "../inc/SignalDetectTableView.h"
-#include "../inc/ManMadeNoiseTableView.h"
 #include "../inc/DisturbNoiseTableView.h"
-#include "../inc/WBSignalDetectModel.h"
+#include "../inc/ManMadeNoiseTableView.h"
+#include "../inc/SignalNoiseModel.h"
 #include "PulseDetectTableView.h"
-#include "PulseDetectModel.h"
 
 class WBSignalDetectWidget: public QWidget
 {
@@ -23,14 +22,11 @@ public:
 public slots:
     void sigSetValidAmpThreshold(float); //设置有效电平门限 dBm
 
-signals:
-    //记录开始检测时间
-    void startDetect();
-    //记录最终完成检测时间
-    void stopDetect();
-
-public slots:
-    void GenerateWord();
+//signals:
+//    //记录开始检测时间
+//    void startDetect();
+//    //记录最终完成检测时间
+//    void stopDetect();
 
 protected:
     void GenerateSignalDetectTable(WBSignalDetectModel*);
@@ -39,9 +35,7 @@ protected:
 private:
     void setupUi();
 
-    WBSignalDetectModel* m_pSignalDetectModel;
-    WBSignalDetectModel* m_pManMadeNoiseModel;
-    PulseDetectModel* m_pPulseDetectModel;
+    SignalNoiseModel* m_pSignalDetectModel;
     SignalDetectTableView* m_pSignalDetectTable;
     DisturbNoiseTableView* m_pDisturbNoiseTable;
     ManMadeNoiseTableView* m_pManMadeNoiseTable;
@@ -58,7 +52,7 @@ private:
     QPushButton *pushButton_setLegalFreq;
     QTabWidget *tabWidget_SignalDetectTable;
     QPushButton *pushButton_GenerateSignalDetect;
-    QPushButton *pushButton_GenerateDisturbSIgnal;
+    QPushButton *pushButton_GenerateDisturbSignal;
     QPushButton *pushButton_GenerateManMadeNoise;
     QPushButton *pushButton_GenerateElecEnvReport;
 };

@@ -348,14 +348,14 @@ void ChartWidgetNB::RemoveFile()
     unsigned long long fileSize = 0;
     for (int i = 0; i < fileList.size(); ++i)
     {
-        QFile file(Path + "/" + fileList.at(i));
+        QFile file(Path + "/" + fileList[i]);
         fileSize += file.size();
     }
     for (int i = 0; i < fileList.size(); ++i)
     {
         if (fileSize < Threshold)
             break;
-        QFile file(Path + "/" + fileList.at(i));
+        QFile file(Path + "/" + fileList[i]);
         if (!file.exists())
             continue;
         auto size = file.size();

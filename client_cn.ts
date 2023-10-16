@@ -493,25 +493,30 @@
         <translation>保存</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="106"/>
         <source>FM Frequecy Offset</source>
-        <translation>调频</translation>
+        <translation type="vanished">调频</translation>
+    </message>
+    <message>
+        <location filename="MainWidget.cpp" line="106"/>
+        <source>FM Mod</source>
+        <translation>FM调频</translation>
     </message>
     <message>
         <location filename="MainWidget.cpp" line="109"/>
-        <source>FM_BW(kHz)</source>
-        <oldsource>FM_BW</oldsource>
-        <translation>FM频偏(kHz)</translation>
+        <source>FM_Offset(kHz)</source>
+        <oldsource>FM_BW(kHz)</oldsource>
+        <translation>调制频偏(kHz)</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="111"/>
+        <location filename="MainWidget.cpp" line="117"/>
         <source>FM_Freq(kHz)</source>
-        <translation>FM调制频率(kHz)</translation>
+        <translation>调制频率(kHz)</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="113"/>
-        <source>FM_Res</source>
-        <translation>FM调频指数</translation>
+        <location filename="MainWidget.cpp" line="125"/>
+        <source>FM_Index</source>
+        <oldsource>FM_Res</oldsource>
+        <translation>调频指数</translation>
     </message>
     <message>
         <location filename="MainWidget.cpp" line="127"/>
@@ -637,16 +642,6 @@ Antenna1：%9, Antenna2：%10, Antenna3：%11, Antenna4：%12</oldsource>
 Allowed to run only one instance of the application.</source>
         <translation type="unfinished"></translation>
     </message>
-    <message>
-        <location filename="src/WBSignalDetectWidget.cpp" line="248"/>
-        <source>Save Report</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="src/WBSignalDetectWidget.cpp" line="248"/>
-        <source>Microsoft Word 2007 (*.docx)</source>
-        <translation type="unfinished"></translation>
-    </message>
 </context>
 <context>
     <name>SampleTableWidget</name>
@@ -726,9 +721,9 @@ Allowed to run only one instance of the application.</source>
 <context>
     <name>WBSignalDetectWidget</name>
     <message>
-        <location filename="src/WBSignalDetectWidget.cpp" line="124"/>
-        <location filename="src/WBSignalDetectWidget.cpp" line="140"/>
-        <location filename="src/WBSignalDetectWidget.cpp" line="156"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="126"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="142"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="158"/>
         <source>Select Directory</source>
         <translation>选择文件夹</translation>
     </message>

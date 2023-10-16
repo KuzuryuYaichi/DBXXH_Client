@@ -11,11 +11,13 @@ ChartViewWave::ChartViewWave(QString title, double AXISX_MIN, double AXISX_MAX, 
     ISeries = addGraph();
     ISeries->setPen(QPen(Qt::red));
     ISeries->setLineStyle(QCPGraph::lsLine);
+    ISeries->setScatterStyle(QCPScatterStyle::ssCircle);
     ISeries->rescaleAxes(true);
 
     QSeries = addGraph();
     QSeries->setPen(QPen(Qt::green));
     QSeries->setLineStyle(QCPGraph::lsLine);
+    QSeries->setScatterStyle(QCPScatterStyle::ssCircle);
     QSeries->rescaleAxes(true);
 
     tracer = new QCPItemTracer(this);

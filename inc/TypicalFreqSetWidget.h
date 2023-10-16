@@ -12,11 +12,11 @@ class TypicalFreqSetWidget : public QDialog
 {
     Q_OBJECT
 public:
-    explicit TypicalFreqSetWidget(QWidget *parent = nullptr);
-    void SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, int>>& lst);
+    explicit TypicalFreqSetWidget(QWidget* = nullptr);
+    void SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, int>>&);
 
 signals:
-    void sigHaveTypicalFreq(const std::list<int>& mapValue);
+    void sigHaveTypicalFreq(const std::list<int>&);
 
 private:
     void setupUi();

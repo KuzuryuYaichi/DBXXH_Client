@@ -36,6 +36,8 @@ SOURCES += \
     TinyConfig.cpp \
     global.cpp \
     main.cpp \
+    src/ManMadeNoiseModel.cpp \
+    src/SignalNoiseModel.cpp \
     src/DisturbNoiseTableView.cpp \
     src/ManMadeNoiseTableView.cpp \
     src/PopupParamSet.cpp \
@@ -72,6 +74,8 @@ HEADERS += \
     ThreadSafeQueue.h \
     TinyConfig.h \
     global.h \
+    inc/ManMadeNoiseModel.h \
+    inc/SignalNoiseModel.h \
     inc/DisturbNoiseTableView.h \
     inc/ManMadeNoiseTableView.h \
     inc/PopupParamSet.h \

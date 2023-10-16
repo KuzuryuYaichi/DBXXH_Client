@@ -34,8 +34,8 @@ private:
     QLabel* MarkerFreqLbl[MARKER_NUM], * MarkerAmplLbl[MARKER_NUM], *MeasureLbl, *MaxFreqLbl, *MaxAmplLbl;
     QTimer* m_updater;
     QPushButton* saveBtn;
-    QDoubleSpinBox* FM_BWEdit, *FM_FreqEdit;
-    QLabel* FM_Res;
+    QDoubleSpinBox* FM_OffsetEdit, *FM_FreqEdit;
+    QLabel* FM_Index;
 
     std::vector<std::tuple<bool, double, double>> MarkData;
     double Distance = 0;

@@ -5,7 +5,6 @@
 #include <QDateTime>
 #include <QThread>
 #include <QApplication>
-#include <QHeaderView>
 #include <QStyle>
 #include <QFormLayout>
 #include <QPalette>
@@ -103,26 +102,26 @@ MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* paren
     });
     m_updater->start();
 
-    auto frequecyOffsetGroupBox = new QGroupBox(tr("FM Frequecy Offset"));
+    auto frequecyOffsetGroupBox = new QGroupBox(tr("FM Mod"));
     settingLayout->addRow(frequecyOffsetGroupBox);
     auto frequecyLayout = new QFormLayout(frequecyOffsetGroupBox);
-    frequecyLayout->addRow(tr("FM_BW(kHz)"), FM_BWEdit = new QDoubleSpinBox);//频偏
-    FM_BWEdit->setValue(0);
-    frequecyLayout->addRow(tr("FM_Freq(kHz)"), FM_FreqEdit = new QDoubleSpinBox);//调制频率
-    FM_FreqEdit->setValue(0);
-    frequecyLayout->addRow(tr("FM_Res"), FM_Res = new QLabel("0")); //调频指数
-    connect(FM_BWEdit, &QDoubleSpinBox::editingFinished, this, [this] {
-        if (FM_BWEdit->hasFocus() && FM_FreqEdit->value())
+    frequecyLayout->addRow(tr("FM_Offset(kHz)"), FM_OffsetEdit = new QDoubleSpinBox);
+    FM_OffsetEdit->setValue(0);
+    connect(FM_OffsetEdit, &QDoubleSpinBox::editingFinished, this, [this] {
+        if (FM_OffsetEdit->hasFocus() && FM_FreqEdit->value())
         {
-            FM_Res->setText(QString("%1").arg(FM_BWEdit->value() / FM_FreqEdit->value()));
+            FM_Index->setText(QString("%1").arg(FM_OffsetEdit->value() / FM_FreqEdit->value()));
         }
     });
+    frequecyLayout->addRow(tr("FM_Freq(kHz)"), FM_FreqEdit = new QDoubleSpinBox);
+    FM_FreqEdit->setValue(0);
     connect(FM_FreqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
         if (FM_FreqEdit->hasFocus() && FM_FreqEdit->value())
         {
-            FM_Res->setText(QString("%1").arg(FM_BWEdit->value() / FM_FreqEdit->value()));
+            FM_Index->setText(QString("%1").arg(FM_OffsetEdit->value() / FM_FreqEdit->value()));
         }
     });
+    frequecyLayout->addRow(tr("FM_Index"), FM_Index = new QLabel("0"));
 
     auto connectBox = new QGroupBox(tr("Network"));
     settingLayout->addRow(connectBox);
