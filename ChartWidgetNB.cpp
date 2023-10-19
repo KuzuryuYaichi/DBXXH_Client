@@ -133,8 +133,8 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     hBoxLayout->addWidget(LblFSK = new QLabel(tr("FSK Rate(kHz):")));
     LblFSK->hide();
     hBoxLayout->addWidget(RateEditFSK = new QDoubleSpinBox);
-    RateEditFSK->setMinimum(1);
-    RateEditFSK->setMaximum(1000);
+    RateEditFSK->setMinimum(0.1);
+    RateEditFSK->setMaximum(100);
     RateEditFSK->setSingleStep(1);
     RateEditFSK->setDecimals(3);
     RateEditFSK->hide();
@@ -142,8 +142,8 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     hBoxLayout->addWidget(LblDQPSK = new QLabel(tr("PSK Rate(kHz):")));
     LblDQPSK->hide();
     hBoxLayout->addWidget(RateEditDQPSK = new QDoubleSpinBox);
-    RateEditDQPSK->setMinimum(1);
-    RateEditDQPSK->setMaximum(1000);
+    RateEditDQPSK->setMinimum(0.1);
+    RateEditDQPSK->setMaximum(100);
     RateEditDQPSK->setSingleStep(1);
     RateEditDQPSK->setDecimals(3);
     RateEditDQPSK->hide();
@@ -252,16 +252,6 @@ void ChartWidgetNB::Record(unsigned char* const buf)
     auto amplData = (NarrowDDC*)(param + 1);
     switch (demodBox->currentIndex())
     {
-    case FSK:
-    {
-        auto ptr = std::make_unique<short[]>(param->DataPoint);
-        for (auto i = 0; i < param->DataPoint; ++i)
-        {
-            ptr[i] = amplData[i].I > 0? 1: 0;
-        }
-        WriteFile((char*)ptr.get(), sizeof(short) * param->DataPoint);
-        break;
-    }
     case PSK:
     {
         auto ptr = std::make_unique<NarrowDDC[]>(param->DataPoint);
@@ -287,6 +277,16 @@ void ChartWidgetNB::Record(unsigned char* const buf)
         WriteFile((char*)ptr.get(), sizeof(short) * param->DataPoint);
         break;
     }
+    case FSK:
+    //    {
+    //        auto ptr = std::make_unique<short[]>(param->DataPoint);
+    //        for (auto i = 0; i < param->DataPoint; ++i)
+    //        {
+    //            ptr[i] = amplData[i].I > 0? 1: 0;
+    //        }
+    //        WriteFile((char*)ptr.get(), sizeof(short) * param->DataPoint);
+    //        break;
+    //    }
     case IQ:
     case ISB:
     {
@@ -410,6 +410,7 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
         return;
     auto buf = data.get();
 
+    std::unique_ptr<unsigned char[]> FSK_TMP;
     //Especially For ISB
     auto param = (StructNBWave*)(buf + sizeof(DataHead));
     auto amplData = (NarrowDDC*)(param + 1);
@@ -420,6 +421,54 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
             std::swap(amplData[i].I, amplData[i].Q);
         }
     }
+//    else if (demodBox->currentIndex() == FSK)
+//    {
+//        double SpsBandwidth = NB_HALF_BANDWIDTH_KHz[11];
+//        switch (param->Bandwidth)
+//        {
+//        case 150: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[0]; break;
+//        case 300: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[1]; break;
+//        case 600: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[2]; break;
+//        case 1500: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[3]; break;
+//        case 2400: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[4]; break;
+//        case 6000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[5]; break;
+//        case 9000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[6]; break;
+//        case 15000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[7]; break;
+//        case 30000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[8]; break;
+//        case 50000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[9]; break;
+//        case 120000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[10]; break;
+//        case 150000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[11]; break;
+//        }
+
+//        auto CodeRate = RateEditFSK->value() * 1e3;
+//        fskDemod = FSKModule(4e3 / CodeRate, SpsBandwidth, CodeRate, param->Frequency, DDC_LEN);
+//        static auto FSK_Tmp = std::make_unique<unsigned char[]>(sizeof(NarrowDDC) * DDC_LEN);
+//        static int index = 0;
+//        static auto FSK_Data = std::make_unique<unsigned char[]>(sizeof(DataHead) + sizeof(StructNBWave) + sizeof(NarrowDDC) * DDC_LEN);
+//        int OutLength;
+//        fskDemod.ModuFun((short*)(data.get() + sizeof(DataHead) + sizeof(StructNBWave)), DDC_LEN, FSK_Tmp.get(), &OutLength);
+//        if (OutLength <= sizeof(NarrowDDC) * DDC_LEN)
+//        {
+//            if (index + OutLength >= DDC_LEN)
+//            {
+//                std::memcpy((NarrowDDC*)(FSK_Data.get() + sizeof(DataHead) + sizeof(StructNBWave)) + index, FSK_Tmp.get(), sizeof(NarrowDDC) * (DDC_LEN - index));
+//                std::memcpy(FSK_Data.get(), data.get(), sizeof(DataHead) + sizeof(StructNBWave));
+//                FSK_TMP = std::move(FSK_Data);
+//                FSK_Data = std::make_unique<unsigned char[]>(sizeof(DataHead) + sizeof(StructNBWave) + sizeof(NarrowDDC) * DDC_LEN);
+//                std::memcpy((NarrowDDC*)(FSK_Data.get() + sizeof(DataHead) + sizeof(StructNBWave)) + index, FSK_Tmp.get(), sizeof(NarrowDDC) * (index + OutLength - DDC_LEN));
+//                buf = FSK_TMP.get();
+//                index = (index + OutLength) % DDC_LEN;
+//            }
+//            else
+//            {
+//                std::memcpy((NarrowDDC*)(FSK_Data.get() + sizeof(DataHead) + sizeof(StructNBWave)) + index, FSK_Tmp.get(), sizeof(NarrowDDC) * OutLength);
+//                index = (index + OutLength) % DDC_LEN;
+//                return;
+//            }
+//        }
+//        else
+//            return;
+//    }
 
     FFT(buf);
     Record(buf);

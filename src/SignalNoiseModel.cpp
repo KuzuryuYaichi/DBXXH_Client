@@ -5,6 +5,8 @@
 #include <QSettings>
 #include <QMessageBox>
 
+#include "global.h"
+
 //考虑使用全局量记录频点识别门限以及带宽识别门限
 uint g_FreqPointThreshold = 10000; //单位为Hz
 uint g_BandwidthThreshold = 10000; //单位为Hz
@@ -95,7 +97,7 @@ void SignalNoiseModel::SlotTriggerLegalFreqSet(bool checked)
 void SignalNoiseModel::SlotCleanUp()
 {
     m_mapValidSignalCharacter.clear(); //直接清理，不存在跨线程访问的问题
-    m_i64SystemStartTime = 0;
+    m_i64SystemStartTime = m_i64SystemStopTime = 0;
 }
 
 bool SignalNoiseModel::SlotImportLegalFreqConf()
@@ -191,6 +193,7 @@ void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned l
         totalIndex = RightAddr + 1; //更新次回处理起点
         m_lstSignalInfo.emplace_back(currentSignalInfo);
     }
+    auto currentTime = QDateTime::currentMSecsSinceEpoch();
     for (const auto& curInfo: m_lstSignalInfo) // LZMK: 不再区分曾有现停的情况，用户从信号检测表格选择合法信号仅针对单个信号特征进行检测，无所谓停止后再出现
     {
         bool foundFlag = false; // 两种情况：当前信号 1、从未有过  2、曾经有过
@@ -199,14 +202,18 @@ void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned l
             if (curInfo.BaseInfo == key) //有过记录，更新记录
             {
                 foundFlag = true;
+                if (value.back().stopTime <= currentTime - 3000)
+                {
+                    value.back().BlankTime += currentTime - value.back().stopTime;
+                }
                 value.back().Info = curInfo;
-                value.back().stopTime = QDateTime::currentMSecsSinceEpoch();
+                value.back().stopTime = currentTime;
                 break;
             }
         }
         if (!foundFlag && m_mapValidSignalCharacter.size() < LIST_LIMIT) //从未有过：增加map中的键值对，新增累计list
         {
-            m_mapValidSignalCharacter[curInfo.BaseInfo] = { DisplaySignalCharacter(curInfo, QDateTime::currentMSecsSinceEpoch()) };
+            m_mapValidSignalCharacter[curInfo.BaseInfo] = { DisplaySignalCharacter(curInfo, currentTime) };
         }
     }
 }
@@ -253,11 +260,11 @@ void SignalNoiseModel::UpdateData()
             line[1] = QString::number(value.back().Info.Amp + 107);        //电平，采用107算法
             line[2] = QString::number(double(value.back().Info.BaseInfo.Bandwidth) / 1e6, 'f', 6);        //带宽
             if (value.front().startTime) //起始时间
-                line[3] = QDateTime::fromMSecsSinceEpoch(value.front().startTime).toString("hh:mm:ss");
+                line[3] = QDateTime::fromMSecsSinceEpoch(value.front().startTime).toString(TIME_FORMAT);
             if (value.back().stopTime) //结束时间
-                line[4] = QDateTime::fromMSecsSinceEpoch(value.back().stopTime).toString("hh:mm:ss");
+                line[4] = QDateTime::fromMSecsSinceEpoch(value.back().stopTime).toString(TIME_FORMAT);
             if (m_iFullBandWidth > 0 && m_iFullBandWidth >= value.back().Info.BaseInfo.Bandwidth)
-                line[5] = QString("%1%").arg(100 * double(value.back().Info.BaseInfo.Bandwidth) / double(m_iFullBandWidth));        //占用带宽
+                line[5] = QString("%1%").arg(100.0 * value.back().Info.BaseInfo.Bandwidth / m_iFullBandWidth);        //占用带宽
 
             qint64 duringTime = 0;
             qint64 nowTime = QDateTime::currentMSecsSinceEpoch();
@@ -268,10 +275,10 @@ void SignalNoiseModel::UpdateData()
                     duringTime += nowTime - curSigInfoInList.startTime;
                     break;
                 }
-                duringTime += curSigInfoInList.stopTime - curSigInfoInList.startTime;
+                duringTime += curSigInfoInList.stopTime - curSigInfoInList.startTime - curSigInfoInList.BlankTime;
             }
             line[6] = QString("%1%").arg(100.0 * duringTime / ((m_i64SystemStopTime == m_i64SystemStartTime)?
-                                nowTime - m_i64SystemStartTime: m_i64SystemStopTime - m_i64SystemStartTime));  //信号占用度
+                                nowTime - m_i64SystemStartTime: m_i64SystemStopTime - m_i64SystemStartTime));
             line[7] = value.front().isLegal; //当前频点的信号是否合法记录在每个数据链的头部元素中
             m_DisplayData.emplace_back(std::move(line));
         }
@@ -286,9 +293,9 @@ void SignalNoiseModel::UpdateData()
             line[0] = QString::number(double(key.CenterFreq) / double(1e6), 'f', 6); //干扰信号测量表格
             line[1] = QString::number(value.back().Info.Amp + 107); //电平，采用107算法
             if (value.front().startTime)
-                line[2] = QDateTime::fromMSecsSinceEpoch(value.front().startTime).toString("hh:mm:ss"); //起始时间
+                line[2] = QDateTime::fromMSecsSinceEpoch(value.front().startTime).toString(TIME_FORMAT); //起始时间
             if (value.back().stopTime)
-                line[3] = QDateTime::fromMSecsSinceEpoch(value.back().stopTime).toString("hh:mm:ss"); //结束时间
+                line[3] = QDateTime::fromMSecsSinceEpoch(value.back().stopTime).toString(TIME_FORMAT); //结束时间
             m_DisplayData.emplace_back(std::move(line));
         }
     }
@@ -307,7 +314,7 @@ bool SignalBaseChar::operator<(const SignalBaseChar& other) const
 
 bool SignalNoiseModel::GenerateExcelSignalDetectTable(QString folderName)
 {
-    QString fileName(folderName + "/信号检测列表" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh：mm：ss") + ".xlsx");
+    QString fileName(folderName + "/信号检测列表" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx");
     QXlsx::Format format;
     format.setHorizontalAlignment(QXlsx::Format::AlignHCenter);
     format.setVerticalAlignment(QXlsx::Format::AlignVCenter);
@@ -334,7 +341,7 @@ bool SignalNoiseModel::GenerateExcelSignalDetectTable(QString folderName)
 
 bool SignalNoiseModel::GenerateExcelDisturbNoiseTable(QString folderName)
 {
-    QString fileName = folderName + "/干扰信号测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh：mm：ss") + ".xlsx";
+    QString fileName = folderName + "/干扰信号测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx";
 
     QXlsx::Document xlsx;
 

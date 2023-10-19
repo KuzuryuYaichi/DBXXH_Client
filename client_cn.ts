@@ -348,7 +348,7 @@
     <message>
         <location filename="ChartWidgetWB.cpp" line="77"/>
         <source>Sim Band(MHz):</source>
-        <translation>模拟带宽(MHz):</translation>
+        <translation>观测带宽(MHz):</translation>
     </message>
     <message>
         <location filename="ChartWidgetWB.cpp" line="99"/>
@@ -419,7 +419,7 @@
 <context>
     <name>MainWidget</name>
     <message>
-        <location filename="MainWidget.cpp" line="22"/>
+        <location filename="MainWidget.cpp" line="21"/>
         <source>WB</source>
         <translation>宽带</translation>
     </message>
@@ -444,51 +444,51 @@
         <translation type="vanished">工作控制:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="42"/>
+        <location filename="MainWidget.cpp" line="41"/>
         <source>Freq Marker</source>
         <translation>频点标记</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="49"/>
+        <location filename="MainWidget.cpp" line="48"/>
         <source>Marker %1</source>
         <translation>标记%1</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="61"/>
+        <location filename="MainWidget.cpp" line="60"/>
         <source>Freq Measure</source>
         <translation>频距测量</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="64"/>
+        <location filename="MainWidget.cpp" line="63"/>
         <source>Measure</source>
         <translation>频点间距</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="69"/>
+        <location filename="MainWidget.cpp" line="68"/>
         <source>Freq Track</source>
         <translation>频点追踪</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="53"/>
-        <location filename="MainWidget.cpp" line="72"/>
+        <location filename="MainWidget.cpp" line="52"/>
+        <location filename="MainWidget.cpp" line="71"/>
         <source>MaxFreq</source>
         <oldsource>Freq</oldsource>
         <translation>频点</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="54"/>
-        <location filename="MainWidget.cpp" line="73"/>
+        <location filename="MainWidget.cpp" line="53"/>
+        <location filename="MainWidget.cpp" line="72"/>
         <source>MaxAmpl</source>
         <oldsource>Ampl</oldsource>
         <translation>功率</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="56"/>
+        <location filename="MainWidget.cpp" line="55"/>
         <source>Spectrum</source>
         <translation>频谱</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="56"/>
+        <location filename="MainWidget.cpp" line="55"/>
         <source>Save</source>
         <translation>保存</translation>
     </message>
@@ -497,44 +497,44 @@
         <translation type="vanished">调频</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="106"/>
+        <location filename="MainWidget.cpp" line="105"/>
         <source>FM Mod</source>
         <translation>FM调频</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="109"/>
+        <location filename="MainWidget.cpp" line="108"/>
         <source>FM_Offset(kHz)</source>
         <oldsource>FM_BW(kHz)</oldsource>
         <translation>调制频偏(kHz)</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="117"/>
+        <location filename="MainWidget.cpp" line="116"/>
         <source>FM_Freq(kHz)</source>
         <translation>调制频率(kHz)</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="125"/>
+        <location filename="MainWidget.cpp" line="124"/>
         <source>FM_Index</source>
         <oldsource>FM_Res</oldsource>
         <translation>调频指数</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="127"/>
+        <location filename="MainWidget.cpp" line="126"/>
         <source>Network</source>
         <translation>网络连接</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="133"/>
+        <location filename="MainWidget.cpp" line="132"/>
         <source>Server IP:</source>
         <translation>服务IP:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="136"/>
+        <location filename="MainWidget.cpp" line="135"/>
         <source>Server Port:</source>
         <translation>服务端口:</translation>
     </message>
     <message>
-        <location filename="MainWidget.cpp" line="137"/>
+        <location filename="MainWidget.cpp" line="136"/>
         <source>Connect</source>
         <translation>连接</translation>
     </message>
@@ -721,9 +721,9 @@ Allowed to run only one instance of the application.</source>
 <context>
     <name>WBSignalDetectWidget</name>
     <message>
-        <location filename="src/WBSignalDetectWidget.cpp" line="126"/>
-        <location filename="src/WBSignalDetectWidget.cpp" line="142"/>
-        <location filename="src/WBSignalDetectWidget.cpp" line="158"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="125"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="141"/>
+        <location filename="src/WBSignalDetectWidget.cpp" line="157"/>
         <source>Select Directory</source>
         <translation>选择文件夹</translation>
     </message>

@@ -11,6 +11,7 @@
 #include "ChartViewWave.h"
 #include "ChartViewSpectrumNB.h"
 #include "ChartViewScatter.h"
+#include "Demodulate/FSKModule.h"
 #include "fftw-3.3.5-dll64/fftw3.h"
 
 template<int N>
@@ -68,6 +69,7 @@ protected:
     int index;
     double RecordThreshold = MAX_AMPL;
     bool showWave = true;
+    FSKModule fskDemod;
 
     enum SHOW_MODE
     {

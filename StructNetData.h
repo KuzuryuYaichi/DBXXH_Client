@@ -53,9 +53,9 @@ struct StructNBWave
 
 struct Pulse
 {
-    unsigned int PulseWidth; // 第2字节	脉宽的高8位（23～16） 值转换成十进制 / 96 单位：us 第3～4字节	脉宽的低16位（15～0）
+    unsigned int PulseWidth; // 第2字节	脉宽的高8位（23～16） 值转换成十进制 / 96 单位us 第3～4字节	脉宽的低16位（15～0）
     unsigned short PulseAmpl; // 第5～6字节	脉幅	直接显示
-    unsigned short DDS; // 第7～8字节 频率参数	值转换成十进制 * 96 / 65536单位：MHz
+    unsigned short DDS; // 第7～8字节 频率参数	值转换成十进制 * 96 / 65536单位MHz
     unsigned int Time; // 第9～12字节 TOA[63:32]
     unsigned int Nanoseconds; // 第13～16字节 秒内计数器
 };

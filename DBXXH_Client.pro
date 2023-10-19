@@ -11,6 +11,8 @@ INCLUDEPATH += \
     'C:/Program Files (x86)/Intel/oneAPI/ipp/2021.9.0/include'
 
 SOURCES += \
+    Demodulate/IPPFir.cpp \
+    Demodulate/FSKModule.cpp \
     ChannelWidget.cpp \
     ChartViewAfterglow.cpp \
     ChartViewCustom.cpp \
@@ -47,6 +49,8 @@ SOURCES += \
     src/WBSignalDetectWidget.cpp
 
 HEADERS += \
+    Demodulate/Export.h \
+    Demodulate/FSKModule.h \
     ChannelWidget.h \
     ChartViewAfterglow.h \
     ChartViewCustom.h \

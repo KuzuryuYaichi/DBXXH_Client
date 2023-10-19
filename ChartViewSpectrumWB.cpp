@@ -13,7 +13,7 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
 
     MinKeepSeries = addGraph();
     MinKeepSeries->setName(tr("Min Keep"));
-    MinKeepSeries->setPen(QPen(Qt::yellow));
+    MinKeepSeries->setPen(QPen(QColor(128, 0, 128)));
     MinKeepSeries->setLineStyle(QCPGraph::lsLine);
     MinKeepSeries->rescaleAxes(true);
 

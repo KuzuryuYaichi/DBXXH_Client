@@ -36,8 +36,9 @@ struct SignalInfo
 struct DisplaySignalCharacter
 {
     SignalInfo Info;
-    qint64 startTime = 0; //时间戳ms
-    qint64 stopTime = 0;
+    qint64 startTime; //时间戳ms
+    qint64 stopTime;
+    qint64 BlankTime = 0;
     bool isLegal = true;
 
     DisplaySignalCharacter(const SignalInfo& Info, qint64 startTime): Info(Info), startTime(startTime), stopTime(startTime) {}

@@ -37,7 +37,7 @@ ThreadAudio::ThreadAudio(QObject *parent): QObject(parent), MediaDevices(new QMe
                     buffer[i] = data[i].I;
                 io->write((char*)buffer.get(), param->DataPoint * sizeof(short));
             }
-            std::this_thread::sleep_for(std::chrono::microseconds(100));
+            std::this_thread::sleep_for(std::chrono::microseconds(1));
         }
         io->close();
     });
@@ -62,7 +62,6 @@ void ThreadAudio::ParamChanged(int SampleRate)
     fmt.setChannelCount(1);
     fmt.setSampleFormat(QAudioFormat::Int16);
     fmt.setSampleRate(SampleRate);
-    fmt.setChannelConfig(QAudioFormat::ChannelConfigMono);
     if (io)
         io->close();
     AudioSink = std::make_unique<QAudioSink>(MediaDevices->defaultAudioOutput(), fmt);

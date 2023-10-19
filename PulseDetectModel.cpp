@@ -1,6 +1,7 @@
 #include "PulseDetectModel.h"
 
 #include <QDateTime>
+#include "global.h"
 
 PulseDetectModel::PulseDetectModel(QObject *parent): WBSignalDetectModel(parent) {}
 
@@ -15,7 +16,7 @@ QVariant PulseDetectModel::headerData(int section, Qt::Orientation orientation, 
 
 int PulseDetectModel::columnCount(const QModelIndex&) const
 {
-    return 5;
+    return 4;
 }
 
 Qt::ItemFlags PulseDetectModel::flags(const QModelIndex& index) const
@@ -52,7 +53,7 @@ void PulseDetectModel::UpdateData()
         line[0] = QString::number(freq * 3.0 / 2048, 'f', 6);
         line[1] = std::lower_bound(AMPL_LIST, AMPL_LIST + 63, pulse.PulseAmpl) - AMPL_LIST - 69;
         line[2] = pulse.PulseWidth / 96.0;
-        line[3] = pulse.Time.toString("hh:mm:ss");
+        line[3] = pulse.Time.toString(TIME_FORMAT);
         m_DisplayData.emplace_back(std::move(line));
     }
     endResetModel();

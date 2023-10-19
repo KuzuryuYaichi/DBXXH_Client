@@ -3,6 +3,8 @@
 #include <QDateTime>
 #include <QMessageBox>
 
+#include "global.h"
+
 ManMadeNoiseModel::ManMadeNoiseModel(QObject *parent): WBSignalDetectModel(parent)
 {
     setLstTypicalFreq({ (int)2e6, (int)2.5e6, (int)5e6, (int)10e6, (int)15e6, (int)20e6, (int)25e6 });
@@ -119,9 +121,9 @@ void ManMadeNoiseModel::findNoiseCharaAroundTypicalFreq(Ipp32f *FFtAvg, int leng
     }
 }
 
-std::unordered_map<int, int> ManMadeNoiseModel::mapExistTypicalFreqNoiseRecordAmount() const
+std::map<int, int> ManMadeNoiseModel::mapExistTypicalFreqNoiseRecordAmount() const
 {
-    std::unordered_map<int, int> ExistTypicalFreqNoiseRecordAmount;
+    std::map<int, int> ExistTypicalFreqNoiseRecordAmount;
     for (const auto& [key, value]: m_mapManMadeNoiseCharacter)
         ExistTypicalFreqNoiseRecordAmount[key] = value.size();
     return ExistTypicalFreqNoiseRecordAmount;
@@ -165,9 +167,9 @@ void ManMadeNoiseModel::UpdateData()
             line[0] = QString::number(double(curNoiseFreq) / double(1e6), 'f', 6);
             line[1] = QString::number(double(restoredNoiseCharacter.CenterFreq) / double(1e6), 'f', 6);
             if (restoredNoiseCharacter.startTime)
-                line[2] = QDateTime::fromMSecsSinceEpoch(restoredNoiseCharacter.startTime).toString("hh:mm:ss"); //起始时间
+                line[2] = QDateTime::fromMSecsSinceEpoch(restoredNoiseCharacter.startTime).toString(TIME_FORMAT); //起始时间
             if (restoredNoiseCharacter.stopTime)
-                line[3] = QDateTime::fromMSecsSinceEpoch(restoredNoiseCharacter.stopTime).toString("hh:mm:ss"); //结束时间
+                line[3] = QDateTime::fromMSecsSinceEpoch(restoredNoiseCharacter.stopTime).toString(TIME_FORMAT); //结束时间
             line[4] = QString::number(restoredNoiseCharacter.Amp + 107);
             m_DisplayData.emplace_back(std::move(line));
         }
@@ -199,7 +201,7 @@ void ManMadeNoiseModel::UpdateData()
 bool ManMadeNoiseModel::GenerateExcelManMadeNoiseTable(QString folderName)
 {
     auto amount = mapExistTypicalFreqNoiseRecordAmount();
-    QString fileName = folderName + "/电磁环境人为噪声电平测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh：mm：ss") + ".xlsx";
+    QString fileName = folderName + "/电磁环境人为噪声电平测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx";
     QXlsx::Document xlsx;
     //不跟随当前实际信号状态递增的部分
     QXlsx::Format format;

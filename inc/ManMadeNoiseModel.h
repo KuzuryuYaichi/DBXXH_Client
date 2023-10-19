@@ -59,7 +59,7 @@ public:
 
     const std::map<int, std::map<int, int>>& lstTypicalFreq() const;
     void setLstTypicalFreq(const std::list<int>&);
-    std::unordered_map<int, int> mapExistTypicalFreqNoiseRecordAmount() const;
+    std::map<int, int> mapExistTypicalFreqNoiseRecordAmount() const;
     void findNoiseCharaAroundTypicalFreq(Ipp32f*, int, int, int);
 
     bool GenerateExcelManMadeNoiseTable(QString);
