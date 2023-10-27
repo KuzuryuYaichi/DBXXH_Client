@@ -54,7 +54,7 @@ void PulseDetectModel::UpdateData()
         line[1] = std::lower_bound(AMPL_LIST, AMPL_LIST + 63, pulse.PulseAmpl) - AMPL_LIST - 69;
         line[2] = pulse.PulseWidth / 96.0;
         line[3] = pulse.Time.toString(TIME_FORMAT);
-        m_DisplayData.emplace_back(std::move(line));
+        m_DisplayData.emplace_back(std::pair{ QUuid::createUuid(), std::move(line) });
     }
     endResetModel();
     m_Pulse.clear();

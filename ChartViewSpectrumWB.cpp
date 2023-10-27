@@ -19,13 +19,21 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
 
     BandwidthSeries->setData({ MID_FREQ - 75e-3, MID_FREQ - 75e-3, MID_FREQ + 75e-3, MID_FREQ + 75e-3 }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
 
-    QColor RectBrushColor(0, 0, 255, 50);
+    QColor TrackColor(0, 0, 255, 50);
     TrackSeries = addGraph();
     TrackSeries->setName("Track");
-    TrackSeries->setPen(QPen(RectBrushColor));
+    TrackSeries->setPen(QPen(TrackColor));
     TrackSeries->setLineStyle(QCPGraph::lsLine);
     TrackSeries->rescaleAxes(true);
-    TrackSeries->setBrush(QBrush(RectBrushColor));
+    TrackSeries->setBrush(QBrush(TrackColor));
+
+    QColor FM_IndexColor(128, 0, 128, 50);
+    FM_IndexSeries = addGraph();
+    FM_IndexSeries->setName("FM Index");
+    FM_IndexSeries->setPen(QPen(FM_IndexColor));
+    FM_IndexSeries->setLineStyle(QCPGraph::lsLine);
+    FM_IndexSeries->rescaleAxes(true);
+    FM_IndexSeries->setBrush(QBrush(FM_IndexColor));
 
     plotLayout()->insertRow(1);
     plotLayout()->addElement(1, 0, MarkElement = new QCPLayoutGrid);
@@ -58,6 +66,8 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
         TracerText[i]->setVisible(false);
     }
 
+    BandwidthSeries->setVisible(false);
+
     InitMenu();
     setContextMenuPolicy(Qt::CustomContextMenu);
     connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
@@ -68,6 +78,7 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
 
     connect(this, &QCustomPlot::mouseMove, this, [this](QMouseEvent *event) {
         UpdateTrack(event);
+        UpdateIndex(event);
         UpdateRuler(event);
         replot();
     });
@@ -86,9 +97,14 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
             break;
         }
         case TRACK:
-        case MEASURE:
         {
             TrackStartFreq = x;
+            LeftButtonPress = true;
+            break;
+        }
+        case FM_INDEX:
+        {
+            FM_StartFreq = x;
             LeftButtonPress = true;
             break;
         }
@@ -120,17 +136,17 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
             case NORMAL:
             {
                 LeftButtonPress = false;
-                //            emit RecordThresholdSignal(GateSeries->data().data()->at(0)->value);
                 break;
             }
             case TRACK:
-                //            {
-                //                LeftButtonPress = false;
-                //                break;
-                //            }
-            case MEASURE:
             {
                 TrackEndFreq = xAxis->pixelToCoord(event->pos().x());
+                LeftButtonPress = false;
+                break;
+            }
+            case FM_INDEX:
+            {
+                FM_EndFreq = xAxis->pixelToCoord(event->pos().x());
                 LeftButtonPress = false;
                 break;
             }
@@ -166,6 +182,7 @@ void ChartViewSpectrumWB::replace(unsigned char* const buf)
     AnalyzeMark(StartFreq, freq_step, amplData, DataPoint);
     AnalyzeMeasure(StartFreq, freq_step, DataPoint);
     AnalyzeTrack(StartFreq, freq_step, amplData, DataPoint);
+    AnalyzeFM_Index(StartFreq, freq_step, DataPoint);
 
     QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
     auto x = StartFreq;
@@ -173,6 +190,8 @@ void ChartViewSpectrumWB::replace(unsigned char* const buf)
     {
         amplx[i] = x;
         double y = (short)amplData[i] + AMPL_OFFSET;
+//        if (y < -110)
+//            y -= 8;
         amply[i] = y;
         pointsMax[i] = std::max(y, pointsMax[i]);
         pointsMin[i] = std::min(y, pointsMin[i]);
@@ -233,16 +252,20 @@ void ChartViewSpectrumWB::InitMenu()
         });
     }
 
-//    auto measureAction = new QAction(tr("Measure"));
-//    menu->addAction(measureAction);
-//    connect(measureAction, &QAction::triggered, this, [this] {
-//        DisplayState = MEASURE;
-//    });
-
     auto trackAction = new QAction(tr("Track"));
     menu->addAction(trackAction);
     connect(trackAction, &QAction::triggered, this, [this] {
+        FM_IndexSeries->setVisible(false);
+        TrackSeries->setVisible(true);
         DisplayState = TRACK;
+    });
+
+    auto measureAction = new QAction(tr("Measure"));
+    menu->addAction(measureAction);
+    connect(measureAction, &QAction::triggered, this, [this] {
+        TrackSeries->setVisible(false);
+        FM_IndexSeries->setVisible(true);
+        DisplayState = FM_INDEX;
     });
 }
 
@@ -267,6 +290,16 @@ void ChartViewSpectrumWB::UpdateTrack(QMouseEvent *event)
         auto xValue = xAxis->pixelToCoord(event->pos().x());
         QVector<double> x{ TrackStartFreq, TrackStartFreq, xValue, xValue }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
         TrackSeries->setData(x, y, true);
+    }
+}
+
+void ChartViewSpectrumWB::UpdateIndex(QMouseEvent *event)
+{
+    if (DisplayState == FM_INDEX && LeftButtonPress)
+    {
+        auto xValue = xAxis->pixelToCoord(event->pos().x());
+        QVector<double> x{ FM_StartFreq, FM_StartFreq, xValue, xValue }, y{ MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL };
+        FM_IndexSeries->setData(x, y, true);
     }
 }
 
@@ -306,6 +339,19 @@ void ChartViewSpectrumWB::AnalyzeMark(double StartFreq, double freq_step, unsign
             ((QCPTextElement*)MarkElement->elementAt(i))->setText("-");
     }
     emit triggerMark(MarkData);
+}
+
+
+void ChartViewSpectrumWB::AnalyzeFM_Index(double StartFreq, double freq_step, int DataPoint)
+{
+    auto LargerFreq = std::max(FM_StartFreq, FM_EndFreq), SmallerFreq = std::min(FM_StartFreq, FM_EndFreq);
+    auto indexStart = (LargerFreq - StartFreq) / freq_step;
+    if (indexStart <= 0 || indexStart >= DataPoint)
+        return;
+    auto indexEnd = (SmallerFreq - StartFreq) / freq_step;
+    if (indexEnd <= 0 || indexEnd >= DataPoint)
+        return;
+    emit triggerFM_Index(LargerFreq - SmallerFreq);
 }
 
 void ChartViewSpectrumWB::AnalyzeMeasure(double StartFreq, double freq_step, int DataPoint)

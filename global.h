@@ -4,7 +4,6 @@
 #include "TinyConfig.h"
 #include <QColor>
 
-static constexpr int CHANNEL_NUM = 4;
 static constexpr int ZC_NB_CHANNEL_NUMS = 8;
 static constexpr short AMPL_OFFSET = -180;
 static constexpr int DDC_LEN = 2048;

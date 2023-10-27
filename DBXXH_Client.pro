@@ -11,6 +11,7 @@ INCLUDEPATH += \
     'C:/Program Files (x86)/Intel/oneAPI/ipp/2021.9.0/include'
 
 SOURCES += \
+    ConductivityDialog.cpp \
     Demodulate/IPPFir.cpp \
     Demodulate/FSKModule.cpp \
     ChannelWidget.cpp \
@@ -33,22 +34,25 @@ SOURCES += \
     Model.cpp \
     PulseDetectModel.cpp \
     PulseDetectTableView.cpp \
+    ResistivityDialog.cpp \
     TcpSocket.cpp \
     ThreadAudio.cpp \
     TinyConfig.cpp \
     global.cpp \
     main.cpp \
+    src/CommonInfoDialog.cpp \
     src/ManMadeNoiseModel.cpp \
+    src/PopupParamDialog.cpp \
     src/SignalNoiseModel.cpp \
     src/DisturbNoiseTableView.cpp \
     src/ManMadeNoiseTableView.cpp \
-    src/PopupParamSet.cpp \
     src/SignalDetectTableView.cpp \
-    src/TypicalFreqSetWidget.cpp \
+    src/TypicalFreqDialog.cpp \
     src/WBSignalDetectModel.cpp \
     src/WBSignalDetectWidget.cpp
 
 HEADERS += \
+    ConductivityDialog.h \
     Demodulate/Export.h \
     Demodulate/FSKModule.h \
     ChannelWidget.h \
@@ -71,6 +75,7 @@ HEADERS += \
     Model.h \
     PulseDetectModel.h \
     PulseDetectTableView.h \
+    ResistivityDialog.h \
     StructNetData.h \
     StructSample.h \
     TcpSocket.h \
@@ -78,13 +83,14 @@ HEADERS += \
     ThreadSafeQueue.h \
     TinyConfig.h \
     global.h \
+    inc/CommonInfoDialog.h \
     inc/ManMadeNoiseModel.h \
+    inc/PopupParamDialog.h \
     inc/SignalNoiseModel.h \
     inc/DisturbNoiseTableView.h \
     inc/ManMadeNoiseTableView.h \
-    inc/PopupParamSet.h \
     inc/SignalDetectTableView.h \
-    inc/TypicalFreqSetWidget.h \
+    inc/TypicalFreqDialog.h \
     inc/WBSignalDetectModel.h \
     inc/WBSignalDetectWidget.h
 

@@ -2,13 +2,14 @@
 #define WBSIGNALDETECTMODEL_H
 
 #include <QAbstractTableModel>
-#include <QFont>
 #include <QAxObject>
 #include <QAxWidget>
+#include <QUuid>
 #include <mutex>
 
-#include "QXlsx/xlsxdocument.h"
-#include "QXlsx/xlsxcellrange.h"
+#include "inc/CommonInfoDialog.h"
+#include "ResistivityDialog.h"
+#include "ConductivityDialog.h"
 
 #include "ipp.h"
 #include "ippcore.h"
@@ -35,7 +36,7 @@ public slots:
 protected:
     void TimeRecord();
     void MergeCells(QAxObject*, int, int, int, int);
-    std::vector<std::vector<QVariant>> m_DisplayData;
+    std::vector<std::pair<QUuid, std::vector<QVariant>>> m_DisplayData;
     qint64 m_i64SystemStartTime = 0;                //系统启动时的时间，软件启动时开始计算，用于计算信号占用率
     qint64 m_i64SystemStopTime = 0;                 //系统/信号分析 停止时的时间，用于计算信号占用率，也作为当前处理的停止时间
     qint64 m_i64CurrentDetectStartTime = 0;         //当前信号处理的开始时间

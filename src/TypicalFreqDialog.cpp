@@ -1,15 +1,15 @@
-#include "../inc/TypicalFreqSetWidget.h"
+#include "../inc/TypicalFreqDialog.h"
 
 #include <QBoxLayout>
 #include <QLabel>
 #include <QMessageBox>
 
-TypicalFreqSetWidget::TypicalFreqSetWidget(QWidget *parent): QDialog(parent)
+TypicalFreqDialog::TypicalFreqDialog(QWidget *parent): QDialog(parent)
 {
     setupUi();
 }
 
-void TypicalFreqSetWidget::SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, int>>& lst)
+void TypicalFreqDialog::SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, double>>& lst)
 {
     if (lst.size() > SETTING_LINE)
         return;
@@ -27,7 +27,7 @@ void TypicalFreqSetWidget::SetCurrentTypicalFreqFromTable(const std::map<int, st
     }
 }
 
-void TypicalFreqSetWidget::setupUi()
+void TypicalFreqDialog::setupUi()
 {
     auto vBoxLayout = new QVBoxLayout(this);
     for (auto i = 0; i < SETTING_LINE; ++i)
@@ -51,6 +51,11 @@ void TypicalFreqSetWidget::setupUi()
             if (checkBox_Enable[i]->isChecked())
                 m_lstValue.emplace_back(lineEdit_TypicalFreq[i]->text().toDouble() * 1e6);
         }
+        if (m_lstValue.empty())
+        {
+            QMessageBox::information(nullptr, "典型频点设置", "无有效频点，设置失败！");
+            return;
+        }
         //检查设置的典型频点彼此间是否在0.4mhz以上
         for (const auto& freqA: m_lstValue)
         {
@@ -66,7 +71,7 @@ void TypicalFreqSetWidget::setupUi()
             }
         }
         emit sigHaveTypicalFreq(m_lstValue);
-        QMessageBox::information(nullptr, "典型频点设置", m_lstValue.empty()? "无有效频点，设置失败！": "设置成功！");
+        close();
     });
     horizontalLayout->addWidget(pushButton_Cancel = new QPushButton("取消"));
     connect(pushButton_Cancel, &QPushButton::clicked, this, &QDialog::close);

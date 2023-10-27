@@ -73,25 +73,6 @@ Model::Model(QWidget *parent): QMainWindow(parent)
             }
             case 0x512:
             {
-                auto self_check = (StructDeviceScheckRev*)(buf + sizeof(DataHead));
-                QStringList statusList;
-                for (int i = 0; i < CHANNEL_NUM; ++i)
-                {
-                    statusList.append(self_check->ScheckResult & (1 << i)? tr("Fault"): tr("OK"));
-                }
-                statusList.append(self_check->ScheckResult & (1 << 30)? tr("Fault"): tr("OK"));
-                statusList.append(self_check->ScheckResult & (1 << 31)? tr("Fault"): tr("OK"));
-                for (int i = 0; i < CHANNEL_NUM; ++i)
-                {
-                    statusList.append(self_check->AScheckResult & (1 << i)? tr("Fault"): tr("OK"));
-                }
-                static QString LabelText = tr("\nReceiverChannel:%1\nChannel1:%2, Channel2:%3, Channel3:%4, Channel4:%5\nLO Status:%6\nCorrectStatus:%7\nAntennas:%8\nAntenna1:%9, Antenna2:%10, Antenna3:%11, Antenna4:%12");
-                m_statusList.append(LabelText.arg(self_check->DeviveChNum)
-                        .arg(statusList[0]).arg(statusList[1]).arg(statusList[2]).arg(statusList[3])
-                        .arg(statusList[4]).arg(statusList[5]).arg(self_check->AGroupNum)
-                        .arg(statusList[6]).arg(statusList[7]).arg(statusList[8]).arg(statusList[9]));
-                emit sendDeviceStatus(m_statusList);
-                m_statusList.clear();
                 break;
             }
             case 0x515:

@@ -4,7 +4,6 @@
 #include <QFileInfo>
 #include <QCheckBox>
 #include <QMessageBox>
-#include "QXlsx/xlsxdocument.h"
 
 CheckBoxDelegate::CheckBoxDelegate(QObject *parent): QItemDelegate(parent) {}
 

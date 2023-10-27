@@ -60,7 +60,7 @@ protected:
     QLabel* LblFSK, *LblDQPSK, *LblDepthAM, *DepthAM;
     QDoubleSpinBox* RateEditFSK, *RateEditDQPSK;
     QComboBox* demodBox;
-    QPushButton* playBtn;
+    QPushButton* playBtn, *showWaveBtn;
     QPushButton* recordBtn;
     QSpinBox* cwEdit;
     bool recording = false;

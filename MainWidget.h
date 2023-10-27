@@ -31,15 +31,13 @@ private:
 
     QLineEdit *ipEdit;
     QLineEdit *portEdit;
-    QLabel* MarkerFreqLbl[MARKER_NUM], * MarkerAmplLbl[MARKER_NUM], *MeasureLbl, *MaxFreqLbl, *MaxAmplLbl;
+    QLabel* MarkerFreqLbl[MARKER_NUM], * MarkerAmplLbl[MARKER_NUM], *MeasureLbl, *MaxFreqLbl, *MaxAmplLbl, *FM_IndexLbl;
     QTimer* m_updater;
     QPushButton* saveBtn;
-    QDoubleSpinBox* FM_OffsetEdit, *FM_FreqEdit;
-    QLabel* FM_Index;
+    QDoubleSpinBox* FM_FreqEdit;
 
     std::vector<std::tuple<bool, double, double>> MarkData;
-    double Distance = 0;
-    double MaxFreq = MIN_FREQ, MaxAmpl = MAX_AMPL;
+    double Distance = 0, FM_Offset = 0, MaxFreq = MIN_FREQ, MaxAmpl = MAX_AMPL;
 };
 
 #endif // ChartWidget_H

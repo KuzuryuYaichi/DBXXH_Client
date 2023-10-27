@@ -57,22 +57,35 @@ MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* paren
         chartWB->chartSpectrum->SaveSpectrum(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss") + ".png");
     });
 
-    auto measureGroupBox = new QGroupBox(tr("Freq Measure"));
-    settingLayout->addRow(measureGroupBox);
-    auto measureLayout = new QFormLayout(measureGroupBox);
-    measureLayout->addRow(tr("Measure"), MeasureLbl = new QLabel("-"));
+    auto TrackMeasureGroupBox = new QGroupBox(tr("Track Measure"));
+    settingLayout->addRow(TrackMeasureGroupBox);
+    auto TrackMeasureLayout = new QFormLayout(TrackMeasureGroupBox);
+    TrackMeasureLayout->addRow(tr("Measure"), MeasureLbl = new QLabel("-"));
     connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerMeasure, this, [this](double Distance) {
         this->Distance = Distance;
     });
-
-    auto trackGroupBox = new QGroupBox(tr("Freq Track"));
-    settingLayout->addRow(trackGroupBox);
-    auto trackLayout = new QFormLayout(trackGroupBox);
-    trackLayout->addRow(tr("MaxFreq"), MaxFreqLbl = new QLabel("-"));
-    trackLayout->addRow(tr("MaxAmpl"), MaxAmplLbl = new QLabel("-"));
+    TrackMeasureLayout->addRow(tr("MaxFreq"), MaxFreqLbl = new QLabel("-"));
+    TrackMeasureLayout->addRow(tr("MaxAmpl"), MaxAmplLbl = new QLabel("-"));
     connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerTrack, this, [this](double MaxFreq, double MaxAmpl) {
         this->MaxFreq = MaxFreq;
         this->MaxAmpl = MaxAmpl;
+    });
+
+    auto FM_IndexGroupBox = new QGroupBox(tr("FM Index"));
+    settingLayout->addRow(FM_IndexGroupBox);
+    auto frequecyLayout = new QFormLayout(FM_IndexGroupBox);
+    frequecyLayout->addRow(tr("FM_Freq(kHz)"), FM_FreqEdit = new QDoubleSpinBox);
+    FM_FreqEdit->setMinimum(0.1);
+    FM_FreqEdit->setValue(1);
+    connect(FM_FreqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
+        if (FM_FreqEdit->hasFocus() && FM_FreqEdit->value())
+        {
+            FM_IndexLbl->setText(QString("%1").arg(FM_Offset * 1e3 / FM_FreqEdit->value()));
+        }
+    });
+    frequecyLayout->addRow(tr("FM_Index"), FM_IndexLbl = new QLabel("0"));
+    connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerFM_Index, this, [this](double FM_Offset) {
+        this->FM_Offset = FM_Offset;
     });
 
     m_updater = new QTimer;
@@ -97,31 +110,11 @@ MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* paren
             MeasureLbl->setText(QStringLiteral("%1MHz").arg(Distance));
             MaxFreqLbl->setText(QStringLiteral("%1MHz").arg(MaxFreq));
             MaxAmplLbl->setText(QStringLiteral("%1dBm").arg(MaxAmpl));
+            FM_IndexLbl->setText(QString("%1").arg(FM_Offset * 1e3 / FM_FreqEdit->value()));
         }
         m_updater->start();
     });
     m_updater->start();
-
-    auto frequecyOffsetGroupBox = new QGroupBox(tr("FM Mod"));
-    settingLayout->addRow(frequecyOffsetGroupBox);
-    auto frequecyLayout = new QFormLayout(frequecyOffsetGroupBox);
-    frequecyLayout->addRow(tr("FM_Offset(kHz)"), FM_OffsetEdit = new QDoubleSpinBox);
-    FM_OffsetEdit->setValue(0);
-    connect(FM_OffsetEdit, &QDoubleSpinBox::editingFinished, this, [this] {
-        if (FM_OffsetEdit->hasFocus() && FM_FreqEdit->value())
-        {
-            FM_Index->setText(QString("%1").arg(FM_OffsetEdit->value() / FM_FreqEdit->value()));
-        }
-    });
-    frequecyLayout->addRow(tr("FM_Freq(kHz)"), FM_FreqEdit = new QDoubleSpinBox);
-    FM_FreqEdit->setValue(0);
-    connect(FM_FreqEdit, &QDoubleSpinBox::editingFinished, this, [this] {
-        if (FM_FreqEdit->hasFocus() && FM_FreqEdit->value())
-        {
-            FM_Index->setText(QString("%1").arg(FM_OffsetEdit->value() / FM_FreqEdit->value()));
-        }
-    });
-    frequecyLayout->addRow(tr("FM_Index"), FM_Index = new QLabel("0"));
 
     auto connectBox = new QGroupBox(tr("Network"));
     settingLayout->addRow(connectBox);

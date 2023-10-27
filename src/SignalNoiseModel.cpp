@@ -4,13 +4,15 @@
 #include <QTimer>
 #include <QSettings>
 #include <QMessageBox>
+#include <QFileDialog>
+
+#include "QXlsx/xlsxdocument.h"
 
 #include "global.h"
 
 //考虑使用全局量记录频点识别门限以及带宽识别门限
 uint g_FreqPointThreshold = 10000; //单位为Hz
 uint g_BandwidthThreshold = 10000; //单位为Hz
-uint g_ActiveThreshold = 10;
 float g_AmplThreshold = -60; //dBm
 
 SignalNoiseModel::SignalNoiseModel(QObject* parent): WBSignalDetectModel(parent) {}
@@ -57,14 +59,14 @@ QVariant SignalNoiseModel::data(const QModelIndex &index, int role) const
 {
     if (index.isValid())
     {
-        if (role == Qt::DisplayRole || role == Qt::EditRole) //显示内容
+        if (role == Qt::DisplayRole || role == Qt::EditRole)
         {
             if (index.column() == LENGTH_SIGNAL_DETECT - 1)
-                return m_DisplayData[index.row()][index.column()].toBool()? "是": "否";
+                return m_DisplayData[index.row()].second[index.column()].toBool()? "是": "否";
             else
-                return m_DisplayData[index.row()][index.column()];
+                return m_DisplayData[index.row()].second[index.column()];
         }
-        else if (role == Qt::TextAlignmentRole) //内容排版
+        else if (role == Qt::TextAlignmentRole)
             return Qt::AlignCenter;
     }
     return QVariant();
@@ -74,20 +76,17 @@ void SignalNoiseModel::SlotTriggerLegalFreqSet(bool checked)
 {
     if (!(m_bIsSettingLegalFreqFlag = checked))
     {
-        for (const auto& signalIndex: m_DisplayData) //完成修改后根据已修改状态修改map中对应数据的值
+        for (const auto& [uuid, signalIndex]: m_DisplayData) //完成修改后根据已修改状态修改map中对应数据的值
         {
-            if (signalIndex.size() >= LENGTH_SIGNAL_DETECT)
+            //LZMK:反向获取用于查询map的key 存在一些问题 //TODO:当显示频点和带宽的数据的单位发生变化时需要同时变更
+            SignalBaseChar curKey(signalIndex[0].toDouble() * 1e6, signalIndex[2].toDouble() * 1e6);
+            for (auto& [key, value]: m_mapValidSignalCharacter)
             {
-                //LZMK:反向获取用于查询map的key，存在一些问题 //TODO:当显示频点和带宽的数据的单位发生变化时需要同时变更
-                //显示时使用单位为MHz
-                SignalBaseChar curKey(signalIndex[0].toDouble() * 1e6, signalIndex[2].toDouble() * 1e6);
-                for (auto& [key, value]: m_mapValidSignalCharacter)
+                if (key.CenterFreq == curKey.CenterFreq && key.Bandwidth == curKey.Bandwidth)
+//                if (key == curKey)
                 {
-                    if (key.CenterFreq == curKey.CenterFreq && key.Bandwidth == curKey.Bandwidth)
-                    {
-                        value.front().isLegal = signalIndex[LENGTH_SIGNAL_DETECT - 1].toBool();
-                        break;
-                    }
+                    value.isLegal = signalIndex[LENGTH_SIGNAL_DETECT - 1].toBool();
+                    break;
                 }
             }
         }
@@ -100,40 +99,48 @@ void SignalNoiseModel::SlotCleanUp()
     m_i64SystemStartTime = m_i64SystemStopTime = 0;
 }
 
-bool SignalNoiseModel::SlotImportLegalFreqConf()
+bool SignalNoiseModel::ImportLegalFreqConf()
 {
     QSettings legalSetting("legalFreq.ini", QSettings::IniFormat);
     auto groups = legalSetting.childGroups();
     for (const auto& curGroup: groups)
     {
         legalSetting.beginGroup(curGroup);
-        int centerFreq = legalSetting.value("centerFreq").toInt();
-        int bandWidth = legalSetting.value("bandWidth").toInt();
+        int CenterFreq = legalSetting.value("CenterFreq").toInt();
+        int Bandwidth = legalSetting.value("Bandwidth").toInt();
+        bool findSignal = false;
         for (auto& [key, value]: m_mapValidSignalCharacter)
         {
-            if (key.CenterFreq == centerFreq && key.Bandwidth == bandWidth)
+            if (key.CenterFreq == CenterFreq && key.Bandwidth == Bandwidth)
             {
-                value.front().isLegal = false;
+                value.isLegal = false;
+                findSignal = true;
                 break;
             }
+        }
+        if (!findSignal)
+        {
+            SignalBaseChar signal(CenterFreq, Bandwidth);
+//            m_mapValidSignalCharacter.emplace( { signal, DisplaySignalCharacter()} );
         }
         legalSetting.endGroup();
     }
     return true;
 }
 
-bool SignalNoiseModel::SlotExportLegalFreqConf()
+bool SignalNoiseModel::ExportLegalFreqConf()
 {
     QSettings legalSetting("legalFreq.ini", QSettings::IniFormat);
     QString groupName("IllegalFreqGroup");
     int groupIndex = 0;
     for (const auto& [key, value]: m_mapValidSignalCharacter)
     {
-        if (!value.front().isLegal)
+        if (!value.isLegal)
         {
             legalSetting.beginGroup(groupName + QString::number(groupIndex++));
-            legalSetting.setValue("centerFreq", value.front().Info.BaseInfo.CenterFreq);
-            legalSetting.setValue("bandWidth", value.front().Info.BaseInfo.Bandwidth);
+            legalSetting.setValue("CenterFreq", value.Info.BaseInfo.CenterFreq);
+            legalSetting.setValue("Bandwidth", value.Info.BaseInfo.Bandwidth);
+            legalSetting.setValue("Remark", value.Remark);
             legalSetting.endGroup();
         }
     }
@@ -145,7 +152,7 @@ void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned l
     TimeRecord();
     m_iFullBandWidth = BandWidth;
     //从左向右查找第一个峰值的位置
-    //LZMK:对原有逻辑进行改造，原有逻辑为根据对应区间获取最大值最高点作为信号peak；
+    //LZMK:对原有逻辑进行改造，原有逻辑为根据对应区间获取最大值最高点作为信号peak
     //当前采用门限进行限制，只要存在某一点比前后两个点的幅度大的情况，即可认为是一个尖峰
     std::list<SignalInfo> m_lstSignalInfo;
     for (int totalIndex = 0; totalIndex < length;)
@@ -202,18 +209,18 @@ void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned l
             if (curInfo.BaseInfo == key) //有过记录，更新记录
             {
                 foundFlag = true;
-                if (value.back().stopTime <= currentTime - 3000)
+                if (value.stopTime <= currentTime - 3000)
                 {
-                    value.back().BlankTime += currentTime - value.back().stopTime;
+                    value.BlankTime += currentTime - value.stopTime;
                 }
-                value.back().Info = curInfo;
-                value.back().stopTime = currentTime;
+                value.Info = curInfo;
+                value.stopTime = currentTime;
                 break;
             }
         }
         if (!foundFlag && m_mapValidSignalCharacter.size() < LIST_LIMIT) //从未有过：增加map中的键值对，新增累计list
         {
-            m_mapValidSignalCharacter[curInfo.BaseInfo] = { DisplaySignalCharacter(curInfo, currentTime) };
+            m_mapValidSignalCharacter[curInfo.BaseInfo] = DisplaySignalCharacter(curInfo, currentTime);
         }
     }
 }
@@ -226,11 +233,6 @@ void SignalNoiseModel::setAmplThreshold(float newFThreshold)
 void SignalNoiseModel::setFreqPointThreshold(uint newFreqPointThreshold)
 {
     g_FreqPointThreshold = newFreqPointThreshold;
-}
-
-void SignalNoiseModel::setActiveThreshold(uint newActiveThreshold)
-{
-    g_ActiveThreshold = newActiveThreshold;
 }
 
 void SignalNoiseModel::setBandwidthThreshold(uint newBandwidthThreshold)
@@ -255,48 +257,42 @@ void SignalNoiseModel::UpdateData()
         for (const auto& [key, value]: m_mapValidSignalCharacter)
         {
             std::vector<QVariant> line(LENGTH_SIGNAL_DETECT);
-            //LZMK: 此处将HZ转为MHZ显示有可能造成后面设置合法信号时无法反向找回到map中对应的那条数据，可能存在风险
             line[0] = QString::number(double(key.CenterFreq) / 1e6, 'f', 6);
-            line[1] = QString::number(value.back().Info.Amp + 107);        //电平，采用107算法
-            line[2] = QString::number(double(value.back().Info.BaseInfo.Bandwidth) / 1e6, 'f', 6);        //带宽
-            if (value.front().startTime) //起始时间
-                line[3] = QDateTime::fromMSecsSinceEpoch(value.front().startTime).toString(TIME_FORMAT);
-            if (value.back().stopTime) //结束时间
-                line[4] = QDateTime::fromMSecsSinceEpoch(value.back().stopTime).toString(TIME_FORMAT);
-            if (m_iFullBandWidth > 0 && m_iFullBandWidth >= value.back().Info.BaseInfo.Bandwidth)
-                line[5] = QString("%1%").arg(100.0 * value.back().Info.BaseInfo.Bandwidth / m_iFullBandWidth);        //占用带宽
+            line[1] = QString::number(value.Info.Amp + 107);        //电平，采用107算法
+            line[2] = QString::number(double(value.Info.BaseInfo.Bandwidth) / 1e6, 'f', 6);        //带宽
+            if (value.startTime) //起始时间
+                line[3] = QDateTime::fromMSecsSinceEpoch(value.startTime).toString(TIME_FORMAT);
+            if (value.stopTime) //结束时间
+                line[4] = QDateTime::fromMSecsSinceEpoch(value.stopTime).toString(TIME_FORMAT);
+            if (m_iFullBandWidth > 0 && m_iFullBandWidth >= value.Info.BaseInfo.Bandwidth)
+                line[5] = QString("%1%").arg(100.0 * value.Info.BaseInfo.Bandwidth / m_iFullBandWidth);        //占用带宽
 
-            qint64 duringTime = 0;
-            qint64 nowTime = QDateTime::currentMSecsSinceEpoch();
-            for (const auto& curSigInfoInList: value) //计算一个确定频点带宽特征的信号在持续的总时间长度
-            {
-                if (curSigInfoInList.stopTime == 0)
-                {
-                    duringTime += nowTime - curSigInfoInList.startTime;
-                    break;
-                }
-                duringTime += curSigInfoInList.stopTime - curSigInfoInList.startTime - curSigInfoInList.BlankTime;
-            }
+            qint64 duringTime = 0, nowTime = QDateTime::currentMSecsSinceEpoch();
+            if (value.stopTime == 0) //计算一个确定频点带宽特征的信号在持续的总时间长度
+                duringTime += nowTime - value.startTime;
+            else
+                duringTime += value.stopTime - value.startTime - value.BlankTime;
             line[6] = QString("%1%").arg(100.0 * duringTime / ((m_i64SystemStopTime == m_i64SystemStartTime)?
                                 nowTime - m_i64SystemStartTime: m_i64SystemStopTime - m_i64SystemStartTime));
-            line[7] = value.front().isLegal; //当前频点的信号是否合法记录在每个数据链的头部元素中
-            m_DisplayData.emplace_back(std::move(line));
+            line[7] = value.isLegal; //当前频点的信号是否合法记录在每个数据链的头部元素中
+            m_DisplayData.emplace_back(std::pair{ QUuid::createUuid(), std::move(line) });
         }
     }
     else if (m_eUserViewType == DISTURB_NOISE_TABLE)
     {
         for (const auto& [key, value]: m_mapValidSignalCharacter)
         {
-            if (value.front().isLegal)
+            if (value.isLegal)
                 continue;
             std::vector<QVariant> line(LENGTH_DISTURB_NOISE);
-            line[0] = QString::number(double(key.CenterFreq) / double(1e6), 'f', 6); //干扰信号测量表格
-            line[1] = QString::number(value.back().Info.Amp + 107); //电平，采用107算法
-            if (value.front().startTime)
-                line[2] = QDateTime::fromMSecsSinceEpoch(value.front().startTime).toString(TIME_FORMAT); //起始时间
-            if (value.back().stopTime)
-                line[3] = QDateTime::fromMSecsSinceEpoch(value.back().stopTime).toString(TIME_FORMAT); //结束时间
-            m_DisplayData.emplace_back(std::move(line));
+            line[0] = QString::number(key.CenterFreq / 1e6, 'f', 6); //干扰信号测量表格
+            line[1] = QString::number(value.Info.Amp + 107); //电平，采用107算法
+            if (value.startTime)
+                line[2] = QDateTime::fromMSecsSinceEpoch(value.startTime).toString(TIME_FORMAT); //起始时间
+            if (value.stopTime)
+                line[3] = QDateTime::fromMSecsSinceEpoch(value.stopTime).toString(TIME_FORMAT); //结束时间
+            line[4] = value.Remark; //说明
+            m_DisplayData.emplace_back(std::pair{ QUuid::createUuid(), std::move(line) });
         }
     }
     endResetModel();
@@ -312,63 +308,71 @@ bool SignalBaseChar::operator<(const SignalBaseChar& other) const
     return /*(std::abs(CenterFreq - other.CenterFreq) < g_FreqPointThreshold && Bandwidth < other.Bandwidth) ||*/ CenterFreq < other.CenterFreq;
 }
 
-bool SignalNoiseModel::GenerateExcelSignalDetectTable(QString folderName)
+bool SignalNoiseModel::GenerateExcelSignalDetectTable()
 {
-    QString fileName(folderName + "/信号检测列表" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx");
+    QFileDialog dialog;
+    auto folderName = dialog.getExistingDirectory(nullptr, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (folderName.isEmpty())
+    {
+        qDebug() << "File saving cancelled.";
+        return false;
+    }
+
     QXlsx::Format format;
     format.setHorizontalAlignment(QXlsx::Format::AlignHCenter);
     format.setVerticalAlignment(QXlsx::Format::AlignVCenter);
     format.setBorderStyle(QXlsx::Format::BorderThin);
     QXlsx::Document xlsx;
-    // Write column headers
     for (int col = 0; col < columnCount(); ++col)
     {
-        xlsx.write(1, col + 1, QString(HEADER_LABEL_SIGNAL_DETECT[col]));
+        xlsx.write(2, col + 2, QString(HEADER_LABEL_SIGNAL_DETECT[col]), format);
     }
-    // Write table data
     for (int row = 0; row < rowCount(); ++row)
     {
         for (int col = 0; col < columnCount(); ++col)
         {
             auto item = index(row, col);
             if (item.isValid())
-                xlsx.write(row + 2, col + 1, data(item), format);
+                xlsx.write(row + 3, col + 2, data(item), format);
         }
     }
-    // Save the Excel file
-    return xlsx.saveAs(fileName);
+    return xlsx.saveAs(folderName + "/信号检测列表" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx");
 }
 
-bool SignalNoiseModel::GenerateExcelDisturbNoiseTable(QString folderName)
+bool SignalNoiseModel::GenerateExcelDisturbNoiseTable(const CommonInfoSet& CommonInfo)
 {
-    QString fileName = folderName + "/干扰信号测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx";
+    QFileDialog dialog;
+    auto folderName = dialog.getExistingDirectory(nullptr, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (folderName.isEmpty())
+    {
+        qDebug() << "File saving cancelled.";
+        return false;
+    }
 
     QXlsx::Document xlsx;
-
-    //不跟随当前实际信号状态递增的部分
     QXlsx::Format format;
     format.setHorizontalAlignment(QXlsx::Format::AlignHCenter);
     format.setVerticalAlignment(QXlsx::Format::AlignVCenter);
     format.setBorderStyle(QXlsx::Format::BorderThin);
     QXlsx::CellRange range("B2:D2");
     xlsx.mergeCells(range, format);
-    xlsx.write("B2", "测量日期和时间：     年   月   日		", format);
+    xlsx.write("B2", QString("测量日期：%1").arg(CommonInfo.Date.toString(" yyyy年 MM月 dd日")), format);
 
     range = QXlsx::CellRange("E2:I2");
     xlsx.mergeCells(range, format);
-    xlsx.write("E2", "测试地点：         北纬：       东经：				", format);
+    xlsx.write("E2", QString("测试地点：%1       北纬：°N     东经：°E	").arg(CommonInfo.TestPosition), format);
 
     xlsx.write("B3", "环境条件", format);
 
     range = QXlsx::CellRange("C3:I3");
     xlsx.mergeCells(range, format);
-    xlsx.write("C3", "天气状况：      温度：           湿度：						", format);
+    xlsx.write("C3", QString("天气状况：%1    温度：%2℃          湿度：%3%rh			").arg(CommonInfo.Weather).arg(CommonInfo.Temprature).arg(CommonInfo.Humidity), format);
 
     xlsx.write("B4", "测量仪器", format);
 
     range = QXlsx::CellRange("C4:D4");
     xlsx.mergeCells(range, format);
-    xlsx.write("C4", "", format);
+    xlsx.write("C4", "短波接收天线 短波测量仪", format);
 
     xlsx.write("E4", "中频带宽", format);
     xlsx.write("F4", "2.4kHz", format);
@@ -378,23 +382,18 @@ bool SignalNoiseModel::GenerateExcelDisturbNoiseTable(QString folderName)
     range = QXlsx::CellRange("H4:I4");
     xlsx.mergeCells(range, format);
     xlsx.write("H4", "RMS", format);
-
-    // Write column headers
     xlsx.write("B5", QString(HEADER_LABEL_DISTURB_NOISE[0]), format);
 
     range = QXlsx::CellRange("C5:D5");
     xlsx.mergeCells(range, format);
     xlsx.write("C5", QString(HEADER_LABEL_DISTURB_NOISE[1]), format);
-
     xlsx.write("E5", QString(HEADER_LABEL_DISTURB_NOISE[2]), format);
-
     xlsx.write("F5", QString(HEADER_LABEL_DISTURB_NOISE[3]), format);
 
     range = QXlsx::CellRange("G5:I5");
     xlsx.mergeCells(range, format);
     xlsx.write("G5", "说明", format);
 
-    // Write table data
     int dataPosRow = 6;
     QModelIndex item;
     for (int row = 0; row < rowCount(); ++row)
@@ -420,12 +419,13 @@ bool SignalNoiseModel::GenerateExcelDisturbNoiseTable(QString folderName)
 
         range = QXlsx::CellRange("G" + QString::number(dataPosRow) + ":" + "I" + QString::number(dataPosRow));
         xlsx.mergeCells(range, format);
+        item = index(row, curDataCol++);
+        if (item.isValid())
+            xlsx.write(QString("G") + QString::number(dataPosRow), data(item), format);
 
         ++dataPosRow;
     }
-
-    // Save the Excel file
-    return xlsx.saveAs(fileName);
+    return xlsx.saveAs(folderName + "/干扰信号测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx");
 }
 
 bool SignalNoiseModel::GenerateWordDisturbNoiseTable(QAxObject* document)

@@ -2,11 +2,15 @@
 
 #include <QDateTime>
 #include <QMessageBox>
+#include <QFileDialog>
+
+#include "QXlsx/xlsxdocument.h"
 
 #include "global.h"
 
 ManMadeNoiseModel::ManMadeNoiseModel(QObject *parent): WBSignalDetectModel(parent)
 {
+    qRegisterMetaType<std::list<int>>("std::list<int>");
     setLstTypicalFreq({ (int)2e6, (int)2.5e6, (int)5e6, (int)10e6, (int)15e6, (int)20e6, (int)25e6 });
 }
 
@@ -65,7 +69,7 @@ void ManMadeNoiseModel::getManMadeNoiseAmpInEveryTestFreqSpanFromFullSpan(Ipp32f
 void ManMadeNoiseModel::findNoiseCharaAroundTypicalFreq(Ipp32f *FFtAvg, int length, int StartFreq, int BandWidth)
 {
     TimeRecord();
-    qint64 nowtime = QDateTime::currentMSecsSinceEpoch(); //1s执行一次
+    auto nowtime = QDateTime::currentMSecsSinceEpoch(); //1s执行一次
     if (nowtime - m_iFindNoiseCharaTimeGap <= 1000)
         return;
     m_iFindNoiseCharaTimeGap = nowtime;
@@ -79,7 +83,7 @@ void ManMadeNoiseModel::findNoiseCharaAroundTypicalFreq(Ipp32f *FFtAvg, int leng
         {
             lstStarter.emplace_back(ManMadeNoiseInfo(testFreq, Ampl, m_i64CurrentDetectStartTime));
         }
-        if (!m_mapManMadeNoiseCharacter.contains(typicalFreq)) //初次处理
+        if (!m_mapManMadeNoiseCharacter.contains(typicalFreq))
         {
             m_mapManMadeNoiseCharacter[typicalFreq] = std::move(lstStarter);
         }
@@ -129,7 +133,7 @@ std::map<int, int> ManMadeNoiseModel::mapExistTypicalFreqNoiseRecordAmount() con
     return ExistTypicalFreqNoiseRecordAmount;
 }
 
-const std::map<int, std::map<int, int>>& ManMadeNoiseModel::lstTypicalFreq() const
+const std::map<int, std::map<int, double>>& ManMadeNoiseModel::lstTypicalFreq() const
 {
     return m_ManMadNoiseAnalyse.m_mapStoreAmpValueToGetManMadeNoiseValue;
 }
@@ -141,7 +145,7 @@ void ManMadeNoiseModel::setLstTypicalFreq(const std::list<int>& newLstTypicalFre
     //通过初始化典型频点，计算当前典型频点及其各自的测试频点
     for (const auto& typicalFreq: newLstTypicalFreq)
     {
-        std::map<int, int> testFreqAndItsAmp;
+        std::map<int, double> testFreqAndItsAmp;
         for (int index = 0; index < 10; ++index)
         {
             int currentTestFreq = typicalFreq - 0.2e6 + 0.02e6 + index * 0.04e6;
@@ -159,7 +163,7 @@ void ManMadeNoiseModel::UpdateData()
     std::lock_guard<std::mutex> lk(m_mutex);
     beginResetModel();
     m_DisplayData.clear();
-    for (const auto& [curNoiseFreq, value]: m_mapManMadeNoiseCharacter) //电磁环境人为噪声电平测量表格 对人为噪声统计map进行统计处理
+    for (const auto& [curNoiseFreq, value]: m_mapManMadeNoiseCharacter)
     {
         for (const auto& restoredNoiseCharacter: value)
         {
@@ -167,11 +171,11 @@ void ManMadeNoiseModel::UpdateData()
             line[0] = QString::number(double(curNoiseFreq) / double(1e6), 'f', 6);
             line[1] = QString::number(double(restoredNoiseCharacter.CenterFreq) / double(1e6), 'f', 6);
             if (restoredNoiseCharacter.startTime)
-                line[2] = QDateTime::fromMSecsSinceEpoch(restoredNoiseCharacter.startTime).toString(TIME_FORMAT); //起始时间
+                line[2] = QDateTime::fromMSecsSinceEpoch(restoredNoiseCharacter.startTime).toString(TIME_FORMAT);
             if (restoredNoiseCharacter.stopTime)
-                line[3] = QDateTime::fromMSecsSinceEpoch(restoredNoiseCharacter.stopTime).toString(TIME_FORMAT); //结束时间
-            line[4] = QString::number(restoredNoiseCharacter.Amp + 107);
-            m_DisplayData.emplace_back(std::move(line));
+                line[3] = QDateTime::fromMSecsSinceEpoch(restoredNoiseCharacter.stopTime).toString(TIME_FORMAT);
+            line[4] = QString::number(restoredNoiseCharacter.Amp + 107, 'f', 1);
+            m_DisplayData.emplace_back(std::pair{ QUuid::createUuid(), std::move(line) });
         }
     }
     endResetModel();
@@ -198,12 +202,19 @@ void ManMadeNoiseModel::UpdateData()
 //    }
 //}
 
-bool ManMadeNoiseModel::GenerateExcelManMadeNoiseTable(QString folderName)
+bool ManMadeNoiseModel::GenerateExcelManMadeNoiseTable(const CommonInfoSet& CommonInfo)
 {
+    QFileDialog dialog;
+    auto folderName = dialog.getExistingDirectory(nullptr, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (folderName.isEmpty())
+    {
+        qDebug() << "File saving cancelled.";
+        return false;
+    }
+
     auto amount = mapExistTypicalFreqNoiseRecordAmount();
-    QString fileName = folderName + "/电磁环境人为噪声电平测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx";
     QXlsx::Document xlsx;
-    //不跟随当前实际信号状态递增的部分
+
     QXlsx::Format format;
     format.setHorizontalAlignment(QXlsx::Format::AlignHCenter);
     format.setVerticalAlignment(QXlsx::Format::AlignVCenter);
@@ -211,23 +222,23 @@ bool ManMadeNoiseModel::GenerateExcelManMadeNoiseTable(QString folderName)
 
     QXlsx::CellRange range("B2:E2");
     xlsx.mergeCells(range, format);
-    xlsx.write("B2", "测量日期和时间：     年   月   日		", format);
+    xlsx.write("B2", QString("测量日期：%1").arg(CommonInfo.Date.toString(" yyyy年 MM月 dd日")), format);
 
     range = QXlsx::CellRange("F2:K2");
     xlsx.mergeCells(range, format);
-    xlsx.write("F2", "测试地点：         北纬：       东经：				", format);
+    xlsx.write("F2", QString("测试地点：%1       北纬：°N     东经：°E	").arg(CommonInfo.TestPosition), format);
 
     xlsx.write("B3", "环境条件", format);
 
     range = QXlsx::CellRange("C3:E3");
     xlsx.mergeCells(range, format);
-    xlsx.write("C3", "天气状况：      温度：           湿度：						", format);
+    xlsx.write("C3", QString("天气状况：%1    温度：%2℃          湿度：%3%rh			").arg(CommonInfo.Weather).arg(CommonInfo.Temprature).arg(CommonInfo.Humidity), format);
 
     xlsx.write("F3", "测量仪器", format);
 
     range = QXlsx::CellRange("G3:K3");
     xlsx.mergeCells(range, format);
-    xlsx.write("G3", "", format);
+    xlsx.write("G3", "短波接收天线 短波测量仪", format);
 
     // Write column headers
     xlsx.write("B4", "典型频率点(MHz)", format);
@@ -316,7 +327,7 @@ bool ManMadeNoiseModel::GenerateExcelManMadeNoiseTable(QString folderName)
         xlsx.write("K" + QString::number(staticStartRow), "2.4kHz", format);
         staticStartRow += curNoiseRecordAmount;
     }
-    return xlsx.saveAs(fileName);
+    return xlsx.saveAs(folderName + "/电磁环境人为噪声电平测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx");
 }
 
 bool ManMadeNoiseModel::GenerateWordManMadeNoiseTable(QAxObject* document)
@@ -379,12 +390,12 @@ bool ManMadeNoiseModel::GenerateWordManMadeNoiseTable(QAxObject* document)
         rangeTitle->dynamicCall("SetText(QString)", HEADER_LIST[col]);
     }
 
-    std::list<int> existAmpForEveryTypicalFreqLst; //填写界面上相应的数据
+    std::list<int> existAmpForEveryTypicalFreqLst;
     for (int row = 0; row < rowCnt; ++row)
     {
         for (int col = 0; col < 5; ++col)
         {
-            auto item = index(row, col); //测量频率 起始时间 结束时间 测量电平
+            auto item = index(row, col);
             if (item.isValid())
             {
                 auto rangeTitle = datatable->querySubObject("Cell(int, int)", row + 4, col + 1)->querySubObject("Range");
@@ -397,7 +408,6 @@ bool ManMadeNoiseModel::GenerateWordManMadeNoiseTable(QAxObject* document)
         }
     }
 
-    //计算平均电平 最大电平 最小电平 合并对应单元格并填入
     for (const auto& [curTypicalFreq, curNoiseRecordAmount]: amount)
     {
         std::vector<int> existAmpForCurrentTypicalFreqLst;
@@ -436,22 +446,22 @@ bool ManMadeNoiseModel::GenerateWordManMadeNoiseChart(QAxObject* document)
     auto bookmark_ManMadeNoiseChart = document->querySubObject("Bookmarks(QVariant)", "ManMadeNoiseChart");
     if (!bookmark_ManMadeNoiseChart || bookmark_ManMadeNoiseChart->isNull())
     {
-        QMessageBox::critical(nullptr, "电磁环境测试报告", "模板错误");
+        QMessageBox::critical(nullptr, "电磁环境测试报告", "人为噪声图标模板错误");
         return false;
     }
     auto bookmark_Result = document->querySubObject("Bookmarks(QVariant)", "Result");
     if (!bookmark_Result || bookmark_Result->isNull())
     {
-        QMessageBox::critical(nullptr, "电磁环境测试报告", "模板错误");
+        QMessageBox::critical(nullptr, "电磁环境测试报告", "人为噪声图标模板错误");
         return false;
     }
 
     auto amount = mapExistTypicalFreqNoiseRecordAmount();
     auto rowCnt = rowCount();
-    std::list<int> existAmpForEveryTypicalFreqLst; //填写界面上相应的数据
+    std::list<int> existAmpForEveryTypicalFreqLst;
     for (int row = 0; row < rowCnt; ++row)
     {
-        auto item = index(row, 4); //测量频率 起始时间 结束时间 测量电平
+        auto item = index(row, 4);
         if (item.isValid())
         {
             existAmpForEveryTypicalFreqLst.emplace_back(data(item).toString().toDouble());
@@ -459,7 +469,6 @@ bool ManMadeNoiseModel::GenerateWordManMadeNoiseChart(QAxObject* document)
     }
 
     std::vector<double> avgAmpValue;
-    //计算平均电平 最大电平 最小电平 合并对应单元格并填入
     for (const auto& [curTypicalFreq, curNoiseRecordAmount]: amount)
     {
         std::vector<int> existAmpForCurrentTypicalFreqLst;
@@ -514,7 +523,6 @@ void ManMadeNoiseModel::AddSeries(QAxObject* chart, const std::vector<double>& a
     {
         chartWorkSheet->querySubObject("Range(QVariant)", QChar('B' + i) + QString("1"))->setProperty("FormulaR1C1", POSITION_LEVEL[i]);
     }
-
     f_am = F_AM();
     for (auto point = 0; point < SAMPLE_POINTS; ++point)
     {

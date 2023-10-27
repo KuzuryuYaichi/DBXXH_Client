@@ -1,5 +1,5 @@
-#ifndef TYPICALFREQSETWIDGET_H
-#define TYPICALFREQSETWIDGET_H
+#ifndef TYPICALFREQDIALOG_H
+#define TYPICALFREQDIALOG_H
 
 #include <QWidget>
 #include <QMap>
@@ -8,12 +8,12 @@
 #include <QDoubleSpinBox>
 #include <QPushButton>
 
-class TypicalFreqSetWidget : public QDialog
+class TypicalFreqDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit TypicalFreqSetWidget(QWidget* = nullptr);
-    void SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, int>>&);
+    explicit TypicalFreqDialog(QWidget* = nullptr);
+    void SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, double>>&);
 
 signals:
     void sigHaveTypicalFreq(const std::list<int>&);
@@ -27,4 +27,4 @@ private:
     QPushButton *pushButton_Cancel;
 };
 
-#endif // TYPICALFREQSETWIDGET_H
+#endif // TYPICALFREQDIALOG_H

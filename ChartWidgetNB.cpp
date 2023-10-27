@@ -135,6 +135,7 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     hBoxLayout->addWidget(RateEditFSK = new QDoubleSpinBox);
     RateEditFSK->setMinimum(0.1);
     RateEditFSK->setMaximum(100);
+    RateEditFSK->setValue(1);
     RateEditFSK->setSingleStep(1);
     RateEditFSK->setDecimals(3);
     RateEditFSK->hide();
@@ -159,10 +160,10 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     hBoxLayout->addWidget(DepthAM = new QLabel("0"));
     DepthAM->hide();
 
-    auto showWaveBtn = new QPushButton(style->standardIcon(QStyle::SP_MediaPlay), "");
-    hBoxLayout->addWidget(showWaveBtn, 2);
+    hBoxLayout->addWidget(showWaveBtn = new QPushButton(style->standardIcon(QStyle::SP_MediaPause), ""), 2);
     connect(showWaveBtn, &QPushButton::clicked, this, [this] {
         showWave = !showWave;
+        showWaveBtn->setIcon(QApplication::style()->standardIcon(showWave? QStyle::SP_MediaPause: QStyle::SP_MediaPlay));
     });
 
     AmplData = std::make_unique<unsigned char[]>(DDC_LEN);
@@ -217,8 +218,7 @@ void ChartWidgetNB::changedListening(int index, bool state)
 
 void ChartWidgetNB::changedRecording()
 {
-    recordBtn->setIcon(QApplication::style()->standardIcon((recording = !recording)? QStyle::SP_MediaStop: QStyle::SP_DialogNoButton));
-    if (recording)
+    if (!recording)
     {
         auto Path = g_parameter_set.tinyConfig.Get_StoragePath();
         QDir dir;
@@ -227,6 +227,7 @@ void ChartWidgetNB::changedRecording()
         std::lock_guard<std::mutex> lk(fileLock);
         file.setFileName(Path + "/" + QString("Channel_%1 %2.dat").arg(index + 1).arg(QDateTime::currentDateTime().toString("yyyyMMdd_hhmmss")));
     }
+    recordBtn->setIcon(QApplication::style()->standardIcon((recording = !recording)? QStyle::SP_MediaStop: QStyle::SP_DialogNoButton));
 }
 
 bool ChartWidgetNB::TestRecordThreshold()
@@ -263,6 +264,7 @@ void ChartWidgetNB::Record(unsigned char* const buf)
         WriteFile((char*)ptr.get(), sizeof(NarrowDDC) * param->DataPoint);
         break;
     }
+    case CW:
     case AM:
     case FM:
     case PM:
@@ -410,7 +412,7 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
         return;
     auto buf = data.get();
 
-    std::unique_ptr<unsigned char[]> FSK_TMP;
+    static std::unique_ptr<unsigned char[]> FSK_Data = nullptr;
     //Especially For ISB
     auto param = (StructNBWave*)(buf + sizeof(DataHead));
     auto amplData = (NarrowDDC*)(param + 1);
@@ -421,54 +423,96 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
             std::swap(amplData[i].I, amplData[i].Q);
         }
     }
-//    else if (demodBox->currentIndex() == FSK)
-//    {
-//        double SpsBandwidth = NB_HALF_BANDWIDTH_KHz[11];
-//        switch (param->Bandwidth)
-//        {
-//        case 150: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[0]; break;
-//        case 300: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[1]; break;
-//        case 600: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[2]; break;
-//        case 1500: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[3]; break;
-//        case 2400: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[4]; break;
-//        case 6000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[5]; break;
-//        case 9000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[6]; break;
-//        case 15000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[7]; break;
-//        case 30000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[8]; break;
-//        case 50000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[9]; break;
-//        case 120000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[10]; break;
-//        case 150000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[11]; break;
-//        }
+    else if (demodBox->currentIndex() == FSK)
+    {
+        double SpsBandwidth = NB_HALF_BANDWIDTH_KHz[11];
+        switch (param->Bandwidth)
+        {
+        case 150: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[0]; break;
+        case 300: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[1]; break;
+        case 600: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[2]; break;
+        case 1500: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[3]; break;
+        case 2400: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[4]; break;
+        case 6000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[5]; break;
+        case 9000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[6]; break;
+        case 15000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[7]; break;
+        case 30000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[8]; break;
+        case 50000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[9]; break;
+        case 120000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[10]; break;
+        case 150000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[11]; break;
+        }
 
-//        auto CodeRate = RateEditFSK->value() * 1e3;
-//        fskDemod = FSKModule(4e3 / CodeRate, SpsBandwidth, CodeRate, param->Frequency, DDC_LEN);
-//        static auto FSK_Tmp = std::make_unique<unsigned char[]>(sizeof(NarrowDDC) * DDC_LEN);
-//        static int index = 0;
-//        static auto FSK_Data = std::make_unique<unsigned char[]>(sizeof(DataHead) + sizeof(StructNBWave) + sizeof(NarrowDDC) * DDC_LEN);
-//        int OutLength;
-//        fskDemod.ModuFun((short*)(data.get() + sizeof(DataHead) + sizeof(StructNBWave)), DDC_LEN, FSK_Tmp.get(), &OutLength);
-//        if (OutLength <= sizeof(NarrowDDC) * DDC_LEN)
-//        {
-//            if (index + OutLength >= DDC_LEN)
+        auto CodeRate = RateEditFSK->value();
+        int PointSkip = SpsBandwidth / CodeRate;
+        if (PointSkip <= 0)
+            return;
+        int pos;
+        for (pos = 1; pos < DDC_LEN; ++pos)
+        {
+            auto a = amplData[pos - 1].I, b = amplData[pos].I;
+            if ((a & 0x8000) != (b & 0x8000))
+                break;
+        }
+        if (pos < DDC_LEN)
+        {
+            if (pos - PointSkip >= 0)
+                pos -= PointSkip;
+        }
+        else if (pos == DDC_LEN)
+            pos = 0;
+
+        int Tmp_Index = 0;
+        auto FSK_Tmp = std::make_unique<unsigned char[]>(sizeof(DataHead) + sizeof(StructNBWave) + sizeof(NarrowDDC) * DDC_LEN);
+        auto pDst = (NarrowDDC*)(FSK_Tmp.get() + sizeof(DataHead) + sizeof(StructNBWave));
+        bool NeedPush = false;
+
+        for (auto i = pos; i < DDC_LEN; i += PointSkip)
+        {
+//            int idx = i;
+//            for (auto j = i; j < PointSkip; ++j)
 //            {
-//                std::memcpy((NarrowDDC*)(FSK_Data.get() + sizeof(DataHead) + sizeof(StructNBWave)) + index, FSK_Tmp.get(), sizeof(NarrowDDC) * (DDC_LEN - index));
-//                std::memcpy(FSK_Data.get(), data.get(), sizeof(DataHead) + sizeof(StructNBWave));
-//                FSK_TMP = std::move(FSK_Data);
-//                FSK_Data = std::make_unique<unsigned char[]>(sizeof(DataHead) + sizeof(StructNBWave) + sizeof(NarrowDDC) * DDC_LEN);
-//                std::memcpy((NarrowDDC*)(FSK_Data.get() + sizeof(DataHead) + sizeof(StructNBWave)) + index, FSK_Tmp.get(), sizeof(NarrowDDC) * (index + OutLength - DDC_LEN));
-//                buf = FSK_TMP.get();
-//                index = (index + OutLength) % DDC_LEN;
+//                auto max_val = 0;
+//                auto new_sub = std::abs(amplData[pos].I);
+//                if (max_val > amplData[pos].I)
+//                {
+//                    max_val = new_sub;
+//                    idx = j;
+//                }
 //            }
-//            else
+//            pDst[Tmp_Index] = amplData[idx];
+//            if (++Tmp_Index == DDC_LEN)
 //            {
-//                std::memcpy((NarrowDDC*)(FSK_Data.get() + sizeof(DataHead) + sizeof(StructNBWave)) + index, FSK_Tmp.get(), sizeof(NarrowDDC) * OutLength);
-//                index = (index + OutLength) % DDC_LEN;
-//                return;
+//                std::memcpy(FSK_Tmp.get(), data.get(), sizeof(DataHead) + sizeof(StructNBWave));
+//                FSK_Data = std::move(FSK_Tmp);
+//                buf = FSK_Data.get();
+
+//                FSK_Tmp = std::make_unique<unsigned char[]>(sizeof(DataHead) + sizeof(StructNBWave) + sizeof(NarrowDDC) * DDC_LEN);
+//                Tmp_Index = 0;
+//                pDst = (NarrowDDC*)(FSK_Data.get() + sizeof(DataHead) + sizeof(StructNBWave));
+
+//                NeedPush = true;
 //            }
-//        }
-//        else
-//            return;
-//    }
+
+            int idx = i;
+            auto max_val = 0;
+            for (auto j = 0; j < PointSkip; ++j)
+            {
+                auto tmp = i + j;
+                auto new_sub = std::abs(amplData[tmp].I);
+                if (max_val < new_sub)
+                {
+                    max_val = new_sub;
+                    idx = tmp;
+                }
+            }
+            pDst[Tmp_Index++] = amplData[idx];
+        }
+        std::memcpy(FSK_Tmp.get(), data.get(), sizeof(DataHead) + sizeof(StructNBWave));
+        FSK_Data = std::move(FSK_Tmp);
+        buf = FSK_Data.get();
+        auto param = (StructNBWave*)(buf + sizeof(DataHead));
+        param->DataPoint = Tmp_Index - 1;
+    }
 
     FFT(buf);
     Record(buf);

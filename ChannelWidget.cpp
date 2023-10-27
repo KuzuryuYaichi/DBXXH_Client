@@ -4,6 +4,18 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
 {
     auto mainLayout = new QVBoxLayout(this);
 
+    auto channelGroupBox = new QGroupBox(tr("Channel Visibility"));
+    mainLayout->addWidget(channelGroupBox, 1);
+    auto settingLayout = new QHBoxLayout(channelGroupBox);
+    for (auto i = 1; i < ZC_NB_CHANNEL_NUMS; ++i)
+    {
+        settingLayout->addWidget(channelSec[i - 1] = new QCheckBox(tr("Channel %1").arg(i)));
+        channelSec[i - 1]->setCheckState(Qt::Checked);
+        connect(channelSec[i - 1], &QCheckBox::stateChanged, this, [this, i](int state) {
+            chartNB[i]->setVisible(state);
+        });
+    }
+
     auto scrollArea = new QScrollArea(this);
     auto scrollWidget = new QWidget(this);
     auto scrollLayout = new QHBoxLayout(scrollWidget);
@@ -18,8 +30,12 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
             scrollLayout->addWidget(chartNB[i]);
     }
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
+    {
         for (int j = 0; j < ZC_NB_CHANNEL_NUMS; ++j)
+        {
             connect(chartNB[i], &ChartWidgetNB::triggerListening, chartNB[j], &ChartWidgetNB::changedListening);
+        }
+    }
     scrollArea->setWidget(scrollWidget);
     scrollArea->setWidgetResizable(true);
     mainLayout->addWidget(scrollArea, 25);

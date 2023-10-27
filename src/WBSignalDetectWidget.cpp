@@ -7,6 +7,7 @@
 #include <QAxWidget>
 #include <QAxObject>
 #include "global.h"
+#include "QXlsx/xlsxdocument.h"
 
 WBSignalDetectWidget::WBSignalDetectWidget(QWidget *parent): QWidget(parent)
 {
@@ -17,20 +18,38 @@ WBSignalDetectWidget::WBSignalDetectWidget(QWidget *parent): QWidget(parent)
 //    connect(this, &WBSignalDetectWidget::startDetect, m_pManMadeNoiseModel, &WBSignalDetectModel::SetStartTime);
 //    connect(this, &WBSignalDetectWidget::stopDetect, m_pManMadeNoiseModel, &WBSignalDetectModel::SetStopTime);
 
-    connect(m_pPopupParamSet = new PopupParamSet, &PopupParamSet::sigUpdateParam, this, [this](ParamSet param) {
+    connect(m_pPopupParamDialog = new PopupParamDialog, &PopupParamDialog::sigUpdateParam, this, [this](const ParamSet& param) {
         m_DetectParam = param;
         m_pSignalDetectModel->setBandwidthThreshold(m_DetectParam.BandwidthThreshold);
-        m_pSignalDetectModel->setActiveThreshold(m_DetectParam.ActiveThreshold);
         m_pSignalDetectModel->setFreqPointThreshold(m_DetectParam.FreqPointThreshold);
         m_pSignalDetectModel->setAmplThreshold(m_DetectParam.AmplThreshold);
     });
-    m_pPopupParamSet->setModal(false);
-    m_pPopupParamSet->hide();
-    connect(m_pTypicalFreqSetWidget = new TypicalFreqSetWidget, &TypicalFreqSetWidget::sigHaveTypicalFreq, this, [this](const std::list<int>& mapValue) {
+    m_pPopupParamDialog->setModal(false);
+    m_pPopupParamDialog->hide();
+
+    connect(m_pTypicalFreqDialog = new TypicalFreqDialog, &TypicalFreqDialog::sigHaveTypicalFreq, this, [this](const std::list<int>& mapValue) {
         m_pManMadeNoiseTable->m_pManMadeNoiseModel->setLstTypicalFreq(mapValue);
     });
-    m_pTypicalFreqSetWidget->setModal(false);
-    m_pTypicalFreqSetWidget->hide();
+    m_pTypicalFreqDialog->setModal(false);
+    m_pTypicalFreqDialog->hide();
+
+    connect(m_CommonInfoDialog = new CommonInfoDialog, &CommonInfoDialog::triggerSetCompleted, this, [this](const CommonInfoSet& CommonInfo) {
+        m_CommonInfo = CommonInfo;
+    });
+    m_CommonInfoDialog->setModal(false);
+    m_CommonInfoDialog->hide();
+
+    connect(m_ResistivityDialog = new ResistivityDialog, &ResistivityDialog::triggerSetCompleted, this, [this](const ResistivitySet& Resistivity) {
+        GenerateExcelResistivityTable(m_CommonInfo, Resistivity);
+    });
+    m_ResistivityDialog->setModal(false);
+    m_ResistivityDialog->hide();
+
+    connect(m_ConductivityDialog = new ConductivityDialog, &ConductivityDialog::triggerSetCompleted, this, [this](const ConductivitySet& Conductivity) {
+        GenerateExcelConductivityTable(m_CommonInfo, Conductivity);
+    });
+    m_ConductivityDialog->setModal(false);
+    m_ConductivityDialog->hide();
 }
 
 void WBSignalDetectWidget::sigTriggerSignalDetect(unsigned char* amplData, int length, int StartFreq, int BandWidth)
@@ -45,11 +64,6 @@ void WBSignalDetectWidget::sigTriggerSignalDetect(unsigned char* amplData, int l
     ippsFree(FFtin);
 }
 
-void WBSignalDetectWidget::sigSetValidAmpThreshold(float amp)
-{
-    m_pSignalDetectModel->setAmplThreshold(amp);
-}
-
 void WBSignalDetectWidget::PulseDetect(Pulse* pulse, int len)
 {
     m_pPulseDetectTable->m_pPulseDetectModel->replace(pulse, len);
@@ -57,33 +71,36 @@ void WBSignalDetectWidget::PulseDetect(Pulse* pulse, int len)
 
 void WBSignalDetectWidget::setupUi()
 {
+    //    connect(this, &WBSignalDetectWidget::startDetect, this, [this] {
+    //        pushButton_TypicalFreqSet->setVisible(false);
+    //    });
+    //    connect(this, &WBSignalDetectWidget::stopDetect, this, [this] {
+    //        pushButton_TypicalFreqSet->setVisible(true);
+    //    });
+
     auto mainLayout = new QVBoxLayout(this);
     auto horizontalLayout = new QHBoxLayout;
-    horizontalLayout->addWidget(pushButton_ParamSet = new QPushButton("参数设置"));
+    horizontalLayout->addWidget(pushButton_ParamSet = new QPushButton("门限检测"));
+    pushButton_ParamSet->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileDialogInfoView));
     connect(pushButton_ParamSet, &QPushButton::clicked, this, [this] {
-        m_pPopupParamSet->setModal(true);
-        m_pPopupParamSet->show();
+        m_pPopupParamDialog->setModal(true);
+        m_pPopupParamDialog->show();
     });
-    horizontalLayout->addWidget(pushButton_TypicalFreqSet = new QPushButton("典型频点设置"));
-//    connect(this, &WBSignalDetectWidget::startDetect, this, [this] {
-//        pushButton_TypicalFreqSet->setVisible(false);
-//    });
-//    connect(this, &WBSignalDetectWidget::stopDetect, this, [this] {
-//        pushButton_TypicalFreqSet->setVisible(true);
-//    });
+    horizontalLayout->addWidget(pushButton_TypicalFreqSet = new QPushButton("典型频点"));
+    pushButton_TypicalFreqSet->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileDialogInfoView));
     connect(pushButton_TypicalFreqSet, &QPushButton::clicked, this, [this] {
-        m_pTypicalFreqSetWidget->setModal(true);
-        m_pTypicalFreqSetWidget->SetCurrentTypicalFreqFromTable(m_pManMadeNoiseTable->m_pManMadeNoiseModel->lstTypicalFreq());
-        m_pTypicalFreqSetWidget->show();
+        m_pTypicalFreqDialog->setModal(true);
+        m_pTypicalFreqDialog->SetCurrentTypicalFreqFromTable(m_pManMadeNoiseTable->m_pManMadeNoiseModel->lstTypicalFreq());
+        m_pTypicalFreqDialog->show();
     });
     horizontalLayout->addStretch();
-    horizontalLayout->addWidget(pushButton_importLegal = new QPushButton("导入非法频点设置"));
+    horizontalLayout->addWidget(pushButton_importLegal = new QPushButton("导入非法频点"));
     connect(pushButton_importLegal, &QPushButton::clicked, this, [this] {
-        QMessageBox::information(nullptr, "导入非法频点设置", (m_pSignalDetectModel->SlotImportLegalFreqConf())? "导入成功！": "导入失败！");
+        QMessageBox::information(nullptr, "导入非法频点", m_pSignalDetectModel->ImportLegalFreqConf()? "导入成功！": "导入失败！");
     });
-    horizontalLayout->addWidget(pushButton_ExportLegal = new QPushButton("导出非法频点设置"));
+    horizontalLayout->addWidget(pushButton_ExportLegal = new QPushButton("导出非法频点"));
     connect(pushButton_ExportLegal, &QPushButton::clicked, this, [this] {
-        QMessageBox::information(nullptr, "导出非法频点设置", (m_pSignalDetectModel->SlotExportLegalFreqConf())? "导出成功！": "导出失败！");
+        QMessageBox::information(nullptr, "导出非法频点", m_pSignalDetectModel->ExportLegalFreqConf()? "导出成功！": "导出失败！");
     });
     horizontalLayout->addWidget(pushButton_cleanAllData = new QPushButton("清理"));
     connect(pushButton_cleanAllData, &QPushButton::clicked, this, [this] {
@@ -116,57 +133,62 @@ void WBSignalDetectWidget::setupUi()
     });
 
     horizontalLayout = new QHBoxLayout;
+
+    horizontalLayout->addWidget(pushButton_CommonInfo = new QPushButton("报告基本信息"));
+    pushButton_CommonInfo->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileDialogInfoView));
+    connect(pushButton_CommonInfo, &QPushButton::clicked, this, [this]
+    {
+        m_CommonInfoDialog->setModal(true);
+        m_CommonInfoDialog->show();
+    });
     horizontalLayout->addStretch();
-    horizontalLayout->addWidget(pushButton_GenerateSignalDetect = new QPushButton("保存信号检测记录"));
+
+    horizontalLayout->addWidget(pushButton_GenerateSignalDetect = new QPushButton("信号检测"));
+    pushButton_GenerateSignalDetect->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     connect(pushButton_GenerateSignalDetect, &QPushButton::clicked, this, [this]
     {
-        tabWidget_SignalDetectTable->setCurrentIndex(0); //先将tabwidget转到对应的tab上
-        QFileDialog dialog;
-        auto selectedFolder = dialog.getExistingDirectory(this, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-        if (selectedFolder.isEmpty())
-        {
-            qDebug() << "File saving cancelled.";
-            return;
-        }
-        if (!m_pSignalDetectModel->GenerateExcelSignalDetectTable(selectedFolder))
-        {
-            //TODO: 生成失败时的处理方法
-        }
+        tabWidget_SignalDetectTable->setCurrentIndex(0);
+        m_pSignalDetectModel->GenerateExcelSignalDetectTable();
     });
-    horizontalLayout->addWidget(pushButton_GenerateDisturbSignal = new QPushButton("保存干扰信号测量记录"));
+    horizontalLayout->addWidget(pushButton_GenerateDisturbSignal = new QPushButton("干扰信号"));
+    pushButton_GenerateDisturbSignal->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     connect(pushButton_GenerateDisturbSignal, &QPushButton::clicked, this, [this]
     {
-        tabWidget_SignalDetectTable->setCurrentIndex(1); //先将tabwidget转到对应的tab上
-        QFileDialog dialog;
-        QString selectedFolder = dialog.getExistingDirectory(this, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-        if (selectedFolder.isEmpty())
-        {
-            qDebug() << "File saving cancelled.";
-            return;
-        }
-        if (!m_pSignalDetectModel->GenerateExcelDisturbNoiseTable(selectedFolder))
-        {
-            //TODO: 生成失败时的处理方法
-        }
+        tabWidget_SignalDetectTable->setCurrentIndex(1);
+        m_pSignalDetectModel->GenerateExcelDisturbNoiseTable(m_CommonInfo);
     });
-    horizontalLayout->addWidget(pushButton_GenerateManMadeNoise = new QPushButton("保存电磁环境人为噪声电平测量记录"));
+    horizontalLayout->addWidget(pushButton_GenerateManMadeNoise = new QPushButton("电磁环境人为噪声电平"));
+    pushButton_GenerateManMadeNoise->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     connect(pushButton_GenerateManMadeNoise, &QPushButton::clicked, this, [this]
     {
-        tabWidget_SignalDetectTable->setCurrentIndex(2); //先将tabwidget转到对应的tab上
+        tabWidget_SignalDetectTable->setCurrentIndex(2);
+        m_pManMadeNoiseTable->m_pManMadeNoiseModel->GenerateExcelManMadeNoiseTable(m_CommonInfo);
+    });
+    horizontalLayout->addWidget(pushButton_GenerateResistivity = new QPushButton("土壤电阻率"));
+    pushButton_GenerateResistivity->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
+    connect(pushButton_GenerateResistivity, &QPushButton::clicked, this, [this]
+    {
+        m_ResistivityDialog->setModal(true);
+        m_ResistivityDialog->show();
+    });
+    horizontalLayout->addWidget(pushButton_GenerateConductivity = new QPushButton("土壤导电均匀性"));
+    pushButton_GenerateConductivity->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
+    connect(pushButton_GenerateConductivity, &QPushButton::clicked, this, [this]
+    {
+        m_ConductivityDialog->setModal(true);
+        m_ConductivityDialog->show();
+    });
+    horizontalLayout->addWidget(pushButton_GenerateElecEnvReport = new QPushButton(REPORT_NAME));
+    pushButton_GenerateElecEnvReport->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
+    connect(pushButton_GenerateElecEnvReport, &QPushButton::clicked, this, [this] {
         QFileDialog dialog;
-        QString selectedFolder = dialog.getExistingDirectory(this, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-        if (selectedFolder.isEmpty())
+        auto folderName = dialog.getExistingDirectory(nullptr, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+        if (folderName.isEmpty())
         {
-            qDebug() << "File saving cancelled.";
+            QMessageBox::critical(nullptr, "电磁环境测试报告", "路径不存在");
             return;
         }
-        if (!m_pManMadeNoiseTable->m_pManMadeNoiseModel->GenerateExcelManMadeNoiseTable(selectedFolder))
-        {
-            //TODO: 生成失败时的处理方法
-        }
-    });
-    horizontalLayout->addWidget(pushButton_GenerateElecEnvReport = new QPushButton("生成电磁环境测试报告"));
-    connect(pushButton_GenerateElecEnvReport, &QPushButton::clicked, this, [this] {
+
         QAxWidget word("Word.Application", 0, Qt::MSWindowsOwnDC);
         word.setProperty("Visible", false);
         auto documents = word.querySubObject("Documents");
@@ -174,16 +196,129 @@ void WBSignalDetectWidget::setupUi()
         auto document = word.querySubObject("ActiveDocument");
         if (!document || document->isNull())
             return;
-        if (!(m_pManMadeNoiseTable->m_pManMadeNoiseModel->GenerateWordManMadeNoiseTable(document) &&
-              m_pSignalDetectModel->GenerateWordDisturbNoiseTable(document) &&
+        if (!(/*m_pManMadeNoiseTable->m_pManMadeNoiseModel->GenerateWordManMadeNoiseTable(document) &&
+              m_pSignalDetectModel->GenerateWordDisturbNoiseTable(document) &&*/
               m_pManMadeNoiseTable->m_pManMadeNoiseModel->GenerateWordManMadeNoiseChart(document)))
             return;
-        auto pathsave = QFileDialog::getSaveFileName(this, "Save", "../", "word(*doc)");
-        if (pathsave.isEmpty())
-            return;
-        document->dynamicCall("SaveAs(const QString&))", QDir::toNativeSeparators(pathsave));
+        document->dynamicCall("SaveAs(const QString&))", QDir::toNativeSeparators(folderName + "/电磁环境测试报告" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".docx"));
         document->dynamicCall("Close(boolean)", false);
         word.dynamicCall("Quit()");
     });
     mainLayout->addLayout(horizontalLayout);
+}
+
+bool WBSignalDetectWidget::GenerateExcelResistivityTable(const CommonInfoSet& CommonInfo, const ResistivitySet& ResistivityInfo)
+{
+    QFileDialog dialog;
+    auto folderName = dialog.getExistingDirectory(nullptr, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (folderName.isEmpty())
+    {
+        qDebug() << "File saving cancelled.";
+        return false;
+    }
+
+    QXlsx::Document xlsx;
+    QXlsx::Format format;
+    format.setHorizontalAlignment(QXlsx::Format::AlignHCenter);
+    format.setVerticalAlignment(QXlsx::Format::AlignVCenter);
+    format.setBorderStyle(QXlsx::Format::BorderThin);
+
+    QXlsx::CellRange range("B2:D2");
+    xlsx.mergeCells(range, format);
+    xlsx.write("B2", QString("测量日期：%1").arg(CommonInfo.Date.toString(" yyyy年 MM月 dd日")), format);
+
+    range = QXlsx::CellRange("E2:F2");
+    xlsx.mergeCells(range, format);
+    xlsx.write("E2", QString("测试地点：%1").arg(CommonInfo.TestPosition), format);
+
+    xlsx.write("B3", "环境条件", format);
+
+    range = QXlsx::CellRange("C3:F3");
+    xlsx.mergeCells(range, format);
+    xlsx.write("C3", QString("天气状况：%1 温度：%2℃ 湿度：%3%rh").arg(CommonInfo.Weather).arg(CommonInfo.Temprature).arg(CommonInfo.Humidity), format);
+
+    xlsx.write("B4", "测量仪器", format);
+    range = QXlsx::CellRange("C4:F4");
+    xlsx.mergeCells(range, format);
+    xlsx.write("C4", "短波接收天线 短波测量仪", format);
+
+    xlsx.write("B5", "", format);
+    for (auto i = 0; i < ResistivitySet::DIRECTIONS; ++i)
+    {
+        xlsx.write(QChar('C' + i) + QString("5"), QString("方向%1").arg(i + 1), format);
+    }
+
+    xlsx.write("B6", "测量值R(Ω)", format);
+    xlsx.write("B7", "电阻率ρ(Ω•m)", format);
+    xlsx.write("B8", "平均值ρ ̅(Ω•m)", format);
+    xlsx.write("B9", "测量人员", format);
+
+    for (auto i = 0; i < ResistivitySet::DIRECTIONS; ++i)
+    {
+        xlsx.write(QChar('C' + i) + QString("6"), QString::number(ResistivityInfo.Resistance[i]), format);
+        xlsx.write(QChar('C' + i) + QString("7"), QString::number(ResistivityInfo.Resistivity[i]), format);
+    }
+
+    range = QXlsx::CellRange("C8:F8");
+    xlsx.mergeCells(range, format);
+    range = QXlsx::CellRange("C9:F9");
+    xlsx.mergeCells(range, format);
+
+    return xlsx.saveAs(folderName + "/土壤电阻率测量数据处理记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx");
+}
+
+bool WBSignalDetectWidget::GenerateExcelConductivityTable(const CommonInfoSet& CommonInfo, const ConductivitySet& ConductivityInfo)
+{
+    QFileDialog dialog;
+    auto folderName = dialog.getExistingDirectory(nullptr, tr("Select Directory"), QDir::currentPath(), QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    if (folderName.isEmpty())
+    {
+        qDebug() << "File saving cancelled.";
+        return false;
+    }
+
+    QXlsx::Document xlsx;
+    QXlsx::Format format;
+    format.setHorizontalAlignment(QXlsx::Format::AlignHCenter);
+    format.setVerticalAlignment(QXlsx::Format::AlignVCenter);
+    format.setBorderStyle(QXlsx::Format::BorderThin);
+
+    QXlsx::CellRange range("B2:D2");
+    xlsx.mergeCells(range, format);
+    xlsx.write("B2", QString("测量日期：%1").arg(CommonInfo.Date.toString(" yyyy年 MM月 dd日")), format);
+
+    range = QXlsx::CellRange("E2:G2");
+    xlsx.mergeCells(range, format);
+    xlsx.write("E2", QString("测试地点：%1").arg(CommonInfo.TestPosition), format);
+
+    xlsx.write("B3", "环境条件", format);
+
+    range = QXlsx::CellRange("C3:G3");
+    xlsx.mergeCells(range, format);
+    xlsx.write("C3", QString("天气状况：%1 温度：%2℃ 湿度：%3%rh").arg(CommonInfo.Weather).arg(CommonInfo.Temprature).arg(CommonInfo.Humidity), format);
+
+    xlsx.write("B4", "测量仪器", format);
+    range = QXlsx::CellRange("C4:G4");
+    xlsx.mergeCells(range, format);
+    xlsx.write("C4", "短波接收天线 短波测量仪", format);
+
+    xlsx.write("B5", "", format);
+    for (auto i = 0; i < ConductivitySet::MEASURE_POSITION; ++i)
+    {
+        xlsx.write(QChar('C' + i) + QString("5"), QString("测量点%1").arg(i + 1), format);
+    }
+
+    xlsx.write("B6", "测量值R(Ω)", format);
+    xlsx.write("B7", "均匀性", format);
+    xlsx.write("B8", "测量人员", format);
+    for (auto i = 0; i < ConductivitySet::MEASURE_POSITION; ++i)
+    {
+        xlsx.write(QChar('C' + i) + QString("6"), QString::number(ConductivityInfo.SoilResistance[i]), format);
+    }
+
+    range = QXlsx::CellRange("C7:G7");
+    xlsx.mergeCells(range, format);
+    range = QXlsx::CellRange("C8:G8");
+    xlsx.mergeCells(range, format);
+    return xlsx.saveAs(folderName + "/土壤导电均匀性测量数据记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx");
 }

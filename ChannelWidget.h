@@ -24,6 +24,7 @@ private:
     QComboBox* workMode;
     QSpinBox* rfDesc;
     QSpinBox* mfDesc;
+    QCheckBox* channelSec[ZC_NB_CHANNEL_NUMS - 1];
 };
 
 #endif // CHANNELWIDGET_H

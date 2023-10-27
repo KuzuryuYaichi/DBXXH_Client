@@ -45,7 +45,7 @@ struct ManMadeNoiseAnalyse
     //典型频点-------测量频点0----测量电平0
     //           |---测量频点1
     long m_lGetAmpTimes = 0;
-    std::map<int, std::map<int, int>> m_mapStoreAmpValueToGetManMadeNoiseValue;  //记录当前典型频率点对应的10个测量频点，包含每次分析所得的电平幅值，每次都与前一次算均值
+    std::map<int, std::map<int, double>> m_mapStoreAmpValueToGetManMadeNoiseValue;  //记录当前典型频率点对应的10个测量频点，包含每次分析所得的电平幅值，每次都与前一次算均值
 };
 
 class ManMadeNoiseModel: public WBSignalDetectModel
@@ -57,12 +57,12 @@ public:
     int columnCount(const QModelIndex& = QModelIndex()) const override;
     Qt::ItemFlags flags(const QModelIndex&) const override;
 
-    const std::map<int, std::map<int, int>>& lstTypicalFreq() const;
+    const std::map<int, std::map<int, double>>& lstTypicalFreq() const;
     void setLstTypicalFreq(const std::list<int>&);
     std::map<int, int> mapExistTypicalFreqNoiseRecordAmount() const;
     void findNoiseCharaAroundTypicalFreq(Ipp32f*, int, int, int);
 
-    bool GenerateExcelManMadeNoiseTable(QString);
+    bool GenerateExcelManMadeNoiseTable(const CommonInfoSet&);
     bool GenerateWordManMadeNoiseTable(QAxObject*);
     bool GenerateWordManMadeNoiseChart(QAxObject*);
 

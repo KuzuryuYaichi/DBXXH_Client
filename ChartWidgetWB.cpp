@@ -118,6 +118,7 @@ ChartWidgetWB::ChartWidgetWB(QString title, QWidget* parent): ChartWidgetCombine
     {
         smoothBox->addItem(QString::number(i), i);
     }
+    smoothBox->setCurrentIndex(2);
     connect(smoothBox, QOverload<int>::of(&QComboBox::activated), this, [this](int index) {
         if (index < 0)
             return;

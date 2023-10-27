@@ -3,6 +3,8 @@
 #include <QTimer>
 #include <QSettings>
 
+#include "QXlsx/xlsxdocument.h"
+
 WBSignalDetectModel::WBSignalDetectModel(QObject *parent): QAbstractTableModel(parent)
 {
     m_pSignalActiveChecker = new QTimer(this);
@@ -20,7 +22,7 @@ bool WBSignalDetectModel::setData(const QModelIndex &index, const QVariant &valu
 {
     if (index.isValid() && role == Qt::EditRole)
     {
-        m_DisplayData[index.row()][index.column()] = value;
+        m_DisplayData[index.row()].second[index.column()] = value;
         emit dataChanged(index, index);
         return true;
     }
@@ -31,9 +33,9 @@ QVariant WBSignalDetectModel::data(const QModelIndex &index, int role) const
 {
     if (index.isValid())
     {
-        if (role == Qt::DisplayRole || role == Qt::EditRole) //显示内容
-            return m_DisplayData[index.row()][index.column()];
-        else if (role == Qt::TextAlignmentRole) //内容排版
+        if (role == Qt::DisplayRole || role == Qt::EditRole)
+            return m_DisplayData[index.row()].second[index.column()];
+        else if (role == Qt::TextAlignmentRole)
             return Qt::AlignCenter;
     }
     return QVariant();
