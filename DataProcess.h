@@ -1,7 +1,7 @@
 #ifndef DATAPROCESS_H
 #define DATAPROCESS_H
 
-#include "inc/WBSignalDetectWidget.h"
+#include "SignalDetect/WBSignalDetectWidget.h"
 
 #include <tuple>
 #include <vector>

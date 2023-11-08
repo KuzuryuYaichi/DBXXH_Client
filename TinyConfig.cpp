@@ -27,9 +27,8 @@ unsigned long long TinyConfig::Get_StorageThreshold()
 
 TinyConfig::TinyConfig(const QString& fileName)
 {
-    auto configFileName = QApplication::applicationDirPath() + "/" + fileName;
-    m_psetting = new QSettings(configFileName, QSettings::IniFormat);
-    QFileInfo fileInfo(configFileName);
+    m_psetting = new QSettings(fileName, QSettings::IniFormat);
+    QFileInfo fileInfo(fileName);
     if (!fileInfo.exists())
     {
         SetConfigData(Data_Area, "DataIP", DEFAULT_SERVER_DATA_IP);

@@ -1,4 +1,4 @@
-#include "../inc/WBSignalDetectWidget.h"
+#include "SignalDetect/WBSignalDetectWidget.h"
 
 #include <QFileDialog>
 #include <QMessageBox>
@@ -13,43 +13,35 @@ WBSignalDetectWidget::WBSignalDetectWidget(QWidget *parent): QWidget(parent)
 {
     setupUi();
 
-//    connect(this, &WBSignalDetectWidget::startDetect, m_pSignalDetectModel, &WBSignalDetectModel::SetStartTime);
-//    connect(this, &WBSignalDetectWidget::stopDetect, m_pSignalDetectModel, &WBSignalDetectModel::SetStopTime);
-//    connect(this, &WBSignalDetectWidget::startDetect, m_pManMadeNoiseModel, &WBSignalDetectModel::SetStartTime);
-//    connect(this, &WBSignalDetectWidget::stopDetect, m_pManMadeNoiseModel, &WBSignalDetectModel::SetStopTime);
+    connect(this, &WBSignalDetectWidget::DetectSwitch, m_pSignalDetectModel, &WBSignalDetectModel::SetTime);
+    connect(this, &WBSignalDetectWidget::DetectSwitch, m_pManMadeNoiseTable->m_pManMadeNoiseModel, &WBSignalDetectModel::SetTime);
 
     connect(m_pPopupParamDialog = new PopupParamDialog, &PopupParamDialog::sigUpdateParam, this, [this](const ParamSet& param) {
-        m_DetectParam = param;
-        m_pSignalDetectModel->setBandwidthThreshold(m_DetectParam.BandwidthThreshold);
-        m_pSignalDetectModel->setFreqPointThreshold(m_DetectParam.FreqPointThreshold);
-        m_pSignalDetectModel->setAmplThreshold(m_DetectParam.AmplThreshold);
+        m_pSignalDetectModel->setBandwidthThreshold(param.BandwidthThreshold);
+        m_pSignalDetectModel->setFreqPointThreshold(param.FreqPointThreshold);
+        m_pSignalDetectModel->setAmplThreshold(param.AmplThreshold);
     });
     m_pPopupParamDialog->setModal(false);
-    m_pPopupParamDialog->hide();
 
     connect(m_pTypicalFreqDialog = new TypicalFreqDialog, &TypicalFreqDialog::sigHaveTypicalFreq, this, [this](const std::list<int>& mapValue) {
         m_pManMadeNoiseTable->m_pManMadeNoiseModel->setLstTypicalFreq(mapValue);
     });
     m_pTypicalFreqDialog->setModal(false);
-    m_pTypicalFreqDialog->hide();
 
     connect(m_CommonInfoDialog = new CommonInfoDialog, &CommonInfoDialog::triggerSetCompleted, this, [this](const CommonInfoSet& CommonInfo) {
         m_CommonInfo = CommonInfo;
     });
     m_CommonInfoDialog->setModal(false);
-    m_CommonInfoDialog->hide();
 
     connect(m_ResistivityDialog = new ResistivityDialog, &ResistivityDialog::triggerSetCompleted, this, [this](const ResistivitySet& Resistivity) {
         GenerateExcelResistivityTable(m_CommonInfo, Resistivity);
     });
     m_ResistivityDialog->setModal(false);
-    m_ResistivityDialog->hide();
 
     connect(m_ConductivityDialog = new ConductivityDialog, &ConductivityDialog::triggerSetCompleted, this, [this](const ConductivitySet& Conductivity) {
         GenerateExcelConductivityTable(m_CommonInfo, Conductivity);
     });
     m_ConductivityDialog->setModal(false);
-    m_ConductivityDialog->hide();
 }
 
 void WBSignalDetectWidget::sigTriggerSignalDetect(unsigned char* amplData, int length, int StartFreq, int BandWidth)
@@ -71,12 +63,9 @@ void WBSignalDetectWidget::PulseDetect(Pulse* pulse, int len)
 
 void WBSignalDetectWidget::setupUi()
 {
-    //    connect(this, &WBSignalDetectWidget::startDetect, this, [this] {
-    //        pushButton_TypicalFreqSet->setVisible(false);
-    //    });
-    //    connect(this, &WBSignalDetectWidget::stopDetect, this, [this] {
-    //        pushButton_TypicalFreqSet->setVisible(true);
-    //    });
+    connect(this, &WBSignalDetectWidget::DetectSwitch, this, [this](bool isDetecting) {
+        pushButton_TypicalFreqSet->setVisible(!isDetecting);
+    });
 
     auto mainLayout = new QVBoxLayout(this);
     auto horizontalLayout = new QHBoxLayout;
@@ -93,7 +82,21 @@ void WBSignalDetectWidget::setupUi()
         m_pTypicalFreqDialog->SetCurrentTypicalFreqFromTable(m_pManMadeNoiseTable->m_pManMadeNoiseModel->lstTypicalFreq());
         m_pTypicalFreqDialog->show();
     });
+    horizontalLayout->addWidget(pushButton_cleanAllData = new QPushButton("清理"));
+    pushButton_cleanAllData->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogDiscardButton));
+    connect(pushButton_cleanAllData, &QPushButton::clicked, this, [this] {
+        m_pSignalDetectModel->CleanUp();
+    });
     horizontalLayout->addStretch();
+
+    horizontalLayout->addWidget(pushButton_Detect = new QPushButton("开始检测"));
+    pushButton_Detect->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogYesButton));
+    pushButton_Detect->setCheckable(true);
+    connect(pushButton_Detect, &QPushButton::clicked, this, [this](bool isDetecting) {
+        emit DetectSwitch(isDetecting);
+        pushButton_Detect->setText(isDetecting? "停止检测": "开始检测");
+        pushButton_Detect->setIcon(QApplication::style()->standardIcon(isDetecting? QStyle::SP_BrowserStop: QStyle::SP_DialogYesButton));
+    });
     horizontalLayout->addWidget(pushButton_importLegal = new QPushButton("导入非法频点"));
     connect(pushButton_importLegal, &QPushButton::clicked, this, [this] {
         QMessageBox::information(nullptr, "导入非法频点", m_pSignalDetectModel->ImportLegalFreqConf()? "导入成功！": "导入失败！");
@@ -102,16 +105,21 @@ void WBSignalDetectWidget::setupUi()
     connect(pushButton_ExportLegal, &QPushButton::clicked, this, [this] {
         QMessageBox::information(nullptr, "导出非法频点", m_pSignalDetectModel->ExportLegalFreqConf()? "导出成功！": "导出失败！");
     });
-    horizontalLayout->addWidget(pushButton_cleanAllData = new QPushButton("清理"));
-    connect(pushButton_cleanAllData, &QPushButton::clicked, this, [this] {
-        m_pSignalDetectModel->SlotCleanUp();
-    });
-    horizontalLayout->addWidget(pushButton_setLegalFreq = new QPushButton("开始设置非法频点"));
-    connect(pushButton_setLegalFreq, &QPushButton::clicked, this, [this](bool checked) {
-        pushButton_setLegalFreq->setText(checked? "完成设置": "开始设置非法频点");
-        m_pSignalDetectModel->SlotTriggerLegalFreqSet(checked);
-    });
+    horizontalLayout->addWidget(pushButton_setLegalFreq = new QPushButton("设置非法频点"));
     pushButton_setLegalFreq->setCheckable(true);
+    connect(pushButton_setLegalFreq, &QPushButton::clicked, this, [this](bool checked) {
+        pushButton_setLegalFreq->setText(checked? "完成设置": "设置非法频点");
+        if (m_pSignalDetectModel->m_eUserViewType == SIGNAL_DETECT_TABLE)
+            m_pSignalDetectModel->TriggerLegalFreqSet(checked);
+    });
+    horizontalLayout->addWidget(pushButton_setRemark = new QPushButton("添加说明"));
+    pushButton_setRemark->setCheckable(true);
+    pushButton_setRemark->hide();
+    connect(pushButton_setRemark, &QPushButton::clicked, this, [this](bool checked) {
+        pushButton_setRemark->setText(checked? "完成设置": "添加说明");
+        if (m_pSignalDetectModel->m_eUserViewType == DISTURB_NOISE_TABLE)
+            m_pSignalDetectModel->TriggerRemarkSet(checked);
+    });
 
     mainLayout->addLayout(horizontalLayout);
     mainLayout->addWidget(tabWidget_SignalDetectTable = new QTabWidget);
@@ -121,19 +129,21 @@ void WBSignalDetectWidget::setupUi()
     m_pDisturbNoiseTable->setModel(m_pSignalDetectModel);
     tabWidget_SignalDetectTable->addTab(m_pManMadeNoiseTable = new ManMadeNoiseTableView, "电磁环境人为噪声电平测量表");
     tabWidget_SignalDetectTable->addTab(m_pPulseDetectTable = new PulseDetectTableView, "脉冲检测表");
-    connect(tabWidget_SignalDetectTable, &QTabWidget::currentChanged, this, [this] (int) {
-        pushButton_setLegalFreq->setVisible(!tabWidget_SignalDetectTable->currentIndex());
-        switch (tabWidget_SignalDetectTable->currentIndex())
+    connect(tabWidget_SignalDetectTable, &QTabWidget::currentChanged, this, [this] (int index) {
+        emit pushButton_setLegalFreq->clicked(false);
+        emit pushButton_setRemark->clicked(false);
+        switch (index)
         {
         case 0: m_pSignalDetectModel->setUserViewType(SIGNAL_DETECT_TABLE); break;
         case 1: m_pSignalDetectModel->setUserViewType(DISTURB_NOISE_TABLE); break;
         }
-        emit pushButton_setLegalFreq->clicked(false);
+        pushButton_setLegalFreq->setVisible(index == SIGNAL_DETECT_TABLE);
+        pushButton_setRemark->setVisible(index == DISTURB_NOISE_TABLE);
+        pushButton_cleanAllData->setVisible(index != MAN_MADE_NOISE_TABLE);
         m_pSignalDetectModel->UpdateData();
     });
 
     horizontalLayout = new QHBoxLayout;
-
     horizontalLayout->addWidget(pushButton_CommonInfo = new QPushButton("报告基本信息"));
     pushButton_CommonInfo->setIcon(QApplication::style()->standardIcon(QStyle::SP_FileDialogInfoView));
     connect(pushButton_CommonInfo, &QPushButton::clicked, this, [this]
@@ -157,7 +167,7 @@ void WBSignalDetectWidget::setupUi()
         tabWidget_SignalDetectTable->setCurrentIndex(1);
         m_pSignalDetectModel->GenerateExcelDisturbNoiseTable(m_CommonInfo);
     });
-    horizontalLayout->addWidget(pushButton_GenerateManMadeNoise = new QPushButton("电磁环境人为噪声电平"));
+    horizontalLayout->addWidget(pushButton_GenerateManMadeNoise = new QPushButton("电磁环境人为噪声"));
     pushButton_GenerateManMadeNoise->setIcon(QApplication::style()->standardIcon(QStyle::SP_DialogSaveButton));
     connect(pushButton_GenerateManMadeNoise, &QPushButton::clicked, this, [this]
     {
@@ -196,9 +206,7 @@ void WBSignalDetectWidget::setupUi()
         auto document = word.querySubObject("ActiveDocument");
         if (!document || document->isNull())
             return;
-        if (!(/*m_pManMadeNoiseTable->m_pManMadeNoiseModel->GenerateWordManMadeNoiseTable(document) &&
-              m_pSignalDetectModel->GenerateWordDisturbNoiseTable(document) &&*/
-              m_pManMadeNoiseTable->m_pManMadeNoiseModel->GenerateWordManMadeNoiseChart(document)))
+        if (!m_pManMadeNoiseTable->m_pManMadeNoiseModel->GenerateWordManMadeNoiseChart(document))
             return;
         document->dynamicCall("SaveAs(const QString&))", QDir::toNativeSeparators(folderName + "/电磁环境测试报告" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".docx"));
         document->dynamicCall("Close(boolean)", false);

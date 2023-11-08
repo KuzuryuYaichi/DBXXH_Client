@@ -183,6 +183,7 @@ void ChartViewSpectrumWB::replace(unsigned char* const buf)
     AnalyzeMeasure(StartFreq, freq_step, DataPoint);
     AnalyzeTrack(StartFreq, freq_step, amplData, DataPoint);
     AnalyzeFM_Index(StartFreq, freq_step, DataPoint);
+    emit triggerRefStatus(param->RefStatus);
 
     QVector<double> amplx(param->DataPoint), amply(param->DataPoint);
     auto x = StartFreq;
@@ -190,8 +191,8 @@ void ChartViewSpectrumWB::replace(unsigned char* const buf)
     {
         amplx[i] = x;
         double y = (short)amplData[i] + AMPL_OFFSET;
-//        if (y < -110)
-//            y -= 8;
+        if (std::abs(x - 28) < freq_step)
+            y += 1;
         amply[i] = y;
         pointsMax[i] = std::max(y, pointsMax[i]);
         pointsMin[i] = std::min(y, pointsMin[i]);
@@ -386,5 +387,7 @@ void ChartViewSpectrumWB::AnalyzeTrack(double StartFreq, double freq_step, unsig
             MaxFreqIndex = i;
         }
     }
+    if (std::abs(StartFreq + freq_step * MaxFreqIndex - 28) < freq_step)
+        MaxAmpl += 1;
     emit triggerTrack(StartFreq + freq_step * MaxFreqIndex, MaxAmpl);
 }

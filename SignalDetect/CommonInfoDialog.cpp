@@ -1,4 +1,4 @@
-#include "inc/CommonInfoDialog.h"
+#include "SignalDetect/CommonInfoDialog.h"
 
 #include <QFormLayout>
 #include <QLabel>
@@ -15,9 +15,8 @@ CommonInfoDialog::CommonInfoDialog(QWidget *parent): QDialog(parent)
     formLayout->addRow(new QLabel("温度(℃):"), TempratureEdit = new QDoubleSpinBox);
     formLayout->addRow(new QLabel("湿度(%rh):"), HumidityEdit = new QDoubleSpinBox);
     formLayout->addRow(new QLabel("天气:"), WeatherComboBox = new QComboBox);
-    WeatherComboBox->addItems( { "晴", "多云", "阴", "阵雨", "雷阵雨", "雷阵雨冰雹", "雨夹雪", "小雨", "中雨", "大雨", "暴雨", "大暴雨",
-                                "特大暴雨", "阵雪", "小雪", "中雪", "大雪", "暴雪", "雾", "冻雨", "沙尘暴", "浮尘", "扬沙", "霾" } );
-    WeatherComboBox->setCurrentIndex(0);
+    WeatherComboBox->addItems({ "晴", "多云", "阴", "阵雨", "雷阵雨", "雷阵雨冰雹", "雨夹雪", "小雨", "中雨", "大雨", "暴雨", "大暴雨",
+                                "特大暴雨", "阵雪", "小雪", "中雪", "大雪", "暴雪", "雾", "冻雨", "沙尘暴", "浮尘", "扬沙", "霾" });
     formLayout->addRow(new QLabel("单位:"), CompanyEdit = new QLineEdit);
     formLayout->addRow(new QLabel("测试地点:"), TestPositionEdit = new QLineEdit);
     formLayout->addRow(new QLabel("测量人员:"), SurveyorEdit = new QLineEdit);
@@ -38,7 +37,6 @@ CommonInfoDialog::CommonInfoDialog(QWidget *parent): QDialog(parent)
         param.Surveyor = SurveyorEdit->text();
         param.Weather = WeatherComboBox->currentText();
         param.Date = DateEdit->date();
-
         emit triggerSetCompleted(param);
         close();
     });

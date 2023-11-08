@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <thread>
-#include <unordered_set>
 #include <mutex>
 #include <string>
 
@@ -18,10 +17,10 @@ public:
     ~TcpSocket();
     TcpSocket(const TcpSocket&) = delete;
     TcpSocket& operator=(const TcpSocket&) = delete;
-    void self_check(const unsigned int);
+    void self_check();
     void work_ctrl(const unsigned int);
     void wb_parameter_set();
-    void nb_parameter_set(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int);
+    void nb_parameter_set(const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned int, const unsigned char);
     boost::system::error_code connectToServer(const std::string&, const unsigned short);
     boost::system::error_code connectToServer();
     bool IsConnected();

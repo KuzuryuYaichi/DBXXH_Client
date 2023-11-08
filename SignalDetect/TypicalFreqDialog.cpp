@@ -1,33 +1,10 @@
-#include "../inc/TypicalFreqDialog.h"
+#include "SignalDetect/TypicalFreqDialog.h"
 
 #include <QBoxLayout>
 #include <QLabel>
 #include <QMessageBox>
 
 TypicalFreqDialog::TypicalFreqDialog(QWidget *parent): QDialog(parent)
-{
-    setupUi();
-}
-
-void TypicalFreqDialog::SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, double>>& lst)
-{
-    if (lst.size() > SETTING_LINE)
-        return;
-    int index = 0;
-    for (const auto& [freq, _]: lst)
-    {
-        lineEdit_TypicalFreq[index]->setValue(freq / 1e6);
-        checkBox_Enable[index]->setChecked(true);
-        ++index;
-    }
-    while (index++ < SETTING_LINE)
-    {
-        lineEdit_TypicalFreq[index]->setValue(0);
-        checkBox_Enable[index]->setChecked(false);
-    }
-}
-
-void TypicalFreqDialog::setupUi()
 {
     auto vBoxLayout = new QVBoxLayout(this);
     for (auto i = 0; i < SETTING_LINE; ++i)
@@ -63,7 +40,7 @@ void TypicalFreqDialog::setupUi()
             {
                 if (&freqA == &freqB)
                     continue;
-                if (std::abs(freqA - freqB) < 0.4e6)
+                if (std::abs(freqA - freqB) < 4e5)
                 {
                     QMessageBox::information(nullptr, "典型频点设置", "典型频点间距需大于0.4MHz，设置失败！");
                     return;
@@ -76,4 +53,22 @@ void TypicalFreqDialog::setupUi()
     horizontalLayout->addWidget(pushButton_Cancel = new QPushButton("取消"));
     connect(pushButton_Cancel, &QPushButton::clicked, this, &QDialog::close);
     vBoxLayout->addLayout(horizontalLayout);
+}
+
+void TypicalFreqDialog::SetCurrentTypicalFreqFromTable(const std::map<int, std::map<int, double>>& lst)
+{
+    if (lst.size() > SETTING_LINE)
+        return;
+    int index = 0;
+    for (const auto& [freq, _]: lst)
+    {
+        lineEdit_TypicalFreq[index]->setValue(freq / 1e6);
+        checkBox_Enable[index]->setChecked(true);
+        ++index;
+    }
+    while (index++ < SETTING_LINE)
+    {
+        lineEdit_TypicalFreq[index]->setValue(0);
+        checkBox_Enable[index]->setChecked(false);
+    }
 }

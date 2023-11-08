@@ -9,7 +9,7 @@
 #include "TcpSocket.h"
 #include "ChartWidgetNB.h"
 #include "ChartWidgetWB.h"
-#include "inc/WBSignalDetectWidget.h"
+#include "SignalDetect//WBSignalDetectWidget.h"
 
 class MainWidget: public QWidget
 {
@@ -31,9 +31,9 @@ private:
 
     QLineEdit *ipEdit;
     QLineEdit *portEdit;
-    QLabel* MarkerFreqLbl[MARKER_NUM], * MarkerAmplLbl[MARKER_NUM], *MeasureLbl, *MaxFreqLbl, *MaxAmplLbl, *FM_IndexLbl;
+    QLabel* MarkerFreqLbl[MARKER_NUM], * MarkerAmplLbl[MARKER_NUM], *MeasureLbl, *MaxFreqLbl, *MaxAmplLbl, *FM_IndexLbl, *RefStatusLbl;
     QTimer* m_updater;
-    QPushButton* saveBtn;
+    QPushButton* saveBtn, *selfcheckBtn;
     QDoubleSpinBox* FM_FreqEdit;
 
     std::vector<std::tuple<bool, double, double>> MarkData;

@@ -5,6 +5,34 @@
 
 PulseDetectModel::PulseDetectModel(QObject *parent): WBSignalDetectModel(parent) {}
 
+int PulseDetectModel::rowCount(const QModelIndex &index) const
+{
+    return index.isValid()? 0: (int)m_DisplayData.size();
+}
+
+bool PulseDetectModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (index.isValid() && role == Qt::EditRole)
+    {
+        m_DisplayData[index.row()][index.column()] = value;
+        emit dataChanged(index, index);
+        return true;
+    }
+    return false;
+}
+
+QVariant PulseDetectModel::data(const QModelIndex &index, int role) const
+{
+    if (index.isValid())
+    {
+        if (role == Qt::DisplayRole || role == Qt::EditRole)
+            return m_DisplayData[index.row()][index.column()];
+        else if (role == Qt::TextAlignmentRole)
+            return Qt::AlignCenter;
+    }
+    return QVariant();
+}
+
 QVariant PulseDetectModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (role == Qt::DisplayRole && orientation == Qt::Horizontal)
@@ -44,9 +72,9 @@ void PulseDetectModel::UpdateData()
         0x0263, 0x02ae, 0x0301, 0x035f, 0x03c8, 0x043f, 0x04c3, 0x0558, 0x05ff, 0x068a, 0x078c, 0x0878, 0x0981, 0x0aa9, 0x0bf6, 0x0d6c,
         0x0f0f, 0x10e6, 0x12f6, 0x1546, 0x17de, 0x1ac8, 0x1e0d, 0x21b7, 0x25d4, 0x2a72, 0x2fa0, 0x356f, 0x3bf5, 0x4345, 0x4b7b, 0x54b0
     };
-    m_DisplayData.clear();
     std::lock_guard<std::mutex> lk(m_mutex);
     beginResetModel();
+    m_DisplayData.clear();
     for (const auto& [freq, pulse]: m_Pulse)
     {
         std::vector<QVariant> line(LENGTH);
@@ -54,7 +82,7 @@ void PulseDetectModel::UpdateData()
         line[1] = std::lower_bound(AMPL_LIST, AMPL_LIST + 63, pulse.PulseAmpl) - AMPL_LIST - 69;
         line[2] = pulse.PulseWidth / 96.0;
         line[3] = pulse.Time.toString(TIME_FORMAT);
-        m_DisplayData.emplace_back(std::pair{ QUuid::createUuid(), std::move(line) });
+        m_DisplayData.emplace_back(std::move(line));
     }
     endResetModel();
     m_Pulse.clear();

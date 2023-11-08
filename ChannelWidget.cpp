@@ -22,9 +22,9 @@ ChannelWidget::ChannelWidget(TcpSocket* socket, QWidget* parent): QWidget(parent
     for (int i = 0; i < ZC_NB_CHANNEL_NUMS; ++i)
     {
         connect(chartNB[i] = new ChartWidgetNB(tr("NB") + (i > 0? QString::number(i): ""), i), &ChartWidgetNB::ParamsChanged, this,
-            [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType, unsigned int cw, unsigned int RatePSK)
+            [this, i] (unsigned long long freq, unsigned int bandwidth, unsigned int demodType, unsigned int cw, unsigned int RatePSK, char Truncate)
         {
-            m_socket->nb_parameter_set(1, i, freq, bandwidth, demodType, cw, RatePSK);
+            m_socket->nb_parameter_set(1, i, freq, bandwidth, demodType, cw, RatePSK, Truncate);
         });
         if (i > 0)
             scrollLayout->addWidget(chartNB[i]);

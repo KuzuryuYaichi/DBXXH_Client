@@ -3,7 +3,7 @@
 
 extern PARAMETER_SET g_parameter_set;
 
-DataManager::DataManager(QObject *parent): QObject(parent)
+DataManager::DataManager(QObject* parent): QObject(parent)
 {
     g_parameter_set.tinyConfig = TinyConfig("config.ini");
 }
@@ -25,7 +25,7 @@ bool DataManager::translate(const QString& filename)
     if (t->load(filename))
     {
         qApp->installTranslator(t);
-        Translators.append(t);
+        Translators.emplace_back(t);
         return true;
     }
     delete t;
@@ -34,10 +34,15 @@ bool DataManager::translate(const QString& filename)
 
 void DataManager::eliminate()
 {
-    for (QTranslator *t: Translators)
+    for (auto& t: Translators)
     {
         qApp->removeTranslator(t);
         delete t;
     }
     Translators.clear();
+}
+
+DataManager::~DataManager()
+{
+    eliminate();
 }

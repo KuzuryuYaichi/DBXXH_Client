@@ -1,11 +1,11 @@
-#include "../inc/PopupParamDialog.h"
+#include "SignalDetect/PopupParamDialog.h"
 
 #include <QFormLayout>
 #include <QLabel>
 
-extern uint g_FreqPointThreshold;
-extern uint g_BandwidthThreshold;
-extern float g_AmplThreshold;
+int g_FreqPointThreshold = 10000; //Hz
+int g_BandwidthThreshold = 10000; //Hz
+float g_AmplThreshold = -60; //dBm
 
 PopupParamDialog::PopupParamDialog(QWidget *parent): QDialog(parent)
 {

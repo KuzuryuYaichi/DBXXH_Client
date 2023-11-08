@@ -19,11 +19,6 @@ protected:
     QVBoxLayout* mainLayout;
     QHBoxLayout* layoutSpectrum;
     QHBoxLayout* hBoxLayout;
-    bool ready = true;
-    QTimer* m_updater;
-
-private:
-    static constexpr int REFRESH_INTERVAL = 150;
 };
 
 #endif // CHARTWIDGETCOMBINE_H

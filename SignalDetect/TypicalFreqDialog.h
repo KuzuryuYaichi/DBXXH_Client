@@ -19,7 +19,6 @@ signals:
     void sigHaveTypicalFreq(const std::list<int>&);
 
 private:
-    void setupUi();
     static constexpr int SETTING_LINE = 7;
     QCheckBox *checkBox_Enable[SETTING_LINE];
     QDoubleSpinBox *lineEdit_TypicalFreq[SETTING_LINE];

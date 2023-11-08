@@ -1,9 +1,11 @@
 #include "ChartWidgetNB.h"
 
 #include "StructNetData.h"
+#include "DigitDemod.h"
 
 #include <QStyle>
 #include <QStorageInfo>
+#include <algorithm>
 
 extern PARAMETER_SET g_parameter_set;
 
@@ -79,17 +81,8 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     bandwidthBox->addItem("150", 150000);
     bandwidthBox->setCurrentIndex(bandwidthBox->count() - 1);
     connect(bandwidthBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
+        ChangeDigitDemodRate();
         ParamsChange();
-    });
-    hBoxLayout->addStretch(1);
-
-    hBoxLayout->addWidget(new QLabel(tr("CW(kHz):")), 1);
-    hBoxLayout->addWidget(cwEdit = new QSpinBox, 2);
-    connect(cwEdit, &QSpinBox::editingFinished, this, [this] {
-        if (cwEdit->hasFocus())
-        {
-            ParamsChange();
-        }
     });
     hBoxLayout->addStretch(1);
 
@@ -111,20 +104,31 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
     hBoxLayout->addWidget(new QLabel(tr("Demod:")), 1);
     hBoxLayout->addWidget(demodBox = new QComboBox, 2);
     static constexpr const char* DEMOD_TYPE[] = { "IQ", "AM", "FM", "PM", "USB", "LSB", "ISB", "CW", "FSK", "PSK" };
-    for (auto i = 0ull; i < 10; ++i)
+    for (auto i = 0; i < 10; ++i)
+    {
         demodBox->addItem(DEMOD_TYPE[i], i);
+    }
+
     connect(demodBox, QOverload<int>::of(&QComboBox::activated), this, [this] (int) {
-        auto State = demodBox->currentText() == "FSK";
+        auto State = demodBox->currentIndex() == FSK;
         LblFSK->setVisible(State);
-        RateEditFSK->setVisible(State);
+        RateBoxFSK->setVisible(State);
 
-        State = demodBox->currentText() == "PSK";
+        State = demodBox->currentIndex() == PSK;
         LblDQPSK->setVisible(State);
-        RateEditDQPSK->setVisible(State);
+        RateBoxDQPSK->setVisible(State);
 
-        State = demodBox->currentText() == "AM";
+        State = demodBox->currentIndex() == AM;
         LblDepthAM->setVisible(State);
         DepthAM->setVisible(State);
+
+        State = demodBox->currentIndex() == FM;
+        LblMute->setVisible(State);
+        TruncateSlider->setVisible(State);
+
+        State = demodBox->currentIndex() == CW;
+        LblCW->setVisible(State);
+        cwEdit->setVisible(State);
 
         ParamsChange();
     });
@@ -132,33 +136,46 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
 
     hBoxLayout->addWidget(LblFSK = new QLabel(tr("FSK Rate(kHz):")));
     LblFSK->hide();
-    hBoxLayout->addWidget(RateEditFSK = new QDoubleSpinBox);
-    RateEditFSK->setMinimum(0.1);
-    RateEditFSK->setMaximum(100);
-    RateEditFSK->setValue(1);
-    RateEditFSK->setSingleStep(1);
-    RateEditFSK->setDecimals(3);
-    RateEditFSK->hide();
+    hBoxLayout->addWidget(RateBoxFSK = new QComboBox);
+    RateBoxFSK->hide();
 
     hBoxLayout->addWidget(LblDQPSK = new QLabel(tr("PSK Rate(kHz):")));
     LblDQPSK->hide();
-    hBoxLayout->addWidget(RateEditDQPSK = new QDoubleSpinBox);
-    RateEditDQPSK->setMinimum(0.1);
-    RateEditDQPSK->setMaximum(100);
-    RateEditDQPSK->setSingleStep(1);
-    RateEditDQPSK->setDecimals(3);
-    RateEditDQPSK->hide();
-    connect(RateEditDQPSK, &QSpinBox::editingFinished, this, [this] {
-        if (RateEditDQPSK->hasFocus())
-        {
-            ParamsChange();
-        }
+    hBoxLayout->addWidget(RateBoxDQPSK = new QComboBox);
+    RateBoxDQPSK->hide();
+    connect(RateBoxDQPSK, QOverload<int>::of(&QComboBox::activated), this, [this](int) {
+        ParamsChange();
     });
+
+    ChangeDigitDemodRate();
 
     hBoxLayout->addWidget(LblDepthAM = new QLabel(tr("AM Depth(%):")));
     LblDepthAM->hide();
     hBoxLayout->addWidget(DepthAM = new QLabel("0"));
     DepthAM->hide();
+
+    hBoxLayout->addWidget(LblMute = new QLabel(tr("Volume:")));
+    LblMute->hide();
+    hBoxLayout->addWidget(TruncateSlider = new QSlider(Qt::Horizontal));
+    TruncateSlider->setTickInterval(6);
+    TruncateSlider->setMinimum(19);
+    TruncateSlider->setMaximum(39);
+    TruncateSlider->setMinimumWidth(100);
+    TruncateSlider->hide();
+    connect(TruncateSlider, &QSlider::sliderReleased, this, [this] {
+        ParamsChange();
+    });
+
+    hBoxLayout->addWidget(LblCW = new QLabel(tr("CW(kHz):")), 1);
+    LblCW->hide();
+    hBoxLayout->addWidget(cwEdit = new QSpinBox, 2);
+    cwEdit->hide();
+    connect(cwEdit, &QSpinBox::editingFinished, this, [this] {
+        if (cwEdit->hasFocus())
+        {
+            ParamsChange();
+        }
+    });
 
     hBoxLayout->addWidget(showWaveBtn = new QPushButton(style->standardIcon(QStyle::SP_MediaPause), ""), 2);
     connect(showWaveBtn, &QPushButton::clicked, this, [this] {
@@ -166,8 +183,9 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
         showWaveBtn->setIcon(QApplication::style()->standardIcon(showWave? QStyle::SP_MediaPause: QStyle::SP_MediaPlay));
     });
 
-    AmplData = std::make_unique<unsigned char[]>(DDC_LEN);
+    hBoxLayout->addWidget(Tmp_Chk = new QCheckBox());
 
+    AmplData = std::make_unique<unsigned char[]>(DDC_LEN);
     inR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
     outR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
     planR = fftw_plan_dft_1d(DDC_LEN, inR, outR, FFTW_FORWARD, FFTW_MEASURE);
@@ -178,6 +196,20 @@ ChartWidgetNB::~ChartWidgetNB()
     fftw_destroy_plan(planR);
     fftw_free(inR);
     fftw_free(outR);
+}
+
+void ChartWidgetNB::ChangeDigitDemodRate()
+{
+    static constexpr int TIMES[] = { 4, 6, 8 };
+    auto SpsBandwidth = NB_HALF_BANDWIDTH_KHz[bandwidthBox->currentIndex()];
+    RateBoxFSK->clear();
+    RateBoxDQPSK->clear();
+    for (auto i = 0; i < 3; ++i)
+    {
+        auto Rate = SpsBandwidth / TIMES[i];
+        RateBoxFSK->addItem(QString::number(Rate), Rate);
+        RateBoxDQPSK->addItem(QString::number(Rate), Rate);
+    }
 }
 
 void ChartWidgetNB::FFT(unsigned char* buf)
@@ -204,7 +236,8 @@ void ChartWidgetNB::FFT(unsigned char* buf)
 
 void ChartWidgetNB::ParamsChange()
 {
-    emit ParamsChanged(freqEdit->value() * 1e6, bandwidthBox->currentData().toULongLong(), demodBox->currentData().toUInt(), cwEdit->value() * 1e3, RateEditDQPSK->value() * 1e3);
+    emit ParamsChanged(freqEdit->value() * 1e6, bandwidthBox->currentData().toULongLong(), demodBox->currentData().toUInt(),
+                       cwEdit->value() * 1e3, RateBoxDQPSK->currentData().toDouble() * 1e3, 48 - TruncateSlider->value());
 }
 
 void ChartWidgetNB::changedListening(int index, bool state)
@@ -237,7 +270,6 @@ bool ChartWidgetNB::TestRecordThreshold()
         auto Ampl = (short)AmplData[i] + AMPL_OFFSET;
         if (Ampl > RecordThreshold)
         {
-//            qDebug() << Ampl;
             return true;
         }
     }
@@ -280,15 +312,15 @@ void ChartWidgetNB::Record(unsigned char* const buf)
         break;
     }
     case FSK:
-    //    {
-    //        auto ptr = std::make_unique<short[]>(param->DataPoint);
-    //        for (auto i = 0; i < param->DataPoint; ++i)
-    //        {
-    //            ptr[i] = amplData[i].I > 0? 1: 0;
-    //        }
-    //        WriteFile((char*)ptr.get(), sizeof(short) * param->DataPoint);
-    //        break;
-    //    }
+    {
+        auto ptr = std::make_unique<short[]>(param->DataPoint);
+        for (auto i = 0; i < param->DataPoint; ++i)
+        {
+            ptr[i] = amplData[i].I > 0? 1: 0;
+        }
+        WriteFile((char*)ptr.get(), sizeof(short) * param->DataPoint);
+        break;
+    }
     case IQ:
     case ISB:
     {
@@ -425,93 +457,13 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
     }
     else if (demodBox->currentIndex() == FSK)
     {
-        double SpsBandwidth = NB_HALF_BANDWIDTH_KHz[11];
-        switch (param->Bandwidth)
+        if (Tmp_Chk->checkState())
         {
-        case 150: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[0]; break;
-        case 300: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[1]; break;
-        case 600: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[2]; break;
-        case 1500: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[3]; break;
-        case 2400: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[4]; break;
-        case 6000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[5]; break;
-        case 9000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[6]; break;
-        case 15000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[7]; break;
-        case 30000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[8]; break;
-        case 50000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[9]; break;
-        case 120000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[10]; break;
-        case 150000: SpsBandwidth = NB_HALF_BANDWIDTH_KHz[11]; break;
+            FSK_Data = DigitDemod::Demod(data, RateBoxFSK->currentData().toDouble());
+            if (FSK_Data == nullptr)
+                return;
+            buf = FSK_Data.get();
         }
-
-        auto CodeRate = RateEditFSK->value();
-        int PointSkip = SpsBandwidth / CodeRate;
-        if (PointSkip <= 0)
-            return;
-        int pos;
-        for (pos = 1; pos < DDC_LEN; ++pos)
-        {
-            auto a = amplData[pos - 1].I, b = amplData[pos].I;
-            if ((a & 0x8000) != (b & 0x8000))
-                break;
-        }
-        if (pos < DDC_LEN)
-        {
-            if (pos - PointSkip >= 0)
-                pos -= PointSkip;
-        }
-        else if (pos == DDC_LEN)
-            pos = 0;
-
-        int Tmp_Index = 0;
-        auto FSK_Tmp = std::make_unique<unsigned char[]>(sizeof(DataHead) + sizeof(StructNBWave) + sizeof(NarrowDDC) * DDC_LEN);
-        auto pDst = (NarrowDDC*)(FSK_Tmp.get() + sizeof(DataHead) + sizeof(StructNBWave));
-        bool NeedPush = false;
-
-        for (auto i = pos; i < DDC_LEN; i += PointSkip)
-        {
-//            int idx = i;
-//            for (auto j = i; j < PointSkip; ++j)
-//            {
-//                auto max_val = 0;
-//                auto new_sub = std::abs(amplData[pos].I);
-//                if (max_val > amplData[pos].I)
-//                {
-//                    max_val = new_sub;
-//                    idx = j;
-//                }
-//            }
-//            pDst[Tmp_Index] = amplData[idx];
-//            if (++Tmp_Index == DDC_LEN)
-//            {
-//                std::memcpy(FSK_Tmp.get(), data.get(), sizeof(DataHead) + sizeof(StructNBWave));
-//                FSK_Data = std::move(FSK_Tmp);
-//                buf = FSK_Data.get();
-
-//                FSK_Tmp = std::make_unique<unsigned char[]>(sizeof(DataHead) + sizeof(StructNBWave) + sizeof(NarrowDDC) * DDC_LEN);
-//                Tmp_Index = 0;
-//                pDst = (NarrowDDC*)(FSK_Data.get() + sizeof(DataHead) + sizeof(StructNBWave));
-
-//                NeedPush = true;
-//            }
-
-            int idx = i;
-            auto max_val = 0;
-            for (auto j = 0; j < PointSkip; ++j)
-            {
-                auto tmp = i + j;
-                auto new_sub = std::abs(amplData[tmp].I);
-                if (max_val < new_sub)
-                {
-                    max_val = new_sub;
-                    idx = tmp;
-                }
-            }
-            pDst[Tmp_Index++] = amplData[idx];
-        }
-        std::memcpy(FSK_Tmp.get(), data.get(), sizeof(DataHead) + sizeof(StructNBWave));
-        FSK_Data = std::move(FSK_Tmp);
-        buf = FSK_Data.get();
-        auto param = (StructNBWave*)(buf + sizeof(DataHead));
-        param->DataPoint = Tmp_Index - 1;
     }
 
     FFT(buf);
@@ -540,14 +492,17 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
         return;
     ready = false;
 
-    QTimer::singleShot(0, this, [this, data] {
-        auto param = (StructNBWave*)(data.get() + sizeof(DataHead));
-        if (param->DataType == AM && param->AM_DC != 0)
-        {
-            auto depth = (char)(100.0 * param->AM_DataMax / param->AM_DC);
-            if (depth >= 0 && depth <= 100)
-                DepthAM->setText(QString::number(depth));
-        }
-        m_updater->start();
-    });
+    std::thread([this, data] {
+        QTimer::singleShot(0, this, [this, data] {
+            auto param = (StructNBWave*)(data.get() + sizeof(DataHead));
+            if (param->DataType == AM && param->AM_DC != 0)
+            {
+                auto depth = (char)(100.0 * param->AM_DataMax / param->AM_DC);
+                if (depth >= 0 && depth <= 100)
+                    DepthAM->setText(QString::number(depth));
+            }
+        });
+        std::this_thread::sleep_for(std::chrono::milliseconds(REFRESH_INTERVAL));
+        ready = true;
+    }).detach();
 }

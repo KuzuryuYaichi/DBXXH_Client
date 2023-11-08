@@ -12,8 +12,6 @@ INCLUDEPATH += \
 
 SOURCES += \
     ConductivityDialog.cpp \
-    Demodulate/IPPFir.cpp \
-    Demodulate/FSKModule.cpp \
     ChannelWidget.cpp \
     ChartViewAfterglow.cpp \
     ChartViewCustom.cpp \
@@ -29,7 +27,7 @@ SOURCES += \
     ChartWidgetWB.cpp \
     DataManager.cpp \
     DataProcess.cpp \
-    DemodulationDetect.cpp \
+    DigitDemod.cpp \
     MainWidget.cpp \
     Model.cpp \
     PulseDetectModel.cpp \
@@ -40,21 +38,19 @@ SOURCES += \
     TinyConfig.cpp \
     global.cpp \
     main.cpp \
-    src/CommonInfoDialog.cpp \
-    src/ManMadeNoiseModel.cpp \
-    src/PopupParamDialog.cpp \
-    src/SignalNoiseModel.cpp \
-    src/DisturbNoiseTableView.cpp \
-    src/ManMadeNoiseTableView.cpp \
-    src/SignalDetectTableView.cpp \
-    src/TypicalFreqDialog.cpp \
-    src/WBSignalDetectModel.cpp \
-    src/WBSignalDetectWidget.cpp
+    SignalDetect/CommonInfoDialog.cpp \
+    SignalDetect/ManMadeNoiseModel.cpp \
+    SignalDetect/PopupParamDialog.cpp \
+    SignalDetect/SignalNoiseModel.cpp \
+    SignalDetect/DisturbNoiseTableView.cpp \
+    SignalDetect/ManMadeNoiseTableView.cpp \
+    SignalDetect/SignalDetectTableView.cpp \
+    SignalDetect/TypicalFreqDialog.cpp \
+    SignalDetect/WBSignalDetectModel.cpp \
+    SignalDetect/WBSignalDetectWidget.cpp
 
 HEADERS += \
     ConductivityDialog.h \
-    Demodulate/Export.h \
-    Demodulate/FSKModule.h \
     ChannelWidget.h \
     ChartViewAfterglow.h \
     ChartViewCustom.h \
@@ -70,7 +66,7 @@ HEADERS += \
     ChartWidgetWB.h \
     DataManager.h \
     DataProcess.h \
-    DemodulationDetect.h \
+    DigitDemod.h \
     MainWidget.h \
     Model.h \
     PulseDetectModel.h \
@@ -83,16 +79,16 @@ HEADERS += \
     ThreadSafeQueue.h \
     TinyConfig.h \
     global.h \
-    inc/CommonInfoDialog.h \
-    inc/ManMadeNoiseModel.h \
-    inc/PopupParamDialog.h \
-    inc/SignalNoiseModel.h \
-    inc/DisturbNoiseTableView.h \
-    inc/ManMadeNoiseTableView.h \
-    inc/SignalDetectTableView.h \
-    inc/TypicalFreqDialog.h \
-    inc/WBSignalDetectModel.h \
-    inc/WBSignalDetectWidget.h
+    SignalDetect/CommonInfoDialog.h \
+    SignalDetect/ManMadeNoiseModel.h \
+    SignalDetect/PopupParamDialog.h \
+    SignalDetect/SignalNoiseModel.h \
+    SignalDetect/DisturbNoiseTableView.h \
+    SignalDetect/ManMadeNoiseTableView.h \
+    SignalDetect/SignalDetectTableView.h \
+    SignalDetect/TypicalFreqDialog.h \
+    SignalDetect/WBSignalDetectModel.h \
+    SignalDetect/WBSignalDetectWidget.h
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

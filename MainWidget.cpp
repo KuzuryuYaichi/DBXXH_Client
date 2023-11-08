@@ -25,6 +25,9 @@ MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* paren
     connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerMark, this, [this](std::vector<std::tuple<bool, double, double>> MarkData) {
         this->MarkData = std::move(MarkData);
     });
+    connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerRefStatus, this, [this](short mode) {
+        this->RefStatusLbl->setText(mode? tr("Inner"): tr("Outer"));
+    });
     //    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
 
     auto leftLayout = new QGridLayout;
@@ -88,9 +91,17 @@ MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* paren
         this->FM_Offset = FM_Offset;
     });
 
+    auto Rf_StatusGroupBox = new QGroupBox(tr("Rf Status"));
+    settingLayout->addRow(Rf_StatusGroupBox);
+    auto Rf_StatusLayout = new QFormLayout(Rf_StatusGroupBox);
+    Rf_StatusLayout->addRow(tr("Selfcheck"), selfcheckBtn = new QPushButton(tr("Query")));
+    Rf_StatusLayout->addRow(tr("RefStatus"), RefStatusLbl = new QLabel(tr("Unknown")));
+    connect(selfcheckBtn, &QPushButton::clicked, this, [this](bool) {
+        m_socket->self_check();
+    });
+
     m_updater = new QTimer;
     m_updater->setInterval(100);
-    m_updater->setSingleShot(true);
     connect(m_updater, &QTimer::timeout, this, [this] {
         if (MarkData.size() == MARKER_NUM)
         {
@@ -112,7 +123,6 @@ MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* paren
             MaxAmplLbl->setText(QStringLiteral("%1dBm").arg(MaxAmpl));
             FM_IndexLbl->setText(QString("%1").arg(FM_Offset * 1e3 / FM_FreqEdit->value()));
         }
-        m_updater->start();
     });
     m_updater->start();
 

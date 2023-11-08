@@ -31,6 +31,7 @@ struct ParamPowerWB
     int DataPoint;
     int SamplePoint;
     short Window;
+    short RefStatus;
     long long StartFreq;
     long long StopFreq;
     int ChannelNum;

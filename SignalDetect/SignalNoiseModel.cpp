@@ -1,4 +1,4 @@
-#include "inc/SignalNoiseModel.h"
+#include "SignalDetect/SignalNoiseModel.h"
 
 #include <QDateTime>
 #include <QTimer>
@@ -10,12 +10,23 @@
 
 #include "global.h"
 
-//考虑使用全局量记录频点识别门限以及带宽识别门限
-uint g_FreqPointThreshold = 10000; //单位为Hz
-uint g_BandwidthThreshold = 10000; //单位为Hz
-float g_AmplThreshold = -60; //dBm
-
 SignalNoiseModel::SignalNoiseModel(QObject* parent): WBSignalDetectModel(parent) {}
+
+int SignalNoiseModel::rowCount(const QModelIndex &index) const
+{
+    return index.isValid()? 0: (int)m_DisplayData.size();
+}
+
+bool SignalNoiseModel::setData(const QModelIndex &index, const QVariant &value, int role)
+{
+    if (index.isValid() && role == Qt::EditRole)
+    {
+        m_DisplayData[index.row()].second[index.column()] = value;
+        emit dataChanged(index, index);
+        return true;
+    }
+    return false;
+}
 
 QVariant SignalNoiseModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
@@ -33,9 +44,9 @@ QVariant SignalNoiseModel::headerData(int section, Qt::Orientation orientation, 
     return QVariant();
 }
 
-int SignalNoiseModel::columnCount(const QModelIndex &parent) const
+int SignalNoiseModel::columnCount(const QModelIndex &index) const
 {
-    if (!parent.isValid())
+    if (!index.isValid())
     {
         if (m_eUserViewType == SIGNAL_DETECT_TABLE)
             return LENGTH_SIGNAL_DETECT;
@@ -50,7 +61,8 @@ Qt::ItemFlags SignalNoiseModel::flags(const QModelIndex &index) const
     if (!index.isValid())
         return Qt::NoItemFlags;
     auto flags = Qt::ItemIsSelectable | Qt::ItemIsEnabled;
-    if (index.column() == LENGTH_SIGNAL_DETECT - 1 && m_eUserViewType == SIGNAL_DETECT_TABLE && m_bIsSettingLegalFreqFlag)      //仅信号选择表格的最后一列，且当前处于正在编辑合法信号的暂停状态时可编辑
+    if ((m_eUserViewType == DISTURB_NOISE_TABLE && index.column() == LENGTH_DISTURB_NOISE - 1 && m_IsSettingRemarkFlag) ||
+        (m_eUserViewType == SIGNAL_DETECT_TABLE && index.column() == LENGTH_SIGNAL_DETECT - 1 && m_IsSettingLegalFreqFlag))
         flags |= Qt::ItemIsEditable;
     return flags;
 }
@@ -61,7 +73,7 @@ QVariant SignalNoiseModel::data(const QModelIndex &index, int role) const
     {
         if (role == Qt::DisplayRole || role == Qt::EditRole)
         {
-            if (index.column() == LENGTH_SIGNAL_DETECT - 1)
+            if (m_eUserViewType == SIGNAL_DETECT_TABLE && index.column() == LENGTH_SIGNAL_DETECT - 1)
                 return m_DisplayData[index.row()].second[index.column()].toBool()? "是": "否";
             else
                 return m_DisplayData[index.row()].second[index.column()];
@@ -72,28 +84,47 @@ QVariant SignalNoiseModel::data(const QModelIndex &index, int role) const
     return QVariant();
 }
 
-void SignalNoiseModel::SlotTriggerLegalFreqSet(bool checked)
+void SignalNoiseModel::TriggerLegalFreqSet(bool checked)
 {
-    if (!(m_bIsSettingLegalFreqFlag = checked))
+    if (!(m_IsSettingLegalFreqFlag = checked))
     {
-        for (const auto& [uuid, signalIndex]: m_DisplayData) //完成修改后根据已修改状态修改map中对应数据的值
+        beginResetModel();
+        for (const auto& [uuid, data]: m_DisplayData)
         {
-            //LZMK:反向获取用于查询map的key 存在一些问题 //TODO:当显示频点和带宽的数据的单位发生变化时需要同时变更
-            SignalBaseChar curKey(signalIndex[0].toDouble() * 1e6, signalIndex[2].toDouble() * 1e6);
             for (auto& [key, value]: m_mapValidSignalCharacter)
             {
-                if (key.CenterFreq == curKey.CenterFreq && key.Bandwidth == curKey.Bandwidth)
-//                if (key == curKey)
+                if (uuid == key.uuid)
                 {
-                    value.isLegal = signalIndex[LENGTH_SIGNAL_DETECT - 1].toBool();
+                    value.isLegal = data[LENGTH_SIGNAL_DETECT - 1].toBool();
                     break;
                 }
             }
         }
+        endResetModel();
     }
 }
 
-void SignalNoiseModel::SlotCleanUp()
+void SignalNoiseModel::TriggerRemarkSet(bool checked)
+{
+    if (!(m_IsSettingRemarkFlag = checked))
+    {
+        beginResetModel();
+        for (const auto& [uuid, signalIndex]: m_DisplayData)
+        {
+            for (auto& [key, value]: m_mapValidSignalCharacter)
+            {
+                if (uuid == key.uuid)
+                {
+                    value.Remark = signalIndex[LENGTH_DISTURB_NOISE - 1].toString();
+                    break;
+                }
+            }
+        }
+        endResetModel();
+    }
+}
+
+void SignalNoiseModel::CleanUp()
 {
     m_mapValidSignalCharacter.clear(); //直接清理，不存在跨线程访问的问题
     m_i64SystemStartTime = m_i64SystemStopTime = 0;
@@ -106,22 +137,23 @@ bool SignalNoiseModel::ImportLegalFreqConf()
     for (const auto& curGroup: groups)
     {
         legalSetting.beginGroup(curGroup);
-        int CenterFreq = legalSetting.value("CenterFreq").toInt();
-        int Bandwidth = legalSetting.value("Bandwidth").toInt();
+        auto CenterFreq = legalSetting.value("CenterFreq").toInt();
+        auto Bandwidth = legalSetting.value("Bandwidth").toInt();
+        auto Remark = legalSetting.value("Remark").toString();
         bool findSignal = false;
         for (auto& [key, value]: m_mapValidSignalCharacter)
         {
             if (key.CenterFreq == CenterFreq && key.Bandwidth == Bandwidth)
             {
                 value.isLegal = false;
+                value.Remark = Remark;
                 findSignal = true;
                 break;
             }
         }
         if (!findSignal)
         {
-            SignalBaseChar signal(CenterFreq, Bandwidth);
-//            m_mapValidSignalCharacter.emplace( { signal, DisplaySignalCharacter()} );
+            m_mapValidSignalCharacter.emplace(std::pair(SignalBaseChar(CenterFreq, Bandwidth), DisplaySignalCharacter(SignalInfo(), 0, Remark)));
         }
         legalSetting.endGroup();
     }
@@ -138,8 +170,8 @@ bool SignalNoiseModel::ExportLegalFreqConf()
         if (!value.isLegal)
         {
             legalSetting.beginGroup(groupName + QString::number(groupIndex++));
-            legalSetting.setValue("CenterFreq", value.Info.BaseInfo.CenterFreq);
-            legalSetting.setValue("Bandwidth", value.Info.BaseInfo.Bandwidth);
+            legalSetting.setValue("CenterFreq", key.CenterFreq);
+            legalSetting.setValue("Bandwidth", key.Bandwidth);
             legalSetting.setValue("Remark", value.Remark);
             legalSetting.endGroup();
         }
@@ -149,12 +181,14 @@ bool SignalNoiseModel::ExportLegalFreqConf()
 
 void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned long long StartFreq, unsigned long long BandWidth)
 {
+    if (!m_bIsDetecting)
+        return;
     TimeRecord();
     m_iFullBandWidth = BandWidth;
     //从左向右查找第一个峰值的位置
     //LZMK:对原有逻辑进行改造，原有逻辑为根据对应区间获取最大值最高点作为信号peak
     //当前采用门限进行限制，只要存在某一点比前后两个点的幅度大的情况，即可认为是一个尖峰
-    std::list<SignalInfo> m_lstSignalInfo;
+    std::list<std::pair<SignalBaseChar, SignalInfo>> m_lstSignalInfo;
     for (int totalIndex = 0; totalIndex < length;)
     {
         Ipp32f FFtMax = g_AmplThreshold;
@@ -186,27 +220,23 @@ void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned l
                 break;
         }
         auto step = (double)BandWidth / length;
-        SignalInfo currentSignalInfo; //计算信号属性
-        currentSignalInfo.BaseInfo.Bandwidth = (RightAddr - LeftAddr) * step;
-        currentSignalInfo.BaseInfo.CenterFreq = StartFreq + step * (RightAddr + LeftAddr) / 2;
-        currentSignalInfo.Amp = FFtMax;
         Ipp32f SignalPower;
         ippsMean_32f(&FFtAvg[LeftAddr], RightAddr - LeftAddr + 1, &SignalPower, ippAlgHintFast); //获取信号平均功率
         Ipp32f NoiseLeftPower;
         ippsMean_32f(FFtAvg, LeftAddr, &NoiseLeftPower, ippAlgHintFast); //获取噪声平均功率
         Ipp32f NoiseRightPower;
         ippsMean_32f(&FFtAvg[RightAddr], length - RightAddr, &NoiseRightPower, ippAlgHintFast);
-        currentSignalInfo.Snr = SignalPower - (NoiseRightPower + NoiseLeftPower) / 2;
         totalIndex = RightAddr + 1; //更新次回处理起点
-        m_lstSignalInfo.emplace_back(currentSignalInfo);
+        m_lstSignalInfo.emplace_back(SignalBaseChar(StartFreq + step * (RightAddr + LeftAddr) / 2, (RightAddr - LeftAddr) * step),
+                                     SignalInfo(SignalPower - (NoiseRightPower + NoiseLeftPower) / 2, FFtMax));
     }
     auto currentTime = QDateTime::currentMSecsSinceEpoch();
-    for (const auto& curInfo: m_lstSignalInfo) // LZMK: 不再区分曾有现停的情况，用户从信号检测表格选择合法信号仅针对单个信号特征进行检测，无所谓停止后再出现
+    for (const auto& [baseInfo, curInfo]: m_lstSignalInfo) // LZMK: 不再区分曾有现停的情况，用户从信号检测表格选择合法信号仅针对单个信号特征进行检测，无所谓停止后再出现
     {
         bool foundFlag = false; // 两种情况：当前信号 1、从未有过  2、曾经有过
         for (auto& [key, value]: m_mapValidSignalCharacter)
         {
-            if (curInfo.BaseInfo == key) //有过记录，更新记录
+            if (baseInfo == key) //有过记录，更新记录
             {
                 foundFlag = true;
                 if (value.stopTime <= currentTime - 3000)
@@ -220,7 +250,7 @@ void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned l
         }
         if (!foundFlag && m_mapValidSignalCharacter.size() < LIST_LIMIT) //从未有过：增加map中的键值对，新增累计list
         {
-            m_mapValidSignalCharacter[curInfo.BaseInfo] = DisplaySignalCharacter(curInfo, currentTime);
+            m_mapValidSignalCharacter[baseInfo] = DisplaySignalCharacter(curInfo, currentTime);
         }
     }
 }
@@ -247,9 +277,8 @@ void SignalNoiseModel::setUserViewType(MODEL_USER_VIEW newEUserViewType)
 
 void SignalNoiseModel::UpdateData()
 {
-    if (m_bIsSettingLegalFreqFlag)
+    if (m_IsSettingLegalFreqFlag || m_IsSettingRemarkFlag)
         return;
-    //    std::lock_guard<std::mutex> lk(m_mutex);
     beginResetModel();
     m_DisplayData.clear();
     if (m_eUserViewType == SIGNAL_DETECT_TABLE)
@@ -258,14 +287,14 @@ void SignalNoiseModel::UpdateData()
         {
             std::vector<QVariant> line(LENGTH_SIGNAL_DETECT);
             line[0] = QString::number(double(key.CenterFreq) / 1e6, 'f', 6);
-            line[1] = QString::number(value.Info.Amp + 107);        //电平，采用107算法
-            line[2] = QString::number(double(value.Info.BaseInfo.Bandwidth) / 1e6, 'f', 6);        //带宽
+            line[1] = QString::number(value.Info.Amp + 107);
+            line[2] = QString::number(double(key.Bandwidth) / 1e6, 'f', 6); //带宽
             if (value.startTime) //起始时间
                 line[3] = QDateTime::fromMSecsSinceEpoch(value.startTime).toString(TIME_FORMAT);
             if (value.stopTime) //结束时间
                 line[4] = QDateTime::fromMSecsSinceEpoch(value.stopTime).toString(TIME_FORMAT);
-            if (m_iFullBandWidth > 0 && m_iFullBandWidth >= value.Info.BaseInfo.Bandwidth)
-                line[5] = QString("%1%").arg(100.0 * value.Info.BaseInfo.Bandwidth / m_iFullBandWidth);        //占用带宽
+            if (m_iFullBandWidth > 0 && m_iFullBandWidth >= key.Bandwidth)
+                line[5] = QString("%1%").arg(100.0 * key.Bandwidth / m_iFullBandWidth); //占用带宽
 
             qint64 duringTime = 0, nowTime = QDateTime::currentMSecsSinceEpoch();
             if (value.stopTime == 0) //计算一个确定频点带宽特征的信号在持续的总时间长度
@@ -275,7 +304,7 @@ void SignalNoiseModel::UpdateData()
             line[6] = QString("%1%").arg(100.0 * duringTime / ((m_i64SystemStopTime == m_i64SystemStartTime)?
                                 nowTime - m_i64SystemStartTime: m_i64SystemStopTime - m_i64SystemStartTime));
             line[7] = value.isLegal; //当前频点的信号是否合法记录在每个数据链的头部元素中
-            m_DisplayData.emplace_back(std::pair{ QUuid::createUuid(), std::move(line) });
+            m_DisplayData.emplace_back(std::pair{ key.uuid, std::move(line) });
         }
     }
     else if (m_eUserViewType == DISTURB_NOISE_TABLE)
@@ -286,26 +315,16 @@ void SignalNoiseModel::UpdateData()
                 continue;
             std::vector<QVariant> line(LENGTH_DISTURB_NOISE);
             line[0] = QString::number(key.CenterFreq / 1e6, 'f', 6); //干扰信号测量表格
-            line[1] = QString::number(value.Info.Amp + 107); //电平，采用107算法
+            line[1] = QString::number(value.Info.Amp + 107);
             if (value.startTime)
                 line[2] = QDateTime::fromMSecsSinceEpoch(value.startTime).toString(TIME_FORMAT); //起始时间
             if (value.stopTime)
                 line[3] = QDateTime::fromMSecsSinceEpoch(value.stopTime).toString(TIME_FORMAT); //结束时间
             line[4] = value.Remark; //说明
-            m_DisplayData.emplace_back(std::pair{ QUuid::createUuid(), std::move(line) });
+            m_DisplayData.emplace_back(std::pair{ key.uuid, std::move(line) });
         }
     }
     endResetModel();
-}
-
-bool SignalBaseChar::operator==(const SignalBaseChar& other) const
-{
-    return std::abs(CenterFreq - other.CenterFreq) < g_FreqPointThreshold /*&& std::abs(Bandwidth - other.Bandwidth) < g_BandwidthThreshold*/;
-}
-
-bool SignalBaseChar::operator<(const SignalBaseChar& other) const
-{
-    return /*(std::abs(CenterFreq - other.CenterFreq) < g_FreqPointThreshold && Bandwidth < other.Bandwidth) ||*/ CenterFreq < other.CenterFreq;
 }
 
 bool SignalNoiseModel::GenerateExcelSignalDetectTable()
@@ -427,86 +446,3 @@ bool SignalNoiseModel::GenerateExcelDisturbNoiseTable(const CommonInfoSet& Commo
     }
     return xlsx.saveAs(folderName + "/干扰信号测量记录" + QDateTime::currentDateTime().toString(" yyyy-MM-dd hh_mm_ss") + ".xlsx");
 }
-
-bool SignalNoiseModel::GenerateWordDisturbNoiseTable(QAxObject* document)
-{
-    auto bookmark_table = document->querySubObject("Bookmarks(QVariant)", "DisturbNoise");
-    if (!bookmark_table || bookmark_table->isNull())
-    {
-        QMessageBox::critical(nullptr, "电磁环境测试报告", "模板错误");
-        return false;
-    }
-    auto rowCnt = rowCount();
-    auto colCnt = LENGTH_DISTURB_NOISE;
-    auto datatable = document->querySubObject("Tables")->querySubObject("Add(QAxObject*, int, int, QVariant&, QVariant&)",
-                    bookmark_table->querySubObject("Range")->asVariant(), rowCnt + 5, colCnt);
-    datatable->setProperty("Style", "网格型");
-
-    MergeCells(datatable, 1, 3, 1, colCnt);
-    MergeCells(datatable, 1, 1, 1, 2);
-    MergeCells(datatable, rowCnt + 5, 2, rowCnt + 5, colCnt);
-
-    auto rangeTitle = datatable->querySubObject("Cell(int, int)", 1, 1)->querySubObject("Range");
-    rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-    rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-    rangeTitle->dynamicCall("SetText(QString)", "测量日期：     年     月    日");
-
-    rangeTitle = datatable->querySubObject("Cell(int, int)", 1, 2)->querySubObject("Range");
-    rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-    rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-    rangeTitle->dynamicCall("SetText(QString)", "测量地点：     北纬：         东经：         ");
-
-    rangeTitle = datatable->querySubObject("Cell(int, int)", 2, 1)->querySubObject("Range");
-    rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-    rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-    rangeTitle->dynamicCall("SetText(QString)", "环境条件");
-
-    rangeTitle = datatable->querySubObject("Cell(int, int)", 2, 2)->querySubObject("Range");
-    rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-    rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-    rangeTitle->dynamicCall("SetText(QString)", "天气状况：  温度：  湿度：  ");
-
-    rangeTitle = datatable->querySubObject("Cell(int, int)", 2, 3)->querySubObject("Range");
-    rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-    rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-    rangeTitle->dynamicCall("SetText(QString)", "测量仪器");
-
-    rangeTitle = datatable->querySubObject("Cell(int, int)", 3, 1)->querySubObject("Range");
-    rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-    rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-    rangeTitle->dynamicCall("SetText(QString)", "中频带宽");
-
-    rangeTitle = datatable->querySubObject("Cell(int, int)", 3, 3)->querySubObject("Range");
-    rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-    rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-    rangeTitle->dynamicCall("SetText(QString)", "检波方式");
-
-    rangeTitle = datatable->querySubObject("Cell(int, int)", rowCnt + 5, 1)->querySubObject("Range");
-    rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-    rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-    rangeTitle->dynamicCall("SetText(QString)", "测量人员");
-
-    for (int col = 0; col < colCnt; ++col)
-    {
-        auto rangeTitle = datatable->querySubObject("Cell(int, int)", 4, col + 1)->querySubObject("Range");
-        rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-        rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-        rangeTitle->dynamicCall("SetText(QString)", HEADER_LABEL_DISTURB_NOISE[col]);
-    }
-    for (int row = 0; row < rowCnt; ++row)
-    {
-        for (int col = 0; col < colCnt; ++col)
-        {
-            auto item = index(row, col);
-            if (item.isValid())
-            {
-                auto rangeTitle = datatable->querySubObject("Cell(int, int)", row + 5, col + 1)->querySubObject("Range");
-                rangeTitle->querySubObject("ParagraphFormat")->setProperty("Alignment", "wdAlignParagraphCenter");
-                rangeTitle->querySubObject("Font")->setProperty("Size", 10.5);
-                rangeTitle->dynamicCall("SetText(QString)", data(item));
-            }
-        }
-    }
-    return true;
-}
-

@@ -6,7 +6,7 @@
 #include <QDateTime>
 #include <mutex>
 #include "StructNetData.h"
-#include "inc/WBSignalDetectModel.h"
+#include "SignalDetect/WBSignalDetectModel.h"
 
 struct PulseInfo
 {
@@ -54,6 +54,9 @@ class PulseDetectModel: public WBSignalDetectModel
 public:
     explicit PulseDetectModel(QObject* = nullptr);
     void replace(Pulse*, int);
+    int rowCount(const QModelIndex& = QModelIndex()) const override;
+    bool setData(const QModelIndex&, const QVariant&, int = Qt::EditRole) override;
+    QVariant data(const QModelIndex&, int = Qt::DisplayRole) const override;
     QVariant headerData(int, Qt::Orientation, int = Qt::DisplayRole) const override;
     int columnCount(const QModelIndex& = QModelIndex()) const override;
     Qt::ItemFlags flags(const QModelIndex&) const override;
@@ -63,6 +66,7 @@ public slots:
 
 protected:
     std::map<long long, PulseInfo> m_Pulse;
+    std::vector<std::vector<QVariant>> m_DisplayData;
 
 private:
     static constexpr const char* HEADER_LABEL[] = { "频率(MHz)", "脉幅(dBm)", "脉宽(us)", "时间" };

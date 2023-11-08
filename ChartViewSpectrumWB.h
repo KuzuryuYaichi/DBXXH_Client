@@ -17,6 +17,7 @@ signals:
     void triggerTrack(double, double);
     void triggerMeasure(double);
     void triggerFM_Index(double);
+    void triggerRefStatus(short);
     void UpdateThreshold(float);
 
 protected:

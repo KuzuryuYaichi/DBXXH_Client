@@ -11,7 +11,6 @@
 #include "ChartViewWave.h"
 #include "ChartViewSpectrumNB.h"
 #include "ChartViewScatter.h"
-#include "Demodulate/FSKModule.h"
 #include "fftw-3.3.5-dll64/fftw3.h"
 
 template<int N>
@@ -40,7 +39,7 @@ public:
 
 signals:
     void triggerListening(int, bool);
-    void ParamsChanged(unsigned long long, unsigned int, unsigned int, unsigned int, unsigned int);
+    void ParamsChanged(unsigned long long, unsigned int, unsigned int, unsigned int, unsigned int, char);
 public slots:
     void changedListening(int, bool);
     void changedRecording();
@@ -53,23 +52,24 @@ protected:
     bool CheckStorage();
     void Record(unsigned char* const);
     void ParamsChange();
+    void ChangeDigitDemodRate();
 
     fftw_complex* inR, * outR;
     fftw_plan planR;
     std::unique_ptr<unsigned char[]> AmplData;
-    QLabel* LblFSK, *LblDQPSK, *LblDepthAM, *DepthAM;
-    QDoubleSpinBox* RateEditFSK, *RateEditDQPSK;
-    QComboBox* demodBox;
+    QLabel* LblFSK, *LblDQPSK, *LblDepthAM, *DepthAM, *LblMute, *LblCW;
+    QComboBox* demodBox, *RateBoxFSK, *RateBoxDQPSK;
     QPushButton* playBtn, *showWaveBtn;
     QPushButton* recordBtn;
     QSpinBox* cwEdit;
+    QSlider* TruncateSlider;
     bool recording = false;
     QFile file;
     std::mutex fileLock;
     int index;
     double RecordThreshold = MAX_AMPL;
     bool showWave = true;
-    FSKModule fskDemod;
+    QCheckBox* Tmp_Chk;
 
     enum SHOW_MODE
     {
@@ -92,6 +92,9 @@ protected:
         FSK,
         PSK
     };
+private:
+    static constexpr int REFRESH_INTERVAL = 150;
+    bool ready = true;
 };
 
 #endif // CHARTWIDGETNB_H

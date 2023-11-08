@@ -132,10 +132,10 @@ void TcpSocket::write()
     }
 }
 
-void TcpSocket::self_check(const unsigned int mode)
+void TcpSocket::self_check()
 {
     char tmp[100];
-    std::sprintf(tmp, "Task:%d;Type:0101;SCheck:%d\r\n", task_id, mode);
+    std::sprintf(tmp, "Task:%d;Type:0101;\r\n", task_id);
     write(std::make_unique<NetCmdData>(tmp));
 }
 
@@ -155,12 +155,12 @@ void TcpSocket::wb_parameter_set()
     write(std::make_unique<NetCmdData>(tmp));
 }
 
-void TcpSocket::nb_parameter_set(const unsigned int receiver, const unsigned int channel, const unsigned int freq,
-    const unsigned int bandwidth, const unsigned int demodType, const unsigned int cw, const unsigned int RatePSK)
+void TcpSocket::nb_parameter_set(const unsigned int receiver, const unsigned int channel, const unsigned int freq, const unsigned int bandwidth,
+                                const unsigned int demodType, const unsigned int cw, const unsigned int RatePSK, const unsigned char Truncate)
 {
     char tmp[200];
-    std::sprintf(tmp, "Task:%d;Type:0411;RcvNum:%d;BankNum:%d;DemodType:%d;DDCBW:%d;Freq:%d;CW:%d;PSK:%d\r\n",
-                 task_id, receiver, channel, demodType, bandwidth, freq, cw, RatePSK);
+    std::sprintf(tmp, "Task:%d;Type:0411;RcvNum:%d;BankNum:%d;DemodType:%d;DDCBW:%d;Freq:%d;CW:%d;PSK:%d;FM_Truncate:%d\r\n",
+                 task_id, receiver, channel, demodType, bandwidth, freq, cw, RatePSK, Truncate);
     write(std::make_unique<NetCmdData>(tmp));
 }
 

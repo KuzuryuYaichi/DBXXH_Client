@@ -3,13 +3,13 @@
 
 #include <QWidget>
 
-#include "../inc/SignalDetectTableView.h"
-#include "../inc/DisturbNoiseTableView.h"
-#include "../inc/ManMadeNoiseTableView.h"
-#include "../inc/SignalNoiseModel.h"
+#include "SignalDetect/SignalDetectTableView.h"
+#include "SignalDetect/DisturbNoiseTableView.h"
+#include "SignalDetect/ManMadeNoiseTableView.h"
+#include "SignalDetect/SignalNoiseModel.h"
 #include "PulseDetectTableView.h"
-#include "../inc/PopupParamDialog.h"
-#include "../inc/TypicalFreqDialog.h"
+#include "SignalDetect/PopupParamDialog.h"
+#include "SignalDetect/TypicalFreqDialog.h"
 #include "CommonInfoDialog.h"
 #include "ResistivityDialog.h"
 #include "ConductivityDialog.h"
@@ -26,11 +26,8 @@ protected:
     bool GenerateExcelResistivityTable(const CommonInfoSet&, const ResistivitySet&);
     bool GenerateExcelConductivityTable(const CommonInfoSet&, const ConductivitySet&);
 
-//signals:
-//    //记录开始检测时间
-//    void startDetect();
-//    //记录最终完成检测时间
-//    void stopDetect();
+signals:
+    void DetectSwitch(bool);
 
 private:
     void setupUi();
@@ -42,7 +39,6 @@ private:
     PulseDetectTableView* m_pPulseDetectTable;
     PopupParamDialog* m_pPopupParamDialog;
     TypicalFreqDialog* m_pTypicalFreqDialog;
-    ParamSet m_DetectParam;
     CommonInfoDialog *m_CommonInfoDialog;
     CommonInfoSet m_CommonInfo;
     ResistivityDialog *m_ResistivityDialog;
@@ -55,6 +51,7 @@ private:
     QPushButton *pushButton_ExportLegal;
     QPushButton *pushButton_cleanAllData;
     QPushButton *pushButton_setLegalFreq;
+    QPushButton *pushButton_setRemark;
     QPushButton *pushButton_CommonInfo;
     QPushButton *pushButton_GenerateSignalDetect;
     QPushButton *pushButton_GenerateDisturbSignal;
@@ -62,6 +59,7 @@ private:
     QPushButton *pushButton_GenerateResistivity;
     QPushButton *pushButton_GenerateConductivity;
     QPushButton *pushButton_GenerateElecEnvReport;
+    QPushButton *pushButton_Detect;
 
     static constexpr char REPORT_NAME[] = "电磁环境测试报告";
 };

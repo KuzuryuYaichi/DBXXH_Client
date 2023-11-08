@@ -32,7 +32,6 @@ private:
     QButtonGroup* RfGainModeGroup;
     QDoubleSpinBox *RfGainEdit;
     QDoubleSpinBox *DigitGainEdit;
-    QLineEdit *LmValEdit;
     QButtonGroup *FeedbackGroup;
     QComboBox *freqResBox;
     QComboBox *smoothBox;
