@@ -40,8 +40,7 @@ void ChartViewAfterglow::replace(unsigned char* const buf)
     {
         SpectrumSeries[(SeriesIndex + SERIES_SIZE) % SERIES_SIZE]->setPen(QPen(QColor(0, 0, 255, 255 * (SERIES_SIZE - i) / SERIES_SIZE)));
     }
-    QCPRange range(param->StartFreq / 1e6, param->StopFreq / 1e6);
-    xRangeChanged(range);
+    xRangeChanged({ param->StartFreq / 1e6, param->StopFreq / 1e6 });
     if (--SeriesIndex < 0)
         SeriesIndex = SERIES_SIZE - 1;
     replot(QCustomPlot::rpQueuedReplot);

@@ -65,16 +65,7 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
         TracerText[i]->position->setParentAnchor(TracerMarker[i]->position);
         TracerText[i]->setVisible(false);
     }
-
     BandwidthSeries->setVisible(false);
-
-    InitMenu();
-    setContextMenuPolicy(Qt::CustomContextMenu);
-    connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
-        if (MenuAppear)
-            menu->popup(mapToGlobal(pos));
-        MenuAppear = true;
-    });
 
     connect(this, &QCustomPlot::mouseMove, this, [this](QMouseEvent *event) {
         UpdateTrack(event);
@@ -108,10 +99,6 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
             LeftButtonPress = true;
             break;
         }
-        case MARK:
-        {
-            break;
-        }
         default: return;
         }
         replot();
@@ -120,12 +107,6 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
     connect(this, &QCustomPlot::mouseRelease, this, [this](QMouseEvent *event) {
         if (event->button() & Qt::RightButton && DisplayState != NORMAL)
         {
-            if (DisplayState == MARK)
-            {
-                tracer->setVisible(false);
-                tracer = TracerNormal;
-                tracer->setVisible(true);
-            }
             DisplayState = NORMAL;
             MenuAppear = false;
         }
@@ -150,21 +131,13 @@ ChartViewSpectrumWB::ChartViewSpectrumWB(QString title, double AXISX_MIN, double
                 LeftButtonPress = false;
                 break;
             }
-            case MARK:
-            {
-                if (event->button() & Qt::RightButton)
-                {
-                    tracer->setVisible(false);
-                }
-                tracer = TracerNormal;
-                DisplayState = NORMAL;
-                break;
-            }
             default: return;
             }
         }
         replot();
     });
+
+    InitMenu();
 }
 
 void ChartViewSpectrumWB::replace(unsigned char* const buf)
@@ -203,8 +176,7 @@ void ChartViewSpectrumWB::replace(unsigned char* const buf)
         MaxKeepSeries->setData(amplx, pointsMax, true);
     if (MinKeepSelect)
         MinKeepSeries->setData(amplx, pointsMin, true);
-    QCPRange range(param->StartFreq / 1e6, param->StopFreq / 1e6);
-    xRangeChanged(range);
+    xRangeChanged({ param->StartFreq / 1e6, param->StopFreq / 1e6 });
     replot(QCustomPlot::rpQueuedReplot);
 }
 
@@ -231,10 +203,11 @@ void ChartViewSpectrumWB::InitMenu()
         auto action = new QAction(QIcon(pixmap), tr("Marker %1").arg(i + 1));
         addMenu->addAction(action);
         connect(action, &QAction::triggered, this, [this, i] {
-            DisplayState = MARK;
+            TracerMarker[i]->setGraphKey(TracerNormal->position->key());
+            TracerMarker[i]->setInterpolating(true);
+            TracerMarker[i]->setGraph(SpectrumSeries);
             TracerMarker[i]->setVisible(true);
             TracerText[i]->setVisible(true);
-            tracer = TracerMarker[i];
         });
     }
     auto removeMenu = new QMenu(tr("Delete"));
@@ -246,10 +219,8 @@ void ChartViewSpectrumWB::InitMenu()
         auto action = new QAction(QIcon(pixmap), tr("Marker %1").arg(i + 1));
         removeMenu->addAction(action);
         connect(action, &QAction::triggered, this, [this, i] {
-            DisplayState = NORMAL;
             TracerMarker[i]->setVisible(false);
             TracerText[i]->setVisible(false);
-            tracer = TracerNormal;
         });
     }
 
@@ -267,6 +238,27 @@ void ChartViewSpectrumWB::InitMenu()
         TrackSeries->setVisible(false);
         FM_IndexSeries->setVisible(true);
         DisplayState = FM_INDEX;
+    });
+
+    auto freqMenu = new QMenu(tr("NB"));
+    menu->addMenu(freqMenu);
+    for (int ch = 0; ch < ZC_NB_CHANNEL_NUMS; ++ch)
+    {
+        auto action = new QAction(tr("NB%1").arg(ch > 0? QString::number(ch): ""));
+        freqMenu->addAction(action);
+        connect(action, &QAction::triggered, this, [this, ch] {
+            auto x = TracerNormal->position->key();
+            if (!(xAxis->range().contains(x)))
+                return;
+            emit triggerFreqNB(ch, x);
+        });
+    }
+
+    setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(this, &QWidget::customContextMenuRequested, this, [this](QPoint pos) {
+        if (MenuAppear)
+            menu->popup(mapToGlobal(pos));
+        MenuAppear = true;
     });
 }
 

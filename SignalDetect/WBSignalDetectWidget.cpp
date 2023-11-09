@@ -139,7 +139,7 @@ void WBSignalDetectWidget::setupUi()
         }
         pushButton_setLegalFreq->setVisible(index == SIGNAL_DETECT_TABLE);
         pushButton_setRemark->setVisible(index == DISTURB_NOISE_TABLE);
-        pushButton_cleanAllData->setVisible(index != MAN_MADE_NOISE_TABLE);
+        pushButton_cleanAllData->setVisible(index == SIGNAL_DETECT_TABLE || index == DISTURB_NOISE_TABLE);
         m_pSignalDetectModel->UpdateData();
     });
 

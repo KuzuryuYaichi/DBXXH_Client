@@ -26,7 +26,6 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
     TracerNormal->setBrush(QBrush(Qt::black));
     TracerNormal->setStyle(QCPItemTracer::tsCircle);
     TracerNormal->setSize(8);
-    tracer = TracerNormal;
 
     connect(this, &QCustomPlot::mouseMove, this, [this](QMouseEvent *event) {
         UpdateTracer(event);
@@ -36,10 +35,10 @@ ChartViewSpectrum::ChartViewSpectrum(QString title, double AXISX_MIN, double AXI
 void ChartViewSpectrum::UpdateTracer(QMouseEvent *event)
 {
     auto x = xAxis->pixelToCoord(event->pos().x());
-    tracer->setGraphKey(x);
-    tracer->setInterpolating(true);
-    tracer->setGraph(SpectrumSeries);
-    double xValue = tracer->position->key();
-    double yValue = tracer->position->value();
-    QToolTip::showText(mapToGlobal(tracer->position->pixelPosition().toPoint()), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
+    TracerNormal->setGraphKey(x);
+    TracerNormal->setInterpolating(true);
+    TracerNormal->setGraph(SpectrumSeries);
+    double xValue = TracerNormal->position->key();
+    double yValue = TracerNormal->position->value();
+    QToolTip::showText(mapToGlobal(TracerNormal->position->pixelPosition().toPoint()), QString("%1MHz, %2dBm").arg(xValue, 0, 'f', DECIMALS_PRECISION).arg(yValue));
 }

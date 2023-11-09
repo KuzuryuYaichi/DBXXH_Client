@@ -98,7 +98,6 @@ void ChartViewSpectrumNB::replace(unsigned char* const buf, unsigned char* fft_d
     }
     SpectrumSeries->setData(amplx, amply);
     BandwidthSeries->setData({ mid_freq - HalfBandwidth, mid_freq - HalfBandwidth, mid_freq + HalfBandwidth, mid_freq + HalfBandwidth }, { MAX_AMPL, MIN_AMPL, MIN_AMPL, MAX_AMPL }, true);
-    QCPRange range(param->Frequency / 1e6 - HalfSpsBandwidth, param->Frequency / 1e6 + HalfSpsBandwidth);
-    xRangeChanged(range);
+    xRangeChanged({ param->Frequency / 1e6 - HalfSpsBandwidth, param->Frequency / 1e6 + HalfSpsBandwidth });
     replot(QCustomPlot::rpQueuedReplot);
 }

@@ -9,18 +9,19 @@
 #include "TcpSocket.h"
 #include "ChartWidgetNB.h"
 #include "ChartWidgetWB.h"
-#include "SignalDetect//WBSignalDetectWidget.h"
+#include "SignalDetect/WBSignalDetectWidget.h"
 
 class MainWidget: public QWidget
 {
     Q_OBJECT
 public:
-    explicit MainWidget(TcpSocket*, ChartWidgetNB* chartNB, QWidget* = nullptr);
+    explicit MainWidget(TcpSocket*, ChartWidgetNB** chartNB, QWidget* = nullptr);
 
 signals:
     void connectToServer(QString, quint16);
 
 public:
+    ChartWidgetNB** chartNBs;
     ChartWidgetNB* chartNB;
     ChartWidgetWB* chartWB;
     WBSignalDetectWidget* wbSignalDetectWidget;

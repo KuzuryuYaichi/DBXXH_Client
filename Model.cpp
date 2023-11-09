@@ -10,7 +10,7 @@ Model::Model(QWidget *parent): QMainWindow(parent)
     socket = std::make_shared<TcpSocket>();
     setCentralWidget(m_tabWidget = new QTabWidget);
     m_tabWidget->addTab(m_channelWidget = new ChannelWidget(socket.get()), tr("NB"));
-    m_tabWidget->insertTab(0, m_mainWidget = new MainWidget(socket.get(), m_channelWidget->chartNB[0]), tr("WB"));
+    m_tabWidget->insertTab(0, m_mainWidget = new MainWidget(socket.get(), m_channelWidget->chartNB), tr("WB"));
     m_tabWidget->setCurrentIndex(0);
 
     statusTimer = new QTimer;

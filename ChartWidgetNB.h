@@ -32,12 +32,14 @@ public:
     ~ChartWidgetNB();
     virtual void ChangeMode(int) override;
     virtual void replace(const std::shared_ptr<unsigned char[]>&) override;
+    void ChangeFreq(double);
     ChartViewWave* chartWave;
     ChartViewSpectrumNB* chartSpectrum;
     ChartViewScatter* chartScatter;
     bool playing = false;
 
 signals:
+    void triggerDepthAM(unsigned short, unsigned short);
     void triggerListening(int, bool);
     void ParamsChanged(unsigned long long, unsigned int, unsigned int, unsigned int, unsigned int, char);
 public slots:

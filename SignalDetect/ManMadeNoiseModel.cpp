@@ -400,7 +400,6 @@ bool ManMadeNoiseModel::Intersects(const QLineF& lineA, const QLineF& lineB, QPo
 void ManMadeNoiseModel::AddResult(QAxObject* range, const std::vector<std::pair<int, double>>& avgAmpValue)
 {
     std::vector<std::pair<double, int>> intersections;
-    QString Result;
     for (auto point = 1; point < SAMPLE_POINTS; ++point)
     {
         for (auto level = 1; level < LEVEL_LENGTH; ++level)
@@ -420,14 +419,21 @@ void ManMadeNoiseModel::AddResult(QAxObject* range, const std::vector<std::pair<
     {
         auto& [freq1, level1] = intersections[i - 1];
         auto& [freq2, level2] = intersections[i];
-        if (level1 < level2)
-            level_analyze[level1] += freq2 - freq1;
-        else
-            level_analyze[level2] += freq2 - freq1;
+        level_analyze[level1 < level2? level1: level2] += freq2 - freq1;
     }
     auto level = std::max_element(level_analyze, level_analyze + LEVEL_LENGTH) - level_analyze;
-    Result += QString("背景噪声位于%2%3级别\n").arg(level == 1? "银河": POSITION_LEVEL[level - 1]).arg(level == LEVEL_LENGTH? "": QString("到%1").arg(POSITION_LEVEL[level]));
-    range->querySubObject("InsertAfter(QVariant)", Result);
+    if (level == 0)
+    {
+        for (auto point = 0; point < SAMPLE_POINTS; ++point)
+        {
+            for (level = LEVEL_LENGTH - 1; level > 0; --level)
+            {
+                if (fa[0][point] > fa[level][point])
+                    break;
+            }
+        }
+    }
+    range->querySubObject("InsertAfter(QVariant)", QString("背景噪声位于%1级别\n").arg(POSITION_LEVEL[level]));
 }
 
 void ManMadeNoiseModel::AddSeries(QAxObject* chart, const std::vector<std::pair<int, double>>& avgAmpValue)

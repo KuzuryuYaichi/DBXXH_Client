@@ -11,7 +11,7 @@
 
 extern PARAMETER_SET g_parameter_set;
 
-MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* parent): QWidget(parent), chartNB(chartNB), m_socket(socket)
+MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB** chartNBs, QWidget* parent): QWidget(parent), chartNBs(chartNBs), chartNB(chartNBs[0]), m_socket(socket)
 {
     auto doaLayout = new QVBoxLayout(zcWidget = new QWidget);
     auto hBoxLayout = new QHBoxLayout;
@@ -27,6 +27,9 @@ MainWidget::MainWidget(TcpSocket* socket, ChartWidgetNB* chartNB, QWidget* paren
     });
     connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerRefStatus, this, [this](short mode) {
         this->RefStatusLbl->setText(mode? tr("Inner"): tr("Outer"));
+    });
+    connect(chartWB->chartSpectrum, &ChartViewSpectrumWB::triggerFreqNB, this, [this](int channel, double freq) {
+        this->chartNBs[channel]->ChangeFreq(freq);
     });
     //    connect(m_socket, &TcpSocket::sendSocketStatus, statusEdit, &SideWidget::updateStatus);
 

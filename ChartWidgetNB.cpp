@@ -185,6 +185,15 @@ ChartWidgetNB::ChartWidgetNB(QString title, int index, QWidget* parent): ChartWi
 
     hBoxLayout->addWidget(Tmp_Chk = new QCheckBox());
 
+    connect(this, &ChartWidgetNB::triggerDepthAM, this, [this](unsigned short AM_DC, unsigned short AM_DataMax) {
+        if (AM_DC != 0)
+        {
+            auto depth = (char)(100.0 * AM_DataMax / AM_DC);
+            if (depth >= 0 && depth <= 100)
+                DepthAM->setText(QString::number(depth));
+        }
+    });
+
     AmplData = std::make_unique<unsigned char[]>(DDC_LEN);
     inR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
     outR = (fftw_complex*)fftw_malloc(sizeof(fftw_complex) * DDC_LEN);
@@ -196,6 +205,13 @@ ChartWidgetNB::~ChartWidgetNB()
     fftw_destroy_plan(planR);
     fftw_free(inR);
     fftw_free(outR);
+    qDebug() << "~ChartWidgetNB()" << index;
+}
+
+void ChartWidgetNB::ChangeFreq(double freq)
+{
+    freqEdit->setValue(freq);
+    ParamsChange();
 }
 
 void ChartWidgetNB::ChangeDigitDemodRate()
@@ -360,7 +376,6 @@ bool ChartWidgetNB::CheckStorage()
     {
         if (Path.contains(storage.rootPath()))
         {
-            qDebug() << storage.rootPath() << " " << storage.bytesAvailable();
             if (storage.bytesAvailable() < Threshold)
                 return false;
         }
@@ -488,20 +503,12 @@ void ChartWidgetNB::replace(const std::shared_ptr<unsigned char[]>& data)
     }
     chartWaterfall->replace(buf, AmplData.get());
 
-    if (!ready)
+    if (!ready || param->DataType != AM)
         return;
     ready = false;
 
-    std::thread([this, data] {
-        QTimer::singleShot(0, this, [this, data] {
-            auto param = (StructNBWave*)(data.get() + sizeof(DataHead));
-            if (param->DataType == AM && param->AM_DC != 0)
-            {
-                auto depth = (char)(100.0 * param->AM_DataMax / param->AM_DC);
-                if (depth >= 0 && depth <= 100)
-                    DepthAM->setText(QString::number(depth));
-            }
-        });
+    std::thread([this, AM_DC = param->AM_DC, AM_DataMax = param->AM_DataMax] {
+        emit triggerDepthAM(AM_DC, AM_DataMax);
         std::this_thread::sleep_for(std::chrono::milliseconds(REFRESH_INTERVAL));
         ready = true;
     }).detach();

@@ -18,7 +18,7 @@ signals:
     void triggerMeasure(double);
     void triggerFM_Index(double);
     void triggerRefStatus(short);
-    void UpdateThreshold(float);
+    void triggerFreqNB(int, double);
 
 protected:
     QCPGraph *MaxKeepSeries, *MinKeepSeries, *TrackSeries, *FM_IndexSeries;
@@ -41,7 +41,6 @@ protected:
     void InitMenu();
     enum DISPLAY {
         NORMAL,
-        MARK,
         FM_INDEX,
         TRACK
     } DisplayState = NORMAL;

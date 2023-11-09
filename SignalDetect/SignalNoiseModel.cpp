@@ -203,10 +203,10 @@ void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned l
             MaxAddr = index;
             break;
         }
-        if (MaxAddr == 0) //找不到最大点了就可以退出了
+        if (MaxAddr == 0)
             break;
         static constexpr auto AMPL_THRESHOLD = 15;
-        //TODO: 是否需要处理两个波峰过于接近，导致没能在右侧找到6dB边界的情况？
+        //TODO: 是否需要处理两个波峰过于接近，导致没能在右侧找到6dB边界的情况
         for (auto index = MaxAddr; index < length - 1; ++index) //处理出现未找到6dB右边界的情况且包络走势出现上扬的趋势时直接作为右边界
         {
             RightAddr = index;
@@ -221,11 +221,11 @@ void SignalNoiseModel::findPeakCyclically(Ipp32f* FFtAvg, int length, unsigned l
         }
         auto step = (double)BandWidth / length;
         Ipp32f SignalPower;
-        ippsMean_32f(&FFtAvg[LeftAddr], RightAddr - LeftAddr + 1, &SignalPower, ippAlgHintFast); //获取信号平均功率
+        ippsMean_32f(FFtAvg + LeftAddr, RightAddr - LeftAddr + 1, &SignalPower, ippAlgHintFast); //获取信号平均功率
         Ipp32f NoiseLeftPower;
         ippsMean_32f(FFtAvg, LeftAddr, &NoiseLeftPower, ippAlgHintFast); //获取噪声平均功率
         Ipp32f NoiseRightPower;
-        ippsMean_32f(&FFtAvg[RightAddr], length - RightAddr, &NoiseRightPower, ippAlgHintFast);
+        ippsMean_32f(FFtAvg + RightAddr, length - RightAddr, &NoiseRightPower, ippAlgHintFast);
         totalIndex = RightAddr + 1; //更新次回处理起点
         m_lstSignalInfo.emplace_back(SignalBaseChar(StartFreq + step * (RightAddr + LeftAddr) / 2, (RightAddr - LeftAddr) * step),
                                      SignalInfo(SignalPower - (NoiseRightPower + NoiseLeftPower) / 2, FFtMax));
